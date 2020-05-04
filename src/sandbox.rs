@@ -41,7 +41,9 @@ impl Sandbox {
                                         }
                                         // Else move 1 down and left if able
                                         if x != 0 {
-                                            if self.cells[x - 1][y + 1].is_none() {
+                                            if self.cells[x - 1][y + 1].is_none()
+                                                && self.cells[x - 1][y].is_none()
+                                            {
                                                 self.cells[x - 1][y + 1] = self.cells[x][y].take();
                                                 new_particle_position = Some((x - 1, y + 1));
                                                 break;
@@ -49,7 +51,9 @@ impl Sandbox {
                                         }
                                         // Else move 1 down and right if able
                                         if x != SIMULATION_WIDTH - 1 {
-                                            if self.cells[x + 1][y + 1].is_none() {
+                                            if self.cells[x + 1][y + 1].is_none()
+                                                && self.cells[x + 1][y].is_none()
+                                            {
                                                 self.cells[x + 1][y + 1] = self.cells[x][y].take();
                                                 new_particle_position = Some((x + 1, y + 1));
                                                 break;
@@ -67,7 +71,9 @@ impl Sandbox {
                                         }
                                         // Else move 1 down and left if able
                                         if x != 0 {
-                                            if self.cells[x - 1][y + 1].is_none() {
+                                            if self.cells[x - 1][y + 1].is_none()
+                                                && self.cells[x - 1][y].is_none()
+                                            {
                                                 self.cells[x - 1][y + 1] = self.cells[x][y].take();
                                                 new_particle_position = Some((x - 1, y + 1));
                                                 break;
@@ -75,36 +81,26 @@ impl Sandbox {
                                         }
                                         // Else move 1 down and right if able
                                         if x != SIMULATION_WIDTH - 1 {
-                                            if self.cells[x + 1][y + 1].is_none() {
+                                            if self.cells[x + 1][y + 1].is_none()
+                                                && self.cells[x + 1][y].is_none()
+                                            {
                                                 self.cells[x + 1][y + 1] = self.cells[x][y].take();
                                                 new_particle_position = Some((x + 1, y + 1));
                                                 break;
                                             }
                                         }
                                     }
-                                    // Else move left if able and a particle exists below, or if at the bottom of the screen
+                                    // Else move left if able
                                     if x != 0 {
-                                        if self.cells[x - 1][y].is_none()
-                                            && if y == SIMULATION_HEIGHT - 1 {
-                                                true
-                                            } else {
-                                                self.cells[x - 1][y + 1].is_some()
-                                            }
-                                        {
+                                        if self.cells[x - 1][y].is_none() {
                                             self.cells[x - 1][y] = self.cells[x][y].take();
                                             new_particle_position = Some((x - 1, y));
                                             break;
                                         }
                                     }
-                                    // Else move right if able and a particle exists below, or if at the bottom of the screen
+                                    // Else move right if able
                                     if x != SIMULATION_WIDTH - 1 {
-                                        if self.cells[x + 1][y].is_none()
-                                            && if y == SIMULATION_HEIGHT - 1 {
-                                                true
-                                            } else {
-                                                self.cells[x + 1][y + 1].is_some()
-                                            }
-                                        {
+                                        if self.cells[x + 1][y].is_none() {
                                             self.cells[x + 1][y] = self.cells[x][y].take();
                                             new_particle_position = Some((x + 1, y));
                                             break;
