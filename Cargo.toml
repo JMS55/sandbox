@@ -1,0 +1,9 @@
+[package]
+name = "sandbox"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+pixels = "0.0"
+winit = "0.22"
+rand = "0.7"
