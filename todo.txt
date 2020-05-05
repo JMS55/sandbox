@@ -1,22 +1,25 @@
 1. Fix particles
-    * Acid/Water is still behaving weird
+    * Acid/Water is still behaving weird (this can be fixed by not updating in reverse, but that has other tradeoffs)
     * Change to: First check which directions able to move in, then randomize left vs right
-2. Split Sandbox::update() into smaller functions
-3. Replace fixed movement with velocity, mass, and acceleration
+
+2. Replace fixed movement with velocity, mass, and acceleration
     * Three passes
     1. First, each particle goes through and gets gravity applied to them, other forces from other particles, and extra movement to simulate liquids/sand/etc
     2. Then, go through and move everything
     3. Apply interactions between touching particles
-4. More particle types
+3. More particle types
     * WetSand - Formed by sand touching water, removes the water
     * Quantum "portal" particles
     * Muti-particle structures
     * Water pressure
-5. Better random noise
+4. Better random noise
     * Sample a distribution to be faster, and look better
 
 
 5. Figure out why line drawing sometimes leaves gaps
-6. Deal with window resizes
-7 GUI
-8. Wasm
+6. Fix hidpi handling, deal with the black border
+7. Deal with window resizes
+
+
+8 GUI
+9. Wasm

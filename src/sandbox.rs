@@ -3,14 +3,14 @@ use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
 
 pub struct Sandbox {
-    pub cells: [[Option<Particle>; SIMULATION_HEIGHT]; SIMULATION_WIDTH],
+    pub cells: Vec<Vec<Option<Particle>>>,
     rng: ThreadRng,
 }
 
 impl Sandbox {
     pub fn new() -> Self {
         Self {
-            cells: [[None; SIMULATION_HEIGHT]; SIMULATION_WIDTH],
+            cells: vec![vec![None; SIMULATION_HEIGHT]; SIMULATION_WIDTH],
             rng: thread_rng(),
         }
     }
@@ -19,7 +19,7 @@ impl Sandbox {
         for x in 0..SIMULATION_WIDTH {
             for y in 0..SIMULATION_HEIGHT {
                 if let Some(particle) = &mut self.cells[x][y] {
-                    particle.updated = false;
+                    particle.moved = false;
                 }
             }
         }
@@ -27,93 +27,21 @@ impl Sandbox {
         for x in (0..SIMULATION_WIDTH).rev() {
             for y in (0..SIMULATION_HEIGHT).rev() {
                 if let Some(particle) = &self.cells[x][y] {
-                    if !particle.updated {
-                        let mut new_particle_position = Some((x, y));
-                        loop {
-                            match particle.ptype {
-                                ParticleType::Sand => {
-                                    if y != SIMULATION_HEIGHT - 1 {
-                                        // Move 1 down if able
-                                        if self.cells[x][y + 1].is_none() {
-                                            self.cells[x][y + 1] = self.cells[x][y].take();
-                                            new_particle_position = Some((x, y + 1));
-                                            break;
-                                        }
-                                        // Else move 1 down and left if able
-                                        if x != 0 {
-                                            if self.cells[x - 1][y + 1].is_none()
-                                                && self.cells[x - 1][y].is_none()
-                                            {
-                                                self.cells[x - 1][y + 1] = self.cells[x][y].take();
-                                                new_particle_position = Some((x - 1, y + 1));
-                                                break;
-                                            }
-                                        }
-                                        // Else move 1 down and right if able
-                                        if x != SIMULATION_WIDTH - 1 {
-                                            if self.cells[x + 1][y + 1].is_none()
-                                                && self.cells[x + 1][y].is_none()
-                                            {
-                                                self.cells[x + 1][y + 1] = self.cells[x][y].take();
-                                                new_particle_position = Some((x + 1, y + 1));
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                                ParticleType::Water | ParticleType::Acid => {
-                                    if y != SIMULATION_HEIGHT - 1 {
-                                        // Move 1 down if able
-                                        if self.cells[x][y + 1].is_none() {
-                                            self.cells[x][y + 1] = self.cells[x][y].take();
-                                            new_particle_position = Some((x, y + 1));
-                                            break;
-                                        }
-                                        // Else move 1 down and left if able
-                                        if x != 0 {
-                                            if self.cells[x - 1][y + 1].is_none()
-                                                && self.cells[x - 1][y].is_none()
-                                            {
-                                                self.cells[x - 1][y + 1] = self.cells[x][y].take();
-                                                new_particle_position = Some((x - 1, y + 1));
-                                                break;
-                                            }
-                                        }
-                                        // Else move 1 down and right if able
-                                        if x != SIMULATION_WIDTH - 1 {
-                                            if self.cells[x + 1][y + 1].is_none()
-                                                && self.cells[x + 1][y].is_none()
-                                            {
-                                                self.cells[x + 1][y + 1] = self.cells[x][y].take();
-                                                new_particle_position = Some((x + 1, y + 1));
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    // Else move left if able
-                                    if x != 0 {
-                                        if self.cells[x - 1][y].is_none() {
-                                            self.cells[x - 1][y] = self.cells[x][y].take();
-                                            new_particle_position = Some((x - 1, y));
-                                            break;
-                                        }
-                                    }
-                                    // Else move right if able
-                                    if x != SIMULATION_WIDTH - 1 {
-                                        if self.cells[x + 1][y].is_none() {
-                                            self.cells[x + 1][y] = self.cells[x][y].take();
-                                            new_particle_position = Some((x + 1, y));
-                                            break;
-                                        }
-                                    }
-                                }
-                                ParticleType::Iridium => {}
+                    if !particle.moved {
+                        let mut new_particle_position = (x, y);
+                        match particle.ptype {
+                            ParticleType::Sand => {
+                                new_particle_position = self.move_sand(x, y);
                             }
-                            break;
+                            ParticleType::Water | ParticleType::Acid => {
+                                new_particle_position = self.move_liquid(x, y);
+                            }
+                            ParticleType::Iridium => {}
                         }
-                        if let Some((x, y)) = new_particle_position {
-                            self.cells[x][y].as_mut().unwrap().updated = true;
-                        }
+                        self.cells[new_particle_position.0][new_particle_position.1]
+                            .as_mut()
+                            .unwrap()
+                            .moved = true;
                     }
                 }
             }
@@ -121,51 +49,7 @@ impl Sandbox {
 
         for x in (0..SIMULATION_WIDTH).rev() {
             for y in (0..SIMULATION_HEIGHT).rev() {
-                if let Some(particle1) = &self.cells[x][y] {
-                    if particle1.ptype != ParticleType::Acid
-                        && particle1.ptype != ParticleType::Iridium
-                    {
-                        loop {
-                            if y != SIMULATION_HEIGHT - 1 {
-                                if let Some(particle2) = self.cells[x][y + 1] {
-                                    if particle2.ptype == ParticleType::Acid {
-                                        self.cells[x][y] = None;
-                                        self.cells[x][y + 1] = None;
-                                        break;
-                                    }
-                                }
-                            }
-                            if x != SIMULATION_WIDTH - 1 {
-                                if let Some(particle2) = self.cells[x + 1][y] {
-                                    if particle2.ptype == ParticleType::Acid {
-                                        self.cells[x][y] = None;
-                                        self.cells[x + 1][y] = None;
-                                        break;
-                                    }
-                                }
-                            }
-                            if y != 0 {
-                                if let Some(particle2) = self.cells[x][y - 1] {
-                                    if particle2.ptype == ParticleType::Acid {
-                                        self.cells[x][y] = None;
-                                        self.cells[x][y - 1] = None;
-                                        break;
-                                    }
-                                }
-                            }
-                            if x != 0 {
-                                if let Some(particle2) = self.cells[x - 1][y] {
-                                    if particle2.ptype == ParticleType::Acid {
-                                        self.cells[x][y] = None;
-                                        self.cells[x - 1][y] = None;
-                                        break;
-                                    }
-                                }
-                            }
-                            break;
-                        }
-                    }
-                }
+                self.update_acid(x, y);
             }
         }
     }
@@ -204,19 +88,134 @@ impl Sandbox {
             }
         }
     }
+
+    fn move_sand(&mut self, x: usize, y: usize) -> (usize, usize) {
+        if y != SIMULATION_HEIGHT - 1 {
+            // Move 1 down if able
+            if self.cells[x][y + 1].is_none() {
+                self.cells[x][y + 1] = self.cells[x][y].take();
+                return (x, y + 1);
+            }
+            // Else move 1 down and left if able
+            if x != 0 {
+                if self.cells[x - 1][y + 1].is_none() && self.cells[x - 1][y].is_none() {
+                    self.cells[x - 1][y + 1] = self.cells[x][y].take();
+                    return (x - 1, y + 1);
+                }
+            }
+            // Else move 1 down and right if able
+            if x != SIMULATION_WIDTH - 1 {
+                if self.cells[x + 1][y + 1].is_none() && self.cells[x + 1][y].is_none() {
+                    self.cells[x + 1][y + 1] = self.cells[x][y].take();
+                    return (x + 1, y + 1);
+                }
+            }
+        }
+        (x, y)
+    }
+
+    fn move_liquid(&mut self, x: usize, y: usize) -> (usize, usize) {
+        if y != SIMULATION_HEIGHT - 1 {
+            // Move 1 down if able
+            if self.cells[x][y + 1].is_none() {
+                self.cells[x][y + 1] = self.cells[x][y].take();
+                return (x, y + 1);
+            }
+            // Else move 1 down and left if able
+            if x != 0 {
+                if self.cells[x - 1][y + 1].is_none() && self.cells[x - 1][y].is_none() {
+                    self.cells[x - 1][y + 1] = self.cells[x][y].take();
+                    return (x - 1, y + 1);
+                }
+            }
+            // Else move 1 down and right if able
+            if x != SIMULATION_WIDTH - 1 {
+                if self.cells[x + 1][y + 1].is_none() && self.cells[x + 1][y].is_none() {
+                    self.cells[x + 1][y + 1] = self.cells[x][y].take();
+                    return (x + 1, y + 1);
+                }
+            }
+        }
+        // Else move left if able
+        if x != 0 {
+            if self.cells[x - 1][y].is_none() {
+                self.cells[x - 1][y] = self.cells[x][y].take();
+                return (x - 1, y);
+            }
+        }
+        // Else move right if able
+        if x != SIMULATION_WIDTH - 1 {
+            if self.cells[x + 1][y].is_none() {
+                self.cells[x + 1][y] = self.cells[x][y].take();
+                return (x + 1, y);
+            }
+        }
+        (x, y)
+    }
+
+    fn update_acid(&mut self, x: usize, y: usize) {
+        if let Some(particle1) = &self.cells[x][y] {
+            if particle1.ptype == ParticleType::Acid {
+                if y != SIMULATION_HEIGHT - 1 {
+                    if let Some(particle2) = &self.cells[x][y + 1] {
+                        if particle2.ptype != ParticleType::Acid
+                            && particle2.ptype != ParticleType::Iridium
+                        {
+                            self.cells[x][y] = None;
+                            self.cells[x][y + 1] = None;
+                            return;
+                        }
+                    }
+                }
+                if x != SIMULATION_WIDTH - 1 {
+                    if let Some(particle2) = &self.cells[x + 1][y] {
+                        if particle2.ptype != ParticleType::Acid
+                            && particle2.ptype != ParticleType::Iridium
+                        {
+                            self.cells[x][y] = None;
+                            self.cells[x + 1][y] = None;
+                            return;
+                        }
+                    }
+                }
+                if y != 0 {
+                    if let Some(particle2) = &self.cells[x][y - 1] {
+                        if particle2.ptype != ParticleType::Acid
+                            && particle2.ptype != ParticleType::Iridium
+                        {
+                            self.cells[x][y] = None;
+                            self.cells[x][y - 1] = None;
+                            return;
+                        }
+                    }
+                }
+                if x != 0 {
+                    if let Some(particle2) = &self.cells[x - 1][y] {
+                        if particle2.ptype != ParticleType::Acid
+                            && particle2.ptype != ParticleType::Iridium
+                        {
+                            self.cells[x][y] = None;
+                            self.cells[x - 1][y] = None;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[derive(Copy, Clone)]
 pub struct Particle {
     pub ptype: ParticleType,
-    pub updated: bool,
+    pub moved: bool,
 }
 
 impl Particle {
     pub fn new(ptype: ParticleType) -> Self {
         Self {
             ptype,
-            updated: false,
+            moved: false,
         }
     }
 }
