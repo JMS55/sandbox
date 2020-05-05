@@ -97,6 +97,9 @@ fn main() {
                             Some(VirtualKeyCode::I) => {
                                 selected_particle = Some(ParticleType::Iridium);
                             }
+                            Some(VirtualKeyCode::R) => {
+                                selected_particle = Some(ParticleType::Replicator);
+                            }
                             _ => {}
                         }
                     }

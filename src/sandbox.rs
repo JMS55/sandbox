@@ -37,6 +37,7 @@ impl Sandbox {
                                 new_particle_position = self.move_liquid(x, y);
                             }
                             ParticleType::Iridium => {}
+                            ParticleType::Replicator => {}
                         }
                         self.cells[new_particle_position.0][new_particle_position.1]
                             .as_mut()
@@ -50,6 +51,7 @@ impl Sandbox {
         for x in (0..SIMULATION_WIDTH).rev() {
             for y in (0..SIMULATION_HEIGHT).rev() {
                 self.update_acid(x, y);
+                self.update_replicator(x, y);
             }
         }
     }
@@ -65,10 +67,12 @@ impl Sandbox {
                         ParticleType::Water => (8, 130, 201),
                         ParticleType::Acid => (128, 209, 0),
                         ParticleType::Iridium => (205, 210, 211),
+                        ParticleType::Replicator => (68, 11, 67),
                     };
                     let noise = match particle.ptype {
                         ParticleType::Water => 30,
                         ParticleType::Acid => 50,
+                        ParticleType::Replicator => 10,
                         _ => 0,
                     };
                     if noise != 0 {
@@ -160,6 +164,7 @@ impl Sandbox {
                     if let Some(particle2) = &self.cells[x][y + 1] {
                         if particle2.ptype != ParticleType::Acid
                             && particle2.ptype != ParticleType::Iridium
+                            && particle2.ptype != ParticleType::Replicator
                         {
                             self.cells[x][y] = None;
                             self.cells[x][y + 1] = None;
@@ -171,6 +176,7 @@ impl Sandbox {
                     if let Some(particle2) = &self.cells[x + 1][y] {
                         if particle2.ptype != ParticleType::Acid
                             && particle2.ptype != ParticleType::Iridium
+                            && particle2.ptype != ParticleType::Replicator
                         {
                             self.cells[x][y] = None;
                             self.cells[x + 1][y] = None;
@@ -182,6 +188,7 @@ impl Sandbox {
                     if let Some(particle2) = &self.cells[x][y - 1] {
                         if particle2.ptype != ParticleType::Acid
                             && particle2.ptype != ParticleType::Iridium
+                            && particle2.ptype != ParticleType::Replicator
                         {
                             self.cells[x][y] = None;
                             self.cells[x][y - 1] = None;
@@ -193,9 +200,49 @@ impl Sandbox {
                     if let Some(particle2) = &self.cells[x - 1][y] {
                         if particle2.ptype != ParticleType::Acid
                             && particle2.ptype != ParticleType::Iridium
+                            && particle2.ptype != ParticleType::Replicator
                         {
                             self.cells[x][y] = None;
                             self.cells[x - 1][y] = None;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fn update_replicator(&mut self, x: usize, y: usize) {
+        if let Some(particle1) = &self.cells[x][y] {
+            if particle1.ptype == ParticleType::Replicator {
+                if y < SIMULATION_HEIGHT - 2 {
+                    if let Some(particle2) = &self.cells[x][y + 1] {
+                        if particle2.ptype != ParticleType::Replicator {
+                            self.cells[x][y + 2] = Some(Particle::new(particle2.ptype));
+                            return;
+                        }
+                    }
+                }
+                if x < SIMULATION_WIDTH - 2 {
+                    if let Some(particle2) = &self.cells[x + 1][y] {
+                        if particle2.ptype != ParticleType::Replicator {
+                            self.cells[x + 2][y] = Some(Particle::new(particle2.ptype));
+                            return;
+                        }
+                    }
+                }
+                if y > 1 {
+                    if let Some(particle2) = &self.cells[x][y - 1] {
+                        if particle2.ptype != ParticleType::Replicator {
+                            self.cells[x][y - 2] = Some(Particle::new(particle2.ptype));
+                            return;
+                        }
+                    }
+                }
+                if x > 1 {
+                    if let Some(particle2) = &self.cells[x - 1][y] {
+                        if particle2.ptype != ParticleType::Replicator {
+                            self.cells[x - 2][y] = Some(Particle::new(particle2.ptype));
                             return;
                         }
                     }
@@ -226,6 +273,7 @@ pub enum ParticleType {
     Water,
     Acid,
     Iridium,
+    Replicator,
 }
 
 // TODO: Replace with the std version once rust adds it

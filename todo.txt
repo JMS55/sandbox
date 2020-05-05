@@ -14,12 +14,12 @@
     * Water pressure
 4. Better random noise
     * Sample a distribution to be faster, and look better
+5. Magic-wand delete tool
+
+6. Figure out why line drawing sometimes leaves gaps
+7. Fix hidpi handling, deal with the black border
+8. Deal with window resizes
 
 
-5. Figure out why line drawing sometimes leaves gaps
-6. Fix hidpi handling, deal with the black border
-7. Deal with window resizes
-
-
-8 GUI
-9. Wasm
+9 GUI
+10. Wasm
