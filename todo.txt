@@ -1,5 +1,6 @@
 1. Fix particles
     * Acid/Water is still behaving weird (this can be fixed by not updating in reverse, but that has other tradeoffs)
+    * Acid/Water moves sideways too slow, it tends to build up vertically
     * Change to: First check which directions able to move in, then randomize left vs right
 
 2. Replace fixed movement with velocity, mass, and acceleration
@@ -8,7 +9,6 @@
     2. Then, go through and move everything
     3. Apply interactions between touching particles
 3. More particle types
-    * WetSand - Formed by sand touching water, removes the water
     * Quantum "portal" particles
     * Muti-particle structures
     * Water pressure
