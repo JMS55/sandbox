@@ -1,25 +1,16 @@
 1. Fix particles
-    * Acid/Water is still behaving weird (this can be fixed by not updating in reverse, but that has other tradeoffs)
-    * Acid/Water moves sideways too slow, it tends to build up vertically
     * Change to: First check which directions able to move in, then randomize left vs right
-
-2. Replace fixed movement with velocity, mass, and acceleration
-    * Three passes
-    1. First, each particle goes through and gets gravity applied to them, other forces from other particles, and extra movement to simulate liquids/sand/etc
-    2. Then, go through and move everything
-    3. Apply interactions between touching particles
-3. More particle types
+    * Make water push particles
+2. More particle types
+    * Work on Plant more
     * Quantum "portal" particles
-    * Muti-particle structures
-    * Water pressure
-4. Better random noise
+3. Better random noise for rendering
     * Sample a distribution to be faster, and look better
-5. Magic-wand delete tool
+4. Magic-wand delete tool
 
-6. Figure out why line drawing sometimes leaves gaps
-7. Fix hidpi handling, deal with the black border
-8. Deal with window resizes
+5. Figure out why line drawing sometimes leaves gaps
+6. Fix hidpi handling, deal with the black border
+7. Deal with window resizes
 
-
-9 GUI
-10. Wasm
+8 GUI
+9. Wasm

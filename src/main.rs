@@ -70,7 +70,8 @@ fn main() {
                     if input.state == ElementState::Pressed {
                         match input.virtual_keycode {
                             Some(VirtualKeyCode::Escape) => *control_flow = ControlFlow::Exit,
-                            Some(VirtualKeyCode::P) => paused = !paused,
+                            Some(VirtualKeyCode::Back) => sandbox = Sandbox::new(),
+                            Some(VirtualKeyCode::Space) => paused = !paused,
                             Some(VirtualKeyCode::Equals) => {
                                 if brush_size < 10 {
                                     brush_size += 1
@@ -81,7 +82,6 @@ fn main() {
                                     brush_size -= 1
                                 }
                             }
-                            Some(VirtualKeyCode::C) => sandbox = Sandbox::new(),
                             Some(VirtualKeyCode::D) => {
                                 selected_particle = None;
                             }
@@ -99,6 +99,9 @@ fn main() {
                             }
                             Some(VirtualKeyCode::R) => {
                                 selected_particle = Some(ParticleType::Replicator);
+                            }
+                            Some(VirtualKeyCode::P) => {
+                                selected_particle = Some(ParticleType::Plant);
                             }
                             _ => {}
                         }
@@ -153,7 +156,6 @@ fn main() {
     });
 }
 
-// TODO: Replace with the std version once rust adds it
 fn clamp(value: f64, min: f64, max: f64) -> f64 {
     assert!(min <= max);
     let mut x = value;
