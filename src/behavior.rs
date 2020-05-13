@@ -1,7 +1,7 @@
-use crate::sandbox::{Particle, ParticleType};
+use crate::sandbox::{Cells, Particle, ParticleType};
 use crate::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 
-pub fn move_solid(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) -> (usize, usize) {
+pub fn move_solid(cells: &mut Cells, x: usize, y: usize) -> (usize, usize) {
     // Move 1 down if able
     if y != SIMULATION_HEIGHT - 1 {
         if cells[x][y + 1].is_none() {
@@ -12,7 +12,7 @@ pub fn move_solid(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) ->
     (x, y)
 }
 
-pub fn move_powder(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) -> (usize, usize) {
+pub fn move_powder(cells: &mut Cells, x: usize, y: usize) -> (usize, usize) {
     if y != SIMULATION_HEIGHT - 1 {
         // Move 1 down if able
         if cells[x][y + 1].is_none() {
@@ -37,7 +37,7 @@ pub fn move_powder(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) -
     (x, y)
 }
 
-pub fn move_liquid(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) -> (usize, usize) {
+pub fn move_liquid(cells: &mut Cells, x: usize, y: usize) -> (usize, usize) {
     if y != SIMULATION_HEIGHT - 1 {
         // Move 1 down if able
         if cells[x][y + 1].is_none() {
@@ -76,7 +76,7 @@ pub fn move_liquid(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) -
     (x, y)
 }
 
-pub fn update_water(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) {
+pub fn update_water(cells: &mut Cells, x: usize, y: usize) {
     if cells[x][y].unwrap().tempature <= -60 {
         cells[x][y].as_mut().unwrap().ptype = ParticleType::Cryotheum;
         return;
@@ -100,7 +100,7 @@ pub fn update_water(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) 
     }
 }
 
-pub fn update_acid(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) {
+pub fn update_acid(cells: &mut Cells, x: usize, y: usize) {
     if y != SIMULATION_HEIGHT - 1 {
         if let Some(particle) = &cells[x][y + 1] {
             if particle.ptype != ParticleType::Acid
@@ -151,7 +151,7 @@ pub fn update_acid(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) {
     }
 }
 
-pub fn update_replicator(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) {
+pub fn update_replicator(cells: &mut Cells, x: usize, y: usize) {
     if y < SIMULATION_HEIGHT - 2 {
         if let Some(particle) = &cells[x][y + 1] {
             if particle.ptype != ParticleType::Replicator {
@@ -190,7 +190,7 @@ pub fn update_replicator(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: us
     }
 }
 
-pub fn update_plant(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) {
+pub fn update_plant(cells: &mut Cells, x: usize, y: usize) {
     if y != SIMULATION_HEIGHT - 1 {
         if let Some(particle) = cells[x][y + 1] {
             if particle.ptype == ParticleType::WetSand {
@@ -256,7 +256,7 @@ pub fn update_plant(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) 
     }
 }
 
-pub fn update_unstable(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usize) {
+pub fn update_unstable(cells: &mut Cells, x: usize, y: usize) {
     // Increase tempature by 10 every half a second
     if cells[x][y].unwrap().extra_data1 == 30 {
         cells[x][y].as_mut().unwrap().extra_data1 = 0;

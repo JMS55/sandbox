@@ -3,15 +3,17 @@ use crate::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
 
+pub type Cells = Box<[[Option<Particle>; SIMULATION_HEIGHT]; SIMULATION_WIDTH]>;
+
 pub struct Sandbox {
-    pub cells: Vec<Vec<Option<Particle>>>,
+    pub cells: Cells,
     rng: ThreadRng,
 }
 
 impl Sandbox {
     pub fn new() -> Self {
         Self {
-            cells: vec![vec![None; SIMULATION_HEIGHT]; SIMULATION_WIDTH],
+            cells: Box::new([[None; SIMULATION_HEIGHT]; SIMULATION_WIDTH]),
             rng: thread_rng(),
         }
     }
