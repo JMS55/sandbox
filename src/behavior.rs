@@ -267,8 +267,8 @@ pub fn update_unstable(cells: &mut Vec<Vec<Option<Particle>>>, x: usize, y: usiz
 
     // When tempature >= 200 (10 seconds of existing), vaporize the surrounding area
     if cells[x][y].unwrap().tempature >= 200 {
-        for x_offset in -7..=7 {
-            for y_offset in -7..=7 {
+        for x_offset in -20..=20 {
+            for y_offset in -20..=20 {
                 let x = x as i16 + x_offset;
                 let y = y as i16 + y_offset;
                 if (0..(SIMULATION_WIDTH as i16)).contains(&x)

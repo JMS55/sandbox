@@ -41,6 +41,8 @@ fn main() {
     let mut selected_particle = None;
     let mut brush_size = 3;
     let mut should_place_particles = false;
+    let mut x_axis_locked = None;
+    let mut y_axis_locked = None;
 
     let mut hidpi_factor = window.scale_factor();
     let mut prev_cursor_position = LogicalPosition::<f64>::new(0.0, 0.0);
@@ -66,6 +68,18 @@ fn main() {
                     if button == MouseButton::Left {
                         should_place_particles = state == ElementState::Pressed;
                     }
+                }
+                WindowEvent::ModifiersChanged(modifiers) => {
+                    x_axis_locked = if modifiers.shift() {
+                        Some(curr_cursor_position.x)
+                    } else {
+                        None
+                    };
+                    y_axis_locked = if modifiers.ctrl() {
+                        Some(curr_cursor_position.y)
+                    } else {
+                        None
+                    };
                 }
                 WindowEvent::KeyboardInput { input, .. } => {
                     if input.state == ElementState::Pressed {
@@ -119,11 +133,20 @@ fn main() {
 
             Event::MainEventsCleared => {
                 if should_place_particles {
+                    let p1 = prev_cursor_position;
+                    let mut p2 = curr_cursor_position;
+                    if let Some(x) = x_axis_locked {
+                        p2.x = x;
+                    }
+                    if let Some(y) = y_axis_locked {
+                        p2.y = y;
+                    }
+
                     // Place particles in a straight line from prev_cursor_position to curr_cursor_position
-                    let p1x = clamp(prev_cursor_position.x, 0.0, DISPLAY_WIDTH - 2.0) / 2.0;
-                    let p1y = clamp(prev_cursor_position.y, 0.0, DISPLAY_WIDTH - 2.0) / 2.0;
-                    let p2x = clamp(curr_cursor_position.x, 0.0, DISPLAY_WIDTH - 2.0) / 2.0;
-                    let p2y = clamp(curr_cursor_position.y, 0.0, DISPLAY_WIDTH - 2.0) / 2.0;
+                    let p1x = clamp(p1.x, 0.0, DISPLAY_WIDTH - 2.0) / 2.0;
+                    let p1y = clamp(p1.y, 0.0, DISPLAY_WIDTH - 2.0) / 2.0;
+                    let p2x = clamp(p2.x, 0.0, DISPLAY_WIDTH - 2.0) / 2.0;
+                    let p2y = clamp(p2.y, 0.0, DISPLAY_WIDTH - 2.0) / 2.0;
                     let n = (p1x - p2y).abs().max((p1y - p2y).abs()) as usize;
                     for step in 0..(n + 1) {
                         let t = if n == 0 { 0.0 } else { step as f64 / n as f64 };
