@@ -1,3 +1,4 @@
+mod behavior;
 mod sandbox;
 
 use pixels::{wgpu::Surface, Pixels, SurfaceTexture};
@@ -103,6 +104,12 @@ fn main() {
                             Some(VirtualKeyCode::P) => {
                                 selected_particle = Some(ParticleType::Plant);
                             }
+                            Some(VirtualKeyCode::C) => {
+                                selected_particle = Some(ParticleType::Cryotheum);
+                            }
+                            Some(VirtualKeyCode::U) => {
+                                selected_particle = Some(ParticleType::Unstable);
+                            }
                             _ => {}
                         }
                     }
@@ -112,6 +119,7 @@ fn main() {
 
             Event::MainEventsCleared => {
                 if should_place_particles {
+                    // Place particles in a straight line from prev_cursor_position to curr_cursor_position
                     let p1x = clamp(prev_cursor_position.x, 0.0, DISPLAY_WIDTH - 2.0) / 2.0;
                     let p1y = clamp(prev_cursor_position.y, 0.0, DISPLAY_WIDTH - 2.0) / 2.0;
                     let p2x = clamp(curr_cursor_position.x, 0.0, DISPLAY_WIDTH - 2.0) / 2.0;
