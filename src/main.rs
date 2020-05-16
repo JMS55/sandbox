@@ -35,9 +35,11 @@ fn main() {
 
     let mut selected_particle = None;
     let mut brush_size = 3;
-    let mut should_place_particles = false;
     let mut x_axis_locked = None;
     let mut y_axis_locked = None;
+
+    let mut should_place_particles = false;
+    let mut particle_placement_queue = Vec::new();
 
     let mut dpi_factor = window.scale_factor();
     let mut prev_cursor_position = LogicalPosition::<f64>::new(0.0, 0.0);
@@ -71,42 +73,7 @@ fn main() {
                     curr_cursor_position = position.to_logical(dpi_factor);
 
                     if should_place_particles {
-                        // Convert prev_cursor_position and curr_cursor_position to sandbox coordinates
-                        let p1 = prev_cursor_position;
-                        let mut p2 = curr_cursor_position;
-                        if let Some(x) = x_axis_locked {
-                            p2.x = x;
-                        }
-                        if let Some(y) = y_axis_locked {
-                            p2.y = y;
-                        }
-                        let p1x = clamp(p1.x, 0.0, sandbox.width as f64);
-                        let p1y = clamp(p1.y, 0.0, sandbox.height as f64);
-                        let p2x = clamp(p2.x, 0.0, sandbox.width as f64);
-                        let p2y = clamp(p2.y, 0.0, sandbox.height as f64);
-
-                        // Place particles in a straight line from prev_cursor_position to curr_cursor_position
-                        let n = (p1x - p2y).abs().max((p1y - p2y).abs()) as usize;
-                        for step in 0..(n + 1) {
-                            let t = if n == 0 { 0.0 } else { step as f64 / n as f64 };
-                            let x = (p1x + t * (p2x - p1x)).round() as usize;
-                            let y = (p1y + t * (p2y - p1y)).round() as usize;
-                            for x in x..(x + brush_size) {
-                                for y in y..(y + brush_size) {
-                                    if x < sandbox.width && y < sandbox.height {
-                                        match selected_particle {
-                                            Some(selected_particle) => {
-                                                if sandbox.cells[x][y].is_none() {
-                                                    sandbox.cells[x][y] =
-                                                        Some(Particle::new(selected_particle));
-                                                }
-                                            }
-                                            None => sandbox.cells[x][y] = None,
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        particle_placement_queue.push((prev_cursor_position, curr_cursor_position));
                     }
                 }
                 WindowEvent::MouseInput { button, state, .. } => {
@@ -181,10 +148,51 @@ fn main() {
             },
 
             Event::MainEventsCleared => {
+                // Place particles in a straight line from prev_cursor_position to curr_cursor_position
+                // In addition, uses data cached from CursorMoved to ensure all gestures are properly captured
+                if should_place_particles {
+                    particle_placement_queue.push((prev_cursor_position, curr_cursor_position));
+                }
+                for (mut p1, mut p2) in particle_placement_queue.drain(..) {
+                    if let Some(x) = x_axis_locked {
+                        p2.x = x;
+                    }
+                    if let Some(y) = y_axis_locked {
+                        p2.y = y;
+                    }
+                    p1.x = clamp(p1.x, 0.0, sandbox.width as f64);
+                    p1.y = clamp(p1.y, 0.0, sandbox.height as f64);
+                    p2.x = clamp(p2.x, 0.0, sandbox.width as f64);
+                    p2.y = clamp(p2.y, 0.0, sandbox.height as f64);
+
+                    let n = (p1.x - p2.y).abs().max((p1.y - p2.y).abs()) as usize;
+                    for step in 0..(n + 1) {
+                        let t = if n == 0 { 0.0 } else { step as f64 / n as f64 };
+                        let x = (p1.x + t * (p2.x - p1.x)).round() as usize;
+                        let y = (p1.y + t * (p2.y - p1.y)).round() as usize;
+                        for x in x..(x + brush_size) {
+                            for y in y..(y + brush_size) {
+                                if x < sandbox.width && y < sandbox.height {
+                                    match selected_particle {
+                                        Some(selected_particle) => {
+                                            if sandbox.cells[x][y].is_none() {
+                                                sandbox.cells[x][y] =
+                                                    Some(Particle::new(selected_particle));
+                                            }
+                                        }
+                                        None => sandbox.cells[x][y] = None,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if last_update.elapsed() >= TARGET_TIME_PER_UPDATE && !paused {
                     last_update = Instant::now();
                     sandbox.update();
                 }
+
                 window.request_redraw();
             }
 
