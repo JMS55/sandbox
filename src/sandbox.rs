@@ -1,59 +1,65 @@
 use crate::behavior::*;
-use crate::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
 
-pub type Cells = Box<[[Option<Particle>; SIMULATION_HEIGHT]; SIMULATION_WIDTH]>;
-
 pub struct Sandbox {
-    pub cells: Cells,
-    rng: ThreadRng,
+    pub cells: Vec<Vec<Option<Particle>>>,
+    pub width: usize,
+    pub height: usize,
+    pub rng: ThreadRng,
 }
 
 impl Sandbox {
-    pub fn new() -> Self {
+    pub fn new(width: usize, height: usize) -> Self {
         Self {
-            cells: Box::new([[None; SIMULATION_HEIGHT]; SIMULATION_WIDTH]),
+            cells: vec![vec![None; height]; width],
+            width,
+            height,
             rng: thread_rng(),
+        }
+    }
+
+    pub fn resize(&mut self, width: usize, height: usize) {
+        let old_width = self.width;
+        self.width = width;
+        self.height = height;
+
+        self.cells.resize(width, vec![None; self.height]);
+        for column in &mut self.cells[..self.width.min(old_width)] {
+            column.resize(self.height, None);
         }
     }
 
     pub fn update(&mut self) {
         // Mark all particles as should_update
-        for x in 0..SIMULATION_WIDTH {
-            for y in 0..SIMULATION_HEIGHT {
+        for x in 0..self.width {
+            for y in 0..self.height {
                 if let Some(particle) = &mut self.cells[x][y] {
                     particle.should_update = true;
                 }
             }
         }
         // Move particles
-        for x in 0..SIMULATION_WIDTH {
-            for y in 0..SIMULATION_HEIGHT {
+        for x in 0..self.width {
+            for y in 0..self.height {
                 if let Some(particle) = &self.cells[x][y] {
                     if particle.should_update {
                         let mut new_particle_position = (x, y);
                         match particle.ptype {
-                            ParticleType::Sand => {
-                                new_particle_position = move_powder(&mut self.cells, x, y);
-                            }
-                            ParticleType::WetSand => {
-                                new_particle_position = move_solid(&mut self.cells, x, y);
-                            }
-                            ParticleType::Water => {
-                                new_particle_position = move_liquid(&mut self.cells, x, y);
-                            }
-                            ParticleType::Acid => {
-                                new_particle_position = move_liquid(&mut self.cells, x, y);
-                            }
+                            ParticleType::Sand => new_particle_position = move_powder(self, x, y),
+                            ParticleType::WetSand => new_particle_position = move_solid(self, x, y),
+                            ParticleType::Water => new_particle_position = move_liquid(self, x, y),
+                            ParticleType::Acid => new_particle_position = move_liquid(self, x, y),
                             ParticleType::Iridium => {}
                             ParticleType::Replicator => {}
                             ParticleType::Plant => {
                                 if particle.extra_data2 == 0 {
-                                    new_particle_position = move_powder(&mut self.cells, x, y);
+                                    new_particle_position = move_powder(self, x, y);
                                 }
                             }
-                            ParticleType::Cryotheum => {}
+                            // ParticleType::Cryotheum => {
+                            //     new_particle_position = move_solid(self, x, y);
+                            // }
                             ParticleType::Unstable => {}
                         }
                         self.cells[new_particle_position.0][new_particle_position.1]
@@ -67,17 +73,17 @@ impl Sandbox {
 
         // Transfer tempature between adjacent particles
         let cells_copy = self.cells.clone();
-        for x in 0..SIMULATION_WIDTH {
-            for y in 0..SIMULATION_HEIGHT {
+        for x in 0..self.width {
+            for y in 0..self.height {
                 if self.cells[x][y].is_some() {
-                    if y != SIMULATION_HEIGHT - 1 {
+                    if y != self.height - 1 {
                         if self.cells[x][y + 1].is_some() {
                             let t = cells_copy[x][y].unwrap().tempature / 5;
                             self.cells[x][y].as_mut().unwrap().tempature -= t;
                             self.cells[x][y + 1].as_mut().unwrap().tempature += t;
                         }
                     }
-                    if x != SIMULATION_WIDTH - 1 {
+                    if x != self.width - 1 {
                         if self.cells[x + 1][y].is_some() {
                             let t = cells_copy[x][y].unwrap().tempature / 5;
                             self.cells[x][y].as_mut().unwrap().tempature -= t;
@@ -103,28 +109,28 @@ impl Sandbox {
         }
 
         // Mark all particles as should_update
-        for x in 0..SIMULATION_WIDTH {
-            for y in 0..SIMULATION_HEIGHT {
+        for x in 0..self.width {
+            for y in 0..self.height {
                 if let Some(particle) = &mut self.cells[x][y] {
                     particle.should_update = true;
                 }
             }
         }
         // Perform particle interactions and state updates
-        for x in 0..SIMULATION_WIDTH {
-            for y in 0..SIMULATION_HEIGHT {
+        for x in 0..self.width {
+            for y in 0..self.height {
                 if let Some(particle) = &self.cells[x][y] {
                     if particle.should_update {
                         match particle.ptype {
                             ParticleType::Sand => {}
                             ParticleType::WetSand => {}
-                            ParticleType::Water => update_water(&mut self.cells, x, y),
-                            ParticleType::Acid => update_acid(&mut self.cells, x, y),
+                            ParticleType::Water => update_water(self, x, y),
+                            ParticleType::Acid => update_acid(self, x, y),
                             ParticleType::Iridium => {}
-                            ParticleType::Replicator => update_replicator(&mut self.cells, x, y),
-                            ParticleType::Plant => update_plant(&mut self.cells, x, y),
-                            ParticleType::Cryotheum => {}
-                            ParticleType::Unstable => update_unstable(&mut self.cells, x, y),
+                            ParticleType::Replicator => update_replicator(self, x, y),
+                            ParticleType::Plant => update_plant(self, x, y),
+                            // ParticleType::Cryotheum => update_cryotheum(self, x, y),
+                            ParticleType::Unstable => update_unstable(self, x, y),
                         }
                     }
                 }
@@ -134,8 +140,8 @@ impl Sandbox {
 
     pub fn render(&mut self, frame: &mut [u8]) {
         let mut i = 0;
-        for y in 0..SIMULATION_HEIGHT {
-            for x in 0..SIMULATION_WIDTH {
+        for y in 0..self.height {
+            for x in 0..self.width {
                 let mut color = (20, 20, 20);
                 if let Some(particle) = &self.cells[x][y] {
                     // Base color
@@ -153,7 +159,7 @@ impl Sandbox {
                                 (86, 216, 143)
                             }
                         }
-                        ParticleType::Cryotheum => (12, 191, 201),
+                        // ParticleType::Cryotheum => (12, 191, 201),
                         ParticleType::Unstable => (181, 158, 128),
                     };
 
@@ -172,7 +178,7 @@ impl Sandbox {
                                 0
                             }
                         }
-                        ParticleType::Cryotheum => 0,
+                        // ParticleType::Cryotheum => 0,
                         ParticleType::Unstable => {
                             if particle.tempature > 0 {
                                 (10.0 * (particle.tempature as f64 / 200.0)) as i16
@@ -230,7 +236,7 @@ impl Particle {
                 ParticleType::Iridium => 0,
                 ParticleType::Replicator => 0,
                 ParticleType::Plant => 0,
-                ParticleType::Cryotheum => -60,
+                // ParticleType::Cryotheum => -60,
                 ParticleType::Unstable => 0,
             },
             extra_data1: match ptype {
@@ -241,7 +247,7 @@ impl Particle {
                 ParticleType::Iridium => 0,
                 ParticleType::Replicator => 0,
                 ParticleType::Plant => thread_rng().gen_range(5, 21),
-                ParticleType::Cryotheum => 0,
+                // ParticleType::Cryotheum => 0,
                 ParticleType::Unstable => 0,
             },
             extra_data2: match ptype {
@@ -252,7 +258,7 @@ impl Particle {
                 ParticleType::Iridium => 0,
                 ParticleType::Replicator => 0,
                 ParticleType::Plant => 0,
-                ParticleType::Cryotheum => 0,
+                // ParticleType::Cryotheum => 0,
                 ParticleType::Unstable => 0,
             },
             should_update: false,
@@ -269,7 +275,7 @@ pub enum ParticleType {
     Iridium,
     Replicator,
     Plant,
-    Cryotheum,
+    // Cryotheum,
     Unstable,
 }
 
