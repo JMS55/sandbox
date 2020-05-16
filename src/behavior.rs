@@ -105,12 +105,23 @@ pub fn update_water(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
+    fn dissolved_by_acid(ptype: ParticleType) -> bool {
+        match ptype {
+            ParticleType::Sand => true,
+            ParticleType::WetSand => true,
+            ParticleType::Water => true,
+            ParticleType::Acid => false,
+            ParticleType::Iridium => false,
+            ParticleType::Replicator => false,
+            ParticleType::Plant => true,
+            // ParticleType::Cryotheum => true,
+            ParticleType::Unstable => true,
+        }
+    }
+
     if y != sandbox.height - 1 {
         if let Some(particle) = &sandbox.cells[x][y + 1] {
-            if particle.ptype != ParticleType::Acid
-                && particle.ptype != ParticleType::Iridium
-                && particle.ptype != ParticleType::Replicator
-            {
+            if dissolved_by_acid(particle.ptype) {
                 sandbox.cells[x][y] = None;
                 sandbox.cells[x][y + 1] = None;
                 return;
@@ -119,10 +130,7 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
     }
     if x != sandbox.width - 1 {
         if let Some(particle) = &sandbox.cells[x + 1][y] {
-            if particle.ptype != ParticleType::Acid
-                && particle.ptype != ParticleType::Iridium
-                && particle.ptype != ParticleType::Replicator
-            {
+            if dissolved_by_acid(particle.ptype) {
                 sandbox.cells[x][y] = None;
                 sandbox.cells[x + 1][y] = None;
                 return;
@@ -131,10 +139,7 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
     }
     if y != 0 {
         if let Some(particle) = &sandbox.cells[x][y - 1] {
-            if particle.ptype != ParticleType::Acid
-                && particle.ptype != ParticleType::Iridium
-                && particle.ptype != ParticleType::Replicator
-            {
+            if dissolved_by_acid(particle.ptype) {
                 sandbox.cells[x][y] = None;
                 sandbox.cells[x][y - 1] = None;
                 return;
@@ -143,10 +148,7 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
     }
     if x != 0 {
         if let Some(particle) = &sandbox.cells[x - 1][y] {
-            if particle.ptype != ParticleType::Acid
-                && particle.ptype != ParticleType::Iridium
-                && particle.ptype != ParticleType::Replicator
-            {
+            if dissolved_by_acid(particle.ptype) {
                 sandbox.cells[x][y] = None;
                 sandbox.cells[x - 1][y] = None;
                 return;
@@ -268,6 +270,20 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
 // }
 
 pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
+    fn vaporized_by_unstable(ptype: ParticleType) -> bool {
+        match ptype {
+            ParticleType::Sand => true,
+            ParticleType::WetSand => true,
+            ParticleType::Water => true,
+            ParticleType::Acid => true,
+            ParticleType::Iridium => false,
+            ParticleType::Replicator => true,
+            ParticleType::Plant => true,
+            // ParticleType::Cryotheum => true,
+            ParticleType::Unstable => true,
+        }
+    }
+
     // Increase tempature by 10 every half a second
     if sandbox.cells[x][y].unwrap().extra_data1 == 30 {
         sandbox.cells[x][y].as_mut().unwrap().extra_data1 = 0;
@@ -285,7 +301,11 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
                 if (0..(sandbox.width as i16)).contains(&x)
                     && (0..(sandbox.height as i16)).contains(&y)
                 {
-                    sandbox.cells[x as usize][y as usize] = None;
+                    if let Some(particle) = sandbox.cells[x as usize][y as usize] {
+                        if vaporized_by_unstable(particle.ptype) {
+                            sandbox.cells[x as usize][y as usize] = None;
+                        }
+                    }
                 }
             }
         }

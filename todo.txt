@@ -1,14 +1,13 @@
 1. Improve update methods
     * Add more comments
-    * Replace if(pytype) with match
     * Make liquid have a 50/50 chance of going left/right if both are possible
 2. Tempature overhaul
     * Redo Cryotheum to be more interesting
     * Different heat conductivity per particle type
 3. More particle types
-    * Gasses
     * Move WetSand into extra_data for sand?
     * Make Plant look/behave more interesting
+    * Gasses
     * Quantum "portal" particles
 
 
@@ -18,7 +17,6 @@
 
 
 1. Visualize axis lock controls and particle placement
-2. Figure out why line drawing sometimes leaves gaps
-3. Display the sandbox at 2X the size
-4 GUI
-5. Wasm
+2. Display the sandbox at 2X the size
+3 GUI
+4. Wasm

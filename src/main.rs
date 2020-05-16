@@ -69,6 +69,45 @@ fn main() {
                 WindowEvent::CursorMoved { position, .. } => {
                     prev_cursor_position = curr_cursor_position;
                     curr_cursor_position = position.to_logical(dpi_factor);
+
+                    if should_place_particles {
+                        // Convert prev_cursor_position and curr_cursor_position to sandbox coordinates
+                        let p1 = prev_cursor_position;
+                        let mut p2 = curr_cursor_position;
+                        if let Some(x) = x_axis_locked {
+                            p2.x = x;
+                        }
+                        if let Some(y) = y_axis_locked {
+                            p2.y = y;
+                        }
+                        let p1x = clamp(p1.x, 0.0, sandbox.width as f64);
+                        let p1y = clamp(p1.y, 0.0, sandbox.height as f64);
+                        let p2x = clamp(p2.x, 0.0, sandbox.width as f64);
+                        let p2y = clamp(p2.y, 0.0, sandbox.height as f64);
+
+                        // Place particles in a straight line from prev_cursor_position to curr_cursor_position
+                        let n = (p1x - p2y).abs().max((p1y - p2y).abs()) as usize;
+                        for step in 0..(n + 1) {
+                            let t = if n == 0 { 0.0 } else { step as f64 / n as f64 };
+                            let x = (p1x + t * (p2x - p1x)).round() as usize;
+                            let y = (p1y + t * (p2y - p1y)).round() as usize;
+                            for x in x..(x + brush_size) {
+                                for y in y..(y + brush_size) {
+                                    if x < sandbox.width && y < sandbox.height {
+                                        match selected_particle {
+                                            Some(selected_particle) => {
+                                                if sandbox.cells[x][y].is_none() {
+                                                    sandbox.cells[x][y] =
+                                                        Some(Particle::new(selected_particle));
+                                                }
+                                            }
+                                            None => sandbox.cells[x][y] = None,
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 WindowEvent::MouseInput { button, state, .. } => {
                     if button == MouseButton::Left {
@@ -142,50 +181,10 @@ fn main() {
             },
 
             Event::MainEventsCleared => {
-                if should_place_particles {
-                    // Convert prev_cursor_position and curr_cursor_position to sandbox coordinates
-                    let p1 = prev_cursor_position;
-                    let mut p2 = curr_cursor_position;
-                    if let Some(x) = x_axis_locked {
-                        p2.x = x;
-                    }
-                    if let Some(y) = y_axis_locked {
-                        p2.y = y;
-                    }
-                    let p1x = clamp(p1.x, 0.0, sandbox.width as f64);
-                    let p1y = clamp(p1.y, 0.0, sandbox.height as f64);
-                    let p2x = clamp(p2.x, 0.0, sandbox.width as f64);
-                    let p2y = clamp(p2.y, 0.0, sandbox.height as f64);
-
-                    // Place particles in a straight line from prev_cursor_position to curr_cursor_position
-                    let n = (p1x - p2y).abs().max((p1y - p2y).abs()) as usize;
-                    for step in 0..(n + 1) {
-                        let t = if n == 0 { 0.0 } else { step as f64 / n as f64 };
-                        let x = (p1x + t * (p2x - p1x)).round() as usize;
-                        let y = (p1y + t * (p2y - p1y)).round() as usize;
-                        for x in x..(x + brush_size) {
-                            for y in y..(y + brush_size) {
-                                if x < sandbox.width && y < sandbox.height {
-                                    match selected_particle {
-                                        Some(selected_particle) => {
-                                            if sandbox.cells[x][y].is_none() {
-                                                sandbox.cells[x][y] =
-                                                    Some(Particle::new(selected_particle));
-                                            }
-                                        }
-                                        None => sandbox.cells[x][y] = None,
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
                 if last_update.elapsed() >= TARGET_TIME_PER_UPDATE && !paused {
                     last_update = Instant::now();
                     sandbox.update();
                 }
-
                 window.request_redraw();
             }
 
