@@ -68,8 +68,8 @@ impl Sandbox {
 
         // Transfer tempature between adjacent particles
         // Higher thermal conductivity = Slower tempature transfer
-        fn thermal_conductivity(pytype: ParticleType) -> i16 {
-            let tc = match pytype {
+        fn thermal_conductivity(ptype: ParticleType) -> i16 {
+            let tc = match ptype {
                 ParticleType::Sand => 3,
                 ParticleType::WetSand => 4,
                 ParticleType::Water => 5,
