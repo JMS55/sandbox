@@ -30,7 +30,7 @@ fn main() {
     let mut pixels =
         Pixels::new(sandbox.width as u32, sandbox.height as u32, surface_texture).unwrap();
 
-    let mut last_update = Instant::now() - TARGET_TIME_PER_UPDATE;
+    let mut last_update = Instant::now();
     let mut paused = false;
 
     let mut selected_particle = None;
@@ -134,9 +134,9 @@ fn main() {
                             Some(VirtualKeyCode::P) => {
                                 selected_particle = Some(ParticleType::Plant);
                             }
-                            // Some(VirtualKeyCode::C) => {
-                            //     selected_particle = Some(ParticleType::Cryotheum);
-                            // }
+                            Some(VirtualKeyCode::C) => {
+                                selected_particle = Some(ParticleType::Cryotheum);
+                            }
                             Some(VirtualKeyCode::U) => {
                                 selected_particle = Some(ParticleType::Unstable);
                             }

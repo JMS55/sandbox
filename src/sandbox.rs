@@ -7,6 +7,7 @@ pub struct Sandbox {
     pub width: usize,
     pub height: usize,
     pub rng: ThreadRng,
+    pub update_counter: u8,
 }
 
 impl Sandbox {
@@ -16,6 +17,7 @@ impl Sandbox {
             width,
             height,
             rng: thread_rng(),
+            update_counter: 1,
         }
     }
 
@@ -31,19 +33,12 @@ impl Sandbox {
     }
 
     pub fn update(&mut self) {
-        // Mark all particles as should_update
-        for x in 0..self.width {
-            for y in 0..self.height {
-                if let Some(particle) = &mut self.cells[x][y] {
-                    particle.should_update = true;
-                }
-            }
-        }
         // Move particles
+        self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
         for x in 0..self.width {
             for y in 0..self.height {
                 if let Some(particle) = &self.cells[x][y] {
-                    if particle.should_update {
+                    if particle.last_update != self.update_counter {
                         let mut new_particle_position = (x, y);
                         match particle.ptype {
                             ParticleType::Sand => new_particle_position = move_powder(self, x, y),
@@ -57,49 +52,73 @@ impl Sandbox {
                                     new_particle_position = move_powder(self, x, y);
                                 }
                             }
-                            // ParticleType::Cryotheum => {
-                            //     new_particle_position = move_solid(self, x, y);
-                            // }
+                            ParticleType::Cryotheum => {
+                                new_particle_position = move_solid(self, x, y);
+                            }
                             ParticleType::Unstable => {}
                         }
                         self.cells[new_particle_position.0][new_particle_position.1]
                             .as_mut()
                             .unwrap()
-                            .should_update = false;
+                            .last_update = self.update_counter
                     }
                 }
             }
         }
 
         // Transfer tempature between adjacent particles
+        // Higher thermal conductivity = Slower tempature transfer
+        fn thermal_conductivity(pytype: ParticleType) -> i16 {
+            let tc = match pytype {
+                ParticleType::Sand => 3,
+                ParticleType::WetSand => 4,
+                ParticleType::Water => 5,
+                ParticleType::Acid => 2,
+                ParticleType::Iridium => 8,
+                ParticleType::Replicator => 3,
+                ParticleType::Plant => 3,
+                ParticleType::Cryotheum => 2,
+                ParticleType::Unstable => 2,
+            };
+            assert!(tc > 1);
+            tc
+        }
         let cells_copy = self.cells.clone();
         for x in 0..self.width {
             for y in 0..self.height {
-                if self.cells[x][y].is_some() {
+                if let Some(particle1) = &cells_copy[x][y] {
                     if y != self.height - 1 {
-                        if self.cells[x][y + 1].is_some() {
-                            let t = cells_copy[x][y].unwrap().tempature / 5;
+                        if let Some(particle2) = &self.cells[x][y + 1] {
+                            let tc = thermal_conductivity(particle1.ptype)
+                                + thermal_conductivity(particle2.ptype);
+                            let t = particle1.tempature / tc;
                             self.cells[x][y].as_mut().unwrap().tempature -= t;
                             self.cells[x][y + 1].as_mut().unwrap().tempature += t;
                         }
                     }
                     if x != self.width - 1 {
-                        if self.cells[x + 1][y].is_some() {
-                            let t = cells_copy[x][y].unwrap().tempature / 5;
+                        if let Some(particle2) = &self.cells[x + 1][y] {
+                            let tc = thermal_conductivity(particle1.ptype)
+                                + thermal_conductivity(particle2.ptype);
+                            let t = particle1.tempature / tc;
                             self.cells[x][y].as_mut().unwrap().tempature -= t;
                             self.cells[x + 1][y].as_mut().unwrap().tempature += t;
                         }
                     }
                     if y != 0 {
-                        if self.cells[x][y - 1].is_some() {
-                            let t = cells_copy[x][y].unwrap().tempature / 5;
+                        if let Some(particle2) = &self.cells[x][y - 1] {
+                            let tc = thermal_conductivity(particle1.ptype)
+                                + thermal_conductivity(particle2.ptype);
+                            let t = particle1.tempature / tc;
                             self.cells[x][y].as_mut().unwrap().tempature -= t;
                             self.cells[x][y - 1].as_mut().unwrap().tempature += t;
                         }
                     }
                     if x != 0 {
-                        if self.cells[x - 1][y].is_some() {
-                            let t = cells_copy[x][y].unwrap().tempature / 5;
+                        if let Some(particle2) = &self.cells[x - 1][y] {
+                            let tc = thermal_conductivity(particle1.ptype)
+                                + thermal_conductivity(particle2.ptype);
+                            let t = particle1.tempature / tc;
                             self.cells[x][y].as_mut().unwrap().tempature -= t;
                             self.cells[x - 1][y].as_mut().unwrap().tempature += t;
                         }
@@ -108,19 +127,12 @@ impl Sandbox {
             }
         }
 
-        // Mark all particles as should_update
-        for x in 0..self.width {
-            for y in 0..self.height {
-                if let Some(particle) = &mut self.cells[x][y] {
-                    particle.should_update = true;
-                }
-            }
-        }
         // Perform particle interactions and state updates
+        self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
         for x in 0..self.width {
             for y in 0..self.height {
                 if let Some(particle) = &self.cells[x][y] {
-                    if particle.should_update {
+                    if particle.last_update != self.update_counter {
                         match particle.ptype {
                             ParticleType::Sand => {}
                             ParticleType::WetSand => {}
@@ -129,7 +141,7 @@ impl Sandbox {
                             ParticleType::Iridium => {}
                             ParticleType::Replicator => update_replicator(self, x, y),
                             ParticleType::Plant => update_plant(self, x, y),
-                            // ParticleType::Cryotheum => update_cryotheum(self, x, y),
+                            ParticleType::Cryotheum => update_cryotheum(self, x, y),
                             ParticleType::Unstable => update_unstable(self, x, y),
                         }
                     }
@@ -159,7 +171,7 @@ impl Sandbox {
                                 (86, 216, 143)
                             }
                         }
-                        // ParticleType::Cryotheum => (12, 191, 201),
+                        ParticleType::Cryotheum => (12, 191, 201),
                         ParticleType::Unstable => (181, 158, 128),
                     };
 
@@ -178,7 +190,7 @@ impl Sandbox {
                                 0
                             }
                         }
-                        // ParticleType::Cryotheum => 0,
+                        ParticleType::Cryotheum => 0,
                         ParticleType::Unstable => {
                             if particle.tempature > 0 {
                                 (10.0 * (particle.tempature as f64 / 200.0)) as i16
@@ -221,7 +233,7 @@ pub struct Particle {
     pub tempature: i16,
     pub extra_data1: i8,
     pub extra_data2: i8,
-    pub should_update: bool,
+    pub last_update: u8,
 }
 
 impl Particle {
@@ -236,7 +248,7 @@ impl Particle {
                 ParticleType::Iridium => 0,
                 ParticleType::Replicator => 0,
                 ParticleType::Plant => 0,
-                // ParticleType::Cryotheum => -60,
+                ParticleType::Cryotheum => -60,
                 ParticleType::Unstable => 0,
             },
             extra_data1: match ptype {
@@ -247,7 +259,7 @@ impl Particle {
                 ParticleType::Iridium => 0,
                 ParticleType::Replicator => 0,
                 ParticleType::Plant => thread_rng().gen_range(5, 21),
-                // ParticleType::Cryotheum => 0,
+                ParticleType::Cryotheum => 0,
                 ParticleType::Unstable => 0,
             },
             extra_data2: match ptype {
@@ -258,10 +270,10 @@ impl Particle {
                 ParticleType::Iridium => 0,
                 ParticleType::Replicator => 0,
                 ParticleType::Plant => 0,
-                // ParticleType::Cryotheum => 0,
+                ParticleType::Cryotheum => 0,
                 ParticleType::Unstable => 0,
             },
-            should_update: false,
+            last_update: 0,
         }
     }
 }
@@ -275,7 +287,7 @@ pub enum ParticleType {
     Iridium,
     Replicator,
     Plant,
-    // Cryotheum,
+    Cryotheum,
     Unstable,
 }
 
