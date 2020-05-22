@@ -785,6 +785,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "paste"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a229b1c58c692edcaa5b9b0948084f130f55d2dcc15b02fcc5340b2b4521476"
+dependencies = [
+ "paste-impl",
+ "proc-macro-hack",
+]
+
+[[package]]
+name = "paste-impl"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e0bf239e447e67ff6d16a8bb5e4d4bd2343acf5066061c0e8e06ac5ba8ca68c"
+dependencies = [
+ "proc-macro-hack",
+ "proc-macro2 1.0.14",
+ "quote 1.0.6",
+ "syn",
+]
+
+[[package]]
 name = "peek-poke"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -870,6 +892,12 @@ checksum = "e10d4b51f154c8a7fb96fd6dad097cb74b863943ec010ac94b9fd1be8861fe1e"
 dependencies = [
  "toml",
 ]
+
+[[package]]
+name = "proc-macro-hack"
+version = "0.5.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d659fe7c6d27f25e9d80a1a094c223f5246f6a6596453e09d7229bf42750b63"
 
 [[package]]
 name = "proc-macro2"
@@ -1004,6 +1032,7 @@ version = "0.1.0"
 dependencies = [
  "pixels",
  "rand",
+ "simdnoise",
  "winit",
 ]
 
@@ -1018,6 +1047,25 @@ name = "serde"
 version = "1.0.110"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "99e7b308464d16b56eba9964e4972a3eee817760ab60d88c3f86e1fecb08204c"
+
+[[package]]
+name = "simdeez"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "021c1483e306c741623a121ffdef9fbe63d41759c2f3517109d8dd99f1587fe3"
+dependencies = [
+ "cfg-if",
+ "paste",
+]
+
+[[package]]
+name = "simdnoise"
+version = "3.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a31457560eda25097f625438e6583e853580ad201f4cf87c5a57e8aba118ca8"
+dependencies = [
+ "simdeez",
+]
 
 [[package]]
 name = "slab"

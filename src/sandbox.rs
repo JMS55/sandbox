@@ -1,6 +1,7 @@
 use crate::behavior::*;
 use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
+use simdnoise::NoiseBuilder;
 
 pub const SIMULATION_WIDTH: usize = 600;
 pub const SIMULATION_HEIGHT: usize = 400;
@@ -152,8 +153,17 @@ impl Sandbox {
         }
     }
 
-    pub fn render(&mut self, frame: &mut [u8]) {
-        let mut i = 0;
+    pub fn render(&mut self, frame: &mut [u8], dt: f32) {
+        let noise = NoiseBuilder::turbulence_2d_offset(
+            dt * 20.0,
+            SIMULATION_WIDTH * 2,
+            dt * 20.0,
+            SIMULATION_HEIGHT / 2,
+        )
+        .generate_scaled(-1.0, 1.0);
+
+        let mut frame_index = 0;
+        let mut noise_index = 0;
         for y in 0..SIMULATION_HEIGHT {
             for x in 0..SIMULATION_WIDTH {
                 let mut color: (u8, u8, u8) = (20, 20, 20);
@@ -176,25 +186,25 @@ impl Sandbox {
                         ParticleType::Cryotheum => (12, 191, 201),
                         ParticleType::Unstable => (181, 158, 128),
                         ParticleType::Electricity => (247, 244, 49),
-                        ParticleType::Glass => (226, 226, 226),
+                        ParticleType::Glass => (159, 198, 197),
                     };
 
-                    // Darken/Lighten randomly
-                    let noise = match particle.ptype {
-                        ParticleType::Sand => 0,
-                        ParticleType::WetSand => 0,
+                    // Darken/Lighten based on noise
+                    let noise_intensity = match particle.ptype {
+                        ParticleType::Sand => 10,
+                        ParticleType::WetSand => 10,
                         ParticleType::Water => 30,
                         ParticleType::Acid => 50,
                         ParticleType::Iridium => 0,
                         ParticleType::Replicator => 10,
                         ParticleType::Plant => {
                             if particle.extra_data1 < 2 {
-                                5
+                                10
                             } else {
-                                0
+                                5
                             }
                         }
-                        ParticleType::Cryotheum => 0,
+                        ParticleType::Cryotheum => 10,
                         ParticleType::Unstable => {
                             if particle.tempature > 0 {
                                 (10.0 * (particle.tempature as f64 / 200.0)) as i16
@@ -202,11 +212,11 @@ impl Sandbox {
                                 0
                             }
                         }
-                        ParticleType::Electricity => 50,
-                        ParticleType::Glass => 5,
+                        ParticleType::Electricity => 200,
+                        ParticleType::Glass => 50,
                     };
-                    if noise != 0 {
-                        let m = self.rng.gen_range(-noise, noise + 1);
+                    if noise_intensity != 0 {
+                        let m = (noise[noise_index] * noise_intensity as f32) as i16;
                         color.0 = clamp(color.0 as i16 + m, 0, 255) as u8;
                         color.1 = clamp(color.1 as i16 + m, 0, 255) as u8;
                         color.2 = clamp(color.2 as i16 + m, 0, 255) as u8;
@@ -222,12 +232,13 @@ impl Sandbox {
                     }
                 }
 
-                frame[i] = color.0;
-                frame[i + 1] = color.1;
-                frame[i + 2] = color.2;
-                frame[i + 3] = 255;
+                frame[frame_index] = color.0;
+                frame[frame_index + 1] = color.1;
+                frame[frame_index + 2] = color.2;
+                frame[frame_index + 3] = 255;
 
-                i += 4;
+                frame_index += 4;
+                noise_index += 1;
             }
         }
     }

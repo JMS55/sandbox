@@ -3,14 +3,16 @@
     * Gasses
     * Quantum "portal" particles
 2. Resizing the window too small crashes
+3. Fix Electricity getting stuck with 1 particle of water in mid-air
+4. Make Electricity have a much lower noise when not in water
+5. Make Electricity not die when it hits itself
+6. Add some kind of background (cache noise from a few frames ago, and use that with a different scaling?)
 
 1. Save/Load simulations with files
 2. Visualize axis lock controls and particle placement
 3 GUI
 4. Wasm
 
-1. Prettier rendering (Shaders, don't use the noise effect as much / better noise effect, heat haze blur?)
-    * Shader based background (maybe similar to the effect I did in my roguelike, but more pixelated?)
-2. Physics based movement
-3. Liquid/Gas pressure (with rendering effects)
-4. App icon and package
+1. Physics based movement
+2. Liquid/Gas pressure (with rendering effects)
+3. App icon and package

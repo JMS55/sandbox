@@ -36,6 +36,7 @@ fn main() {
 
     // Simulation state
     let mut sandbox = Sandbox::new();
+    let start_time = Instant::now();
     let mut last_update = Instant::now();
     let mut paused = false;
 
@@ -111,7 +112,7 @@ fn main() {
                                     brush_size += 1
                                 }
                             }
-                            Some(VirtualKeyCode::Minus) => {
+                            Some(VirtualKeyCode::Minus) | Some(VirtualKeyCode::Subtract) => {
                                 if brush_size > 1 {
                                     brush_size -= 1
                                 }
@@ -231,7 +232,7 @@ fn main() {
             }
 
             Event::RedrawRequested(_) => {
-                sandbox.render(pixels.get_frame());
+                sandbox.render(pixels.get_frame(), start_time.elapsed().as_secs_f32());
                 let _ = pixels.render();
             }
 
