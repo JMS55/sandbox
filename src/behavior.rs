@@ -1,8 +1,9 @@
-use crate::sandbox::{Particle, ParticleType, Sandbox};
+use crate::sandbox::{Particle, ParticleType, Sandbox, SIMULATION_HEIGHT, SIMULATION_WIDTH};
+use rand::Rng;
 
 pub fn move_solid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
     // Move 1 down if able
-    if y != sandbox.height - 1 {
+    if y != SIMULATION_HEIGHT - 1 {
         if sandbox.cells[x][y + 1].is_none() {
             sandbox.cells[x][y + 1] = sandbox.cells[x][y].take();
             return (x, y + 1);
@@ -12,7 +13,7 @@ pub fn move_solid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
 }
 
 pub fn move_powder(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
-    if y != sandbox.height - 1 {
+    if y != SIMULATION_HEIGHT - 1 {
         // Move 1 down if able
         if sandbox.cells[x][y + 1].is_none() {
             sandbox.cells[x][y + 1] = sandbox.cells[x][y].take();
@@ -26,7 +27,7 @@ pub fn move_powder(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
             }
         }
         // Else move 1 down and right if able
-        if x != sandbox.width - 1 {
+        if x != SIMULATION_WIDTH - 1 {
             if sandbox.cells[x + 1][y + 1].is_none() && sandbox.cells[x + 1][y].is_none() {
                 sandbox.cells[x + 1][y + 1] = sandbox.cells[x][y].take();
                 return (x + 1, y + 1);
@@ -37,7 +38,7 @@ pub fn move_powder(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
 }
 
 pub fn move_liquid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
-    if y != sandbox.height - 1 {
+    if y != SIMULATION_HEIGHT - 1 {
         // Move 1 down if able
         if sandbox.cells[x][y + 1].is_none() {
             sandbox.cells[x][y + 1] = sandbox.cells[x][y].take();
@@ -51,7 +52,7 @@ pub fn move_liquid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
             }
         }
         // Else move 1 down and right if able
-        if x != sandbox.width - 1 {
+        if x != SIMULATION_WIDTH - 1 {
             if sandbox.cells[x + 1][y + 1].is_none() && sandbox.cells[x + 1][y].is_none() {
                 sandbox.cells[x + 1][y + 1] = sandbox.cells[x][y].take();
                 return (x + 1, y + 1);
@@ -66,13 +67,96 @@ pub fn move_liquid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
         }
     }
     // Else move right if able
-    if x != sandbox.width - 1 {
+    if x != SIMULATION_WIDTH - 1 {
         if sandbox.cells[x + 1][y].is_none() {
             sandbox.cells[x + 1][y] = sandbox.cells[x][y].take();
             return (x + 1, y);
         }
     }
     (x, y)
+}
+
+pub fn move_electricity(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
+    // Try switching with an adjacent water particle in the last direction moved
+    if sandbox.cells[x][y].unwrap().extra_data2 != 0 {
+        sandbox.cells[x][y].as_mut().unwrap().extra_data2 -= 1;
+        let offset = match sandbox.cells[x][y].unwrap().extra_data1 {
+            0 => (1, 0),
+            1 => (-1, 0),
+            2 => (0, 1),
+            3 => (0, -1),
+            _ => unreachable!(),
+        };
+        let (x2, y2) = (x as isize + offset.0, y as isize + offset.1);
+        if (0..(SIMULATION_WIDTH as isize)).contains(&x2)
+            && (0..(SIMULATION_HEIGHT as isize)).contains(&y2)
+        {
+            let x2 = x2 as usize;
+            let y2 = y2 as usize;
+            if let Some(particle) = sandbox.cells[x2][y2] {
+                if particle.ptype == ParticleType::Water {
+                    let temp = sandbox.cells[x][y];
+                    sandbox.cells[x][y] = sandbox.cells[x2][y2];
+                    sandbox.cells[x2][y2] = temp;
+                    return (x2, y2);
+                }
+            }
+        }
+        return (x, y);
+    }
+
+    // Else try switching with an adjacent water particle in a random direction
+    let mut offsets = vec![(1, 0), (-1, 0), (0, 1), (0, -1)];
+    while !offsets.is_empty() {
+        let offset = offsets.remove(sandbox.rng.gen_range(0, offsets.len()));
+        let (x2, y2) = (x as isize + offset.0, y as isize + offset.1);
+        if (0..(SIMULATION_WIDTH as isize)).contains(&x2)
+            && (0..(SIMULATION_HEIGHT as isize)).contains(&y2)
+        {
+            let x2 = x2 as usize;
+            let y2 = y2 as usize;
+            if let Some(particle) = sandbox.cells[x2][y2] {
+                if particle.ptype == ParticleType::Water {
+                    let temp = sandbox.cells[x][y];
+                    temp.unwrap().extra_data1 = match offset {
+                        (1, 0) => 0,
+                        (-1, 0) => 1,
+                        (0, 1) => 2,
+                        (0, -1) => 3,
+                        _ => unreachable!(),
+                    };
+                    temp.unwrap().extra_data2 = 100;
+                    sandbox.cells[x][y] = sandbox.cells[x2][y2];
+                    sandbox.cells[x2][y2] = temp;
+                    return (x2, y2);
+                }
+            }
+        }
+    }
+
+    if y != SIMULATION_HEIGHT - 1 {
+        match sandbox.cells[x][y + 1] {
+            None => {
+                // Else move 1 down if able
+                sandbox.cells[x][y + 1] = sandbox.cells[x][y].take();
+                return (x, y + 1);
+            }
+            Some(particle) => {
+                // Else mark for deletion if not above a replicator
+                if particle.ptype != ParticleType::Replicator {
+                    sandbox.cells[x][y].as_mut().unwrap().extra_data2 = -1;
+                }
+            }
+        }
+    }
+
+    (x, y)
+}
+
+pub fn update_sand(sandbox: &mut Sandbox, x: usize, y: usize) {
+    if sandbox.cells[x][y].unwrap().tempature >= 120 {
+        sandbox.cells[x][y].as_mut().unwrap().ptype = ParticleType::Glass;
+    }
 }
 
 pub fn update_water(sandbox: &mut Sandbox, x: usize, y: usize) {
@@ -82,7 +166,7 @@ pub fn update_water(sandbox: &mut Sandbox, x: usize, y: usize) {
     }
 
     let mut y2 = y + 1;
-    while y2 < sandbox.height {
+    while y2 < SIMULATION_HEIGHT {
         match &sandbox.cells[x][y2] {
             Some(particle) => match particle.ptype {
                 ParticleType::Sand => {
@@ -111,10 +195,12 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Plant => true,
             ParticleType::Cryotheum => true,
             ParticleType::Unstable => true,
+            ParticleType::Electricity => true,
+            ParticleType::Glass => false,
         }
     }
 
-    if y != sandbox.height - 1 {
+    if y != SIMULATION_HEIGHT - 1 {
         if let Some(particle) = &sandbox.cells[x][y + 1] {
             if dissolved_by_acid(particle.ptype) {
                 sandbox.cells[x][y] = None;
@@ -123,7 +209,7 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
             }
         }
     }
-    if x != sandbox.width - 1 {
+    if x != SIMULATION_WIDTH - 1 {
         if let Some(particle) = &sandbox.cells[x + 1][y] {
             if dissolved_by_acid(particle.ptype) {
                 sandbox.cells[x][y] = None;
@@ -153,38 +239,38 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
-    if y < sandbox.height - 2 {
-        if let Some(particle) = &sandbox.cells[x][y + 1] {
+    if y < SIMULATION_HEIGHT - 2 {
+        if let Some(particle) = sandbox.cells[x][y + 1] {
             if particle.ptype != ParticleType::Replicator {
                 if sandbox.cells[x][y + 2].is_none() {
-                    sandbox.cells[x][y + 2] = Some(Particle::new(particle.ptype));
+                    sandbox.cells[x][y + 2] = Some(particle);
                 }
             }
         }
     }
-    if x < sandbox.width - 2 {
-        if let Some(particle) = &sandbox.cells[x + 1][y] {
+    if x < SIMULATION_WIDTH - 2 {
+        if let Some(particle) = sandbox.cells[x + 1][y] {
             if particle.ptype != ParticleType::Replicator {
                 if sandbox.cells[x + 2][y].is_none() {
-                    sandbox.cells[x + 2][y] = Some(Particle::new(particle.ptype));
+                    sandbox.cells[x + 2][y] = Some(particle);
                 }
             }
         }
     }
     if y > 1 {
-        if let Some(particle) = &sandbox.cells[x][y - 1] {
+        if let Some(particle) = sandbox.cells[x][y - 1] {
             if particle.ptype != ParticleType::Replicator {
                 if sandbox.cells[x][y - 2].is_none() {
-                    sandbox.cells[x][y - 2] = Some(Particle::new(particle.ptype));
+                    sandbox.cells[x][y - 2] = Some(particle);
                 }
             }
         }
     }
     if x > 1 {
-        if let Some(particle) = &sandbox.cells[x - 1][y] {
+        if let Some(particle) = sandbox.cells[x - 1][y] {
             if particle.ptype != ParticleType::Replicator {
                 if sandbox.cells[x - 2][y].is_none() {
-                    sandbox.cells[x - 2][y] = Some(Particle::new(particle.ptype));
+                    sandbox.cells[x - 2][y] = Some(particle);
                 }
             }
         }
@@ -192,7 +278,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
-    if y != sandbox.height - 1 {
+    if y != SIMULATION_HEIGHT - 1 {
         if let Some(particle) = sandbox.cells[x][y + 1] {
             if particle.ptype == ParticleType::WetSand {
                 sandbox.cells[x][y].as_mut().unwrap().extra_data2 = 1;
@@ -206,7 +292,7 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
     if y != 0 {
         if sandbox.cells[x][y].unwrap().extra_data2 == 1 {
             if sandbox.cells[x][y].unwrap().extra_data1 > 0 {
-                if y % 2 == 0 && x != sandbox.width - 1 {
+                if y % 2 == 0 && x != SIMULATION_WIDTH - 1 {
                     if sandbox.cells[x + 1][y - 1].is_none() {
                         let mut particle = Particle::new(ParticleType::Plant);
                         particle.extra_data1 = sandbox.cells[x][y].unwrap().extra_data1 - 1;
@@ -235,12 +321,12 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
                         6
                     };
                     for x_offset in -x_range..=x_range {
-                        let new_x = x as i32 + x_offset;
-                        let new_y = y as i32 + y_offset;
+                        let new_x = x as isize + x_offset;
+                        let new_y = y as isize + y_offset;
                         if new_x > -1
-                            && new_x < sandbox.width as i32
+                            && new_x < SIMULATION_WIDTH as isize
                             && new_y > -1
-                            && new_y < sandbox.height as i32
+                            && new_y < SIMULATION_HEIGHT as isize
                         {
                             if sandbox.cells[new_x as usize][new_y as usize].is_none() {
                                 let mut particle = Particle::new(ParticleType::Plant);
@@ -270,6 +356,8 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Plant => true,
             ParticleType::Cryotheum => false,
             ParticleType::Unstable => true,
+            ParticleType::Electricity => true,
+            ParticleType::Glass => true,
         }
     }
 
@@ -280,10 +368,10 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
 
             for x_offset in -10..=10 {
                 for y_offset in -10..=10 {
-                    let x = x as i16 + x_offset;
-                    let y = y as i16 + y_offset;
-                    if (0..(sandbox.width as i16)).contains(&x)
-                        && (0..(sandbox.height as i16)).contains(&y)
+                    let x = x as isize + x_offset;
+                    let y = y as isize + y_offset;
+                    if (0..(SIMULATION_WIDTH as isize)).contains(&x)
+                        && (0..(SIMULATION_HEIGHT as isize)).contains(&y)
                     {
                         if let Some(particle) = sandbox.cells[x as usize][y as usize].as_mut() {
                             if affected_by_cryotheum_coldsnap(particle.ptype) {
@@ -313,6 +401,8 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Plant => true,
             ParticleType::Cryotheum => true,
             ParticleType::Unstable => true,
+            ParticleType::Electricity => true,
+            ParticleType::Glass => true,
         }
     }
 
@@ -329,10 +419,10 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
     if particle.tempature >= 200 {
         for x_offset in -20..=20 {
             for y_offset in -20..=20 {
-                let x = x as i16 + x_offset;
-                let y = y as i16 + y_offset;
-                if (0..(sandbox.width as i16)).contains(&x)
-                    && (0..(sandbox.height as i16)).contains(&y)
+                let x = x as isize + x_offset;
+                let y = y as isize + y_offset;
+                if (0..(SIMULATION_WIDTH as isize)).contains(&x)
+                    && (0..(SIMULATION_HEIGHT as isize)).contains(&y)
                 {
                     if let Some(particle) = sandbox.cells[x as usize][y as usize] {
                         if vaporized_by_unstable(particle.ptype) {
@@ -342,5 +432,12 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
                 }
             }
         }
+    }
+}
+
+pub fn update_electricity(sandbox: &mut Sandbox, x: usize, y: usize) {
+    // If this particle was unable able to move, delete it
+    if sandbox.cells[x][y].unwrap().extra_data2 == -1 {
+        sandbox.cells[x][y] = None;
     }
 }

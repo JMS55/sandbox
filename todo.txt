@@ -1,19 +1,16 @@
-1. Improve update methods
-    * Add more comments
-    * Make liquid have a 50/50 chance of going left/right if both are possible
-2. More particle types
-    * Make Plant look better and grow in a more interesting pattern
+1. More particle types
+    * Make Plant look better and grow in a more interesting pattern (also add comments)
     * Gasses
     * Quantum "portal" particles
-
+2. Resizing the window too small crashes
 
 1. Save/Load simulations with files
-2. Prettier rendering (Shaders, don't use the noise effect as much / better noise effect, heat haze blur?)
-3. Physics based movement
-4. Liquid/Gas pressure (with rendering effects)
-
-
-1. Visualize axis lock controls and particle placement
-2. Display the sandbox at 2X the size
+2. Visualize axis lock controls and particle placement
 3 GUI
 4. Wasm
+
+1. Prettier rendering (Shaders, don't use the noise effect as much / better noise effect, heat haze blur?)
+    * Shader based background (maybe similar to the effect I did in my roguelike, but more pixelated?)
+2. Physics based movement
+3. Liquid/Gas pressure (with rendering effects)
+4. App icon and package

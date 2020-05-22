@@ -2,41 +2,29 @@ use crate::behavior::*;
 use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
 
+pub const SIMULATION_WIDTH: usize = 600;
+pub const SIMULATION_HEIGHT: usize = 400;
+
 pub struct Sandbox {
-    pub cells: Vec<Vec<Option<Particle>>>,
-    pub width: usize,
-    pub height: usize,
+    pub cells: Box<[[Option<Particle>; SIMULATION_HEIGHT]; SIMULATION_WIDTH]>,
     pub rng: ThreadRng,
-    pub update_counter: u8,
+    update_counter: u8,
 }
 
 impl Sandbox {
-    pub fn new(width: usize, height: usize) -> Self {
+    pub fn new() -> Self {
         Self {
-            cells: vec![vec![None; height]; width],
-            width,
-            height,
+            cells: Box::new([[None; SIMULATION_HEIGHT]; SIMULATION_WIDTH]),
             rng: thread_rng(),
             update_counter: 1,
-        }
-    }
-
-    pub fn resize(&mut self, width: usize, height: usize) {
-        let old_width = self.width;
-        self.width = width;
-        self.height = height;
-
-        self.cells.resize(width, vec![None; self.height]);
-        for column in &mut self.cells[..self.width.min(old_width)] {
-            column.resize(self.height, None);
         }
     }
 
     pub fn update(&mut self) {
         // Move particles
         self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
-        for x in 0..self.width {
-            for y in 0..self.height {
+        for x in 0..SIMULATION_WIDTH {
+            for y in 0..SIMULATION_HEIGHT {
                 if let Some(particle) = &self.cells[x][y] {
                     if particle.last_update != self.update_counter {
                         let mut new_particle_position = (x, y);
@@ -56,6 +44,16 @@ impl Sandbox {
                                 new_particle_position = move_solid(self, x, y);
                             }
                             ParticleType::Unstable => {}
+                            ParticleType::Electricity => {
+                                new_particle_position = move_electricity(self, x, y);
+                            }
+                            ParticleType::Glass => {
+                                if particle.tempature >= 30 {
+                                    new_particle_position = move_liquid(self, x, y);
+                                } else {
+                                    new_particle_position = move_solid(self, x, y);
+                                }
+                            }
                         }
                         self.cells[new_particle_position.0][new_particle_position.1]
                             .as_mut()
@@ -79,15 +77,17 @@ impl Sandbox {
                 ParticleType::Plant => 3,
                 ParticleType::Cryotheum => 2,
                 ParticleType::Unstable => 2,
+                ParticleType::Electricity => 2,
+                ParticleType::Glass => 3,
             };
             assert!(tc > 1);
             tc
         }
         let cells_copy = self.cells.clone();
-        for x in 0..self.width {
-            for y in 0..self.height {
+        for x in 0..SIMULATION_WIDTH {
+            for y in 0..SIMULATION_HEIGHT {
                 if let Some(particle1) = &cells_copy[x][y] {
-                    if y != self.height - 1 {
+                    if y != SIMULATION_HEIGHT - 1 {
                         if let Some(particle2) = &self.cells[x][y + 1] {
                             let tc = thermal_conductivity(particle1.ptype)
                                 + thermal_conductivity(particle2.ptype);
@@ -96,7 +96,7 @@ impl Sandbox {
                             self.cells[x][y + 1].as_mut().unwrap().tempature += t;
                         }
                     }
-                    if x != self.width - 1 {
+                    if x != SIMULATION_WIDTH - 1 {
                         if let Some(particle2) = &self.cells[x + 1][y] {
                             let tc = thermal_conductivity(particle1.ptype)
                                 + thermal_conductivity(particle2.ptype);
@@ -129,12 +129,12 @@ impl Sandbox {
 
         // Perform particle interactions and state updates
         self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
-        for x in 0..self.width {
-            for y in 0..self.height {
+        for x in 0..SIMULATION_WIDTH {
+            for y in 0..SIMULATION_HEIGHT {
                 if let Some(particle) = &self.cells[x][y] {
                     if particle.last_update != self.update_counter {
                         match particle.ptype {
-                            ParticleType::Sand => {}
+                            ParticleType::Sand => update_sand(self, x, y),
                             ParticleType::WetSand => {}
                             ParticleType::Water => update_water(self, x, y),
                             ParticleType::Acid => update_acid(self, x, y),
@@ -143,6 +143,8 @@ impl Sandbox {
                             ParticleType::Plant => update_plant(self, x, y),
                             ParticleType::Cryotheum => update_cryotheum(self, x, y),
                             ParticleType::Unstable => update_unstable(self, x, y),
+                            ParticleType::Electricity => update_electricity(self, x, y),
+                            ParticleType::Glass => {}
                         }
                     }
                 }
@@ -152,9 +154,9 @@ impl Sandbox {
 
     pub fn render(&mut self, frame: &mut [u8]) {
         let mut i = 0;
-        for y in 0..self.height {
-            for x in 0..self.width {
-                let mut color = (20, 20, 20);
+        for y in 0..SIMULATION_HEIGHT {
+            for x in 0..SIMULATION_WIDTH {
+                let mut color: (u8, u8, u8) = (20, 20, 20);
                 if let Some(particle) = &self.cells[x][y] {
                     // Base color
                     color = match particle.ptype {
@@ -173,6 +175,8 @@ impl Sandbox {
                         }
                         ParticleType::Cryotheum => (12, 191, 201),
                         ParticleType::Unstable => (181, 158, 128),
+                        ParticleType::Electricity => (247, 244, 49),
+                        ParticleType::Glass => (226, 226, 226),
                     };
 
                     // Darken/Lighten randomly
@@ -198,6 +202,8 @@ impl Sandbox {
                                 0
                             }
                         }
+                        ParticleType::Electricity => 50,
+                        ParticleType::Glass => 5,
                     };
                     if noise != 0 {
                         let m = self.rng.gen_range(-noise, noise + 1);
@@ -233,7 +239,7 @@ pub struct Particle {
     pub tempature: i16,
     pub extra_data1: i8,
     pub extra_data2: i8,
-    pub last_update: u8,
+    last_update: u8,
 }
 
 impl Particle {
@@ -250,6 +256,8 @@ impl Particle {
                 ParticleType::Plant => 0,
                 ParticleType::Cryotheum => -60,
                 ParticleType::Unstable => 0,
+                ParticleType::Electricity => 0,
+                ParticleType::Glass => 0,
             },
             extra_data1: match ptype {
                 ParticleType::Sand => 0,
@@ -261,6 +269,8 @@ impl Particle {
                 ParticleType::Plant => thread_rng().gen_range(5, 21),
                 ParticleType::Cryotheum => 0,
                 ParticleType::Unstable => 0,
+                ParticleType::Electricity => 0,
+                ParticleType::Glass => 0,
             },
             extra_data2: match ptype {
                 ParticleType::Sand => 0,
@@ -272,6 +282,8 @@ impl Particle {
                 ParticleType::Plant => 0,
                 ParticleType::Cryotheum => 0,
                 ParticleType::Unstable => 0,
+                ParticleType::Electricity => 0,
+                ParticleType::Glass => 0,
             },
             last_update: 0,
         }
@@ -289,6 +301,8 @@ pub enum ParticleType {
     Plant,
     Cryotheum,
     Unstable,
+    Electricity,
+    Glass,
 }
 
 fn clamp(value: i16, min: i16, max: i16) -> i16 {

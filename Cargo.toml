@@ -7,3 +7,9 @@ edition = "2018"
 pixels = "0.0"
 winit = "0.22"
 rand = "0.7"
+
+[profile.dev]
+opt-level = 3
+
+[profile.release]
+lto = true

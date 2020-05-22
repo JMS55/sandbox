@@ -2,48 +2,57 @@ mod behavior;
 mod sandbox;
 
 use pixels::{wgpu::Surface, Pixels, SurfaceTexture};
-use sandbox::{Particle, ParticleType, Sandbox};
+use sandbox::{Particle, ParticleType, Sandbox, SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use std::time::{Duration, Instant};
-use winit::dpi::{LogicalPosition, LogicalSize};
+use winit::dpi::{LogicalSize, PhysicalPosition};
 use winit::event::{ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
-use winit::window::WindowBuilder;
+use winit::window::{Fullscreen, WindowBuilder};
 
 const TARGET_TIME_PER_UPDATE: Duration = Duration::from_nanos(16666670);
 
 fn main() {
-    let mut sandbox = Sandbox::new(600, 400);
-
+    // Setup winit
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_title("Sandbox")
         .with_inner_size(LogicalSize::new(
-            sandbox.width as f64,
-            sandbox.height as f64,
+            (SIMULATION_WIDTH * 2) as f64,
+            (SIMULATION_HEIGHT * 2) as f64,
         ))
         .build(&event_loop)
         .unwrap();
 
+    // Setup pixels
     let surface_size = window.inner_size();
     let surface = Surface::create(&window);
     let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, surface);
-    let mut pixels =
-        Pixels::new(sandbox.width as u32, sandbox.height as u32, surface_texture).unwrap();
+    let mut pixels = Pixels::new(
+        SIMULATION_WIDTH as u32,
+        SIMULATION_HEIGHT as u32,
+        surface_texture,
+    )
+    .unwrap();
 
+    // Simulation state
+    let mut sandbox = Sandbox::new();
     let mut last_update = Instant::now();
     let mut paused = false;
 
+    // Brush state
     let mut selected_particle = None;
     let mut brush_size = 3;
     let mut x_axis_locked = None;
     let mut y_axis_locked = None;
 
+    // Particle placement state
     let mut should_place_particles = false;
     let mut particle_placement_queue = Vec::new();
 
-    let mut dpi_factor = window.scale_factor();
-    let mut prev_cursor_position = LogicalPosition::<f64>::new(0.0, 0.0);
-    let mut curr_cursor_position = LogicalPosition::<f64>::new(0.0, 0.0);
+    // Window state
+    let mut last_resize = None;
+    let mut prev_cursor_position = PhysicalPosition::<f64>::new(0.0, 0.0);
+    let mut curr_cursor_position = PhysicalPosition::<f64>::new(0.0, 0.0);
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
@@ -52,25 +61,14 @@ fn main() {
                 // Window events
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::Resized(new_size) => {
-                    let surface = Surface::create(&window);
-                    let surface_texture =
-                        SurfaceTexture::new(new_size.width, new_size.height, surface);
-                    let new_size = new_size.to_logical(dpi_factor);
-                    pixels = Pixels::new(new_size.width, new_size.height, surface_texture).unwrap();
-                    sandbox.resize(new_size.width as usize, new_size.height as usize);
-                }
-                WindowEvent::ScaleFactorChanged {
-                    scale_factor,
-                    new_inner_size,
-                } => {
-                    dpi_factor = scale_factor;
-                    pixels.resize(new_inner_size.width, new_inner_size.height);
+                    last_resize = Some(Instant::now());
+                    pixels.resize(new_size.width, new_size.height);
                 }
 
                 // Mouse events
                 WindowEvent::CursorMoved { position, .. } => {
                     prev_cursor_position = curr_cursor_position;
-                    curr_cursor_position = position.to_logical(dpi_factor);
+                    curr_cursor_position = position;
 
                     if should_place_particles {
                         particle_placement_queue.push((prev_cursor_position, curr_cursor_position));
@@ -99,9 +97,14 @@ fn main() {
                     if input.state == ElementState::Pressed {
                         match input.virtual_keycode {
                             Some(VirtualKeyCode::Escape) => *control_flow = ControlFlow::Exit,
-                            Some(VirtualKeyCode::Back) => {
-                                sandbox = Sandbox::new(sandbox.width, sandbox.height);
+                            Some(VirtualKeyCode::Return) => {
+                                let fullscreen = match window.fullscreen() {
+                                    Some(_) => None,
+                                    None => Some(Fullscreen::Borderless(window.current_monitor())),
+                                };
+                                window.set_fullscreen(fullscreen);
                             }
+                            Some(VirtualKeyCode::Back) => sandbox = Sandbox::new(),
                             Some(VirtualKeyCode::Space) => paused = !paused,
                             Some(VirtualKeyCode::Equals) => {
                                 if brush_size < 10 {
@@ -140,39 +143,69 @@ fn main() {
                             Some(VirtualKeyCode::U) => {
                                 selected_particle = Some(ParticleType::Unstable);
                             }
+                            Some(VirtualKeyCode::E) => {
+                                selected_particle = Some(ParticleType::Electricity);
+                            }
                             _ => {}
                         }
                     }
                 }
+
                 _ => {}
             },
 
             Event::MainEventsCleared => {
+                // Snap the window size to multiples of SIMULATION_SIZE when less than 20% away
+                if let Some(lr) = last_resize {
+                    if lr.elapsed() >= Duration::from_millis(50) {
+                        let mut surface_size = window.inner_size();
+                        let width_ratio = surface_size.width as f64 / SIMULATION_WIDTH as f64;
+                        let height_ratio = surface_size.height as f64 / SIMULATION_HEIGHT as f64;
+                        if (width_ratio.fract() < 0.20 || width_ratio.fract() > 0.80)
+                            && (height_ratio.fract() < 0.20 || height_ratio.fract() > 0.80)
+                        {
+                            surface_size.width =
+                                width_ratio.round() as u32 * SIMULATION_WIDTH as u32;
+                            surface_size.height =
+                                height_ratio.round() as u32 * SIMULATION_HEIGHT as u32;
+                            window.set_inner_size(surface_size);
+                            pixels.resize(surface_size.width, surface_size.height);
+                        }
+                        last_resize = None;
+                    }
+                }
+
                 // Place particles in a straight line from prev_cursor_position to curr_cursor_position
-                // In addition, uses data cached from CursorMoved to ensure all gestures are properly captured
+                // In addition, uses data cached from WindowEvent::CursorMoved to ensure all gestures are properly captured
                 if should_place_particles {
                     particle_placement_queue.push((prev_cursor_position, curr_cursor_position));
                 }
-                for (mut p1, mut p2) in particle_placement_queue.drain(..) {
+                for (p1, mut p2) in particle_placement_queue.drain(..) {
+                    // Adjust coordinates
                     if let Some(x) = x_axis_locked {
                         p2.x = x;
                     }
                     if let Some(y) = y_axis_locked {
                         p2.y = y;
                     }
-                    p1.x = clamp(p1.x, 0.0, sandbox.width as f64);
-                    p1.y = clamp(p1.y, 0.0, sandbox.height as f64);
-                    p2.x = clamp(p2.x, 0.0, sandbox.width as f64);
-                    p2.y = clamp(p2.y, 0.0, sandbox.height as f64);
+                    let p1 = pixels
+                        .window_pos_to_pixel(p1.into())
+                        .unwrap_or_else(|p| pixels.clamp_pixel_pos(p));
+                    let p2 = pixels
+                        .window_pos_to_pixel(p2.into())
+                        .unwrap_or_else(|p| pixels.clamp_pixel_pos(p));
+                    let (p1x, p1y) = (p1.0 as f64, p1.1 as f64);
+                    let (p2x, p2y) = (p2.0 as f64, p2.1 as f64);
 
-                    let n = (p1.x - p2.y).abs().max((p1.y - p2.y).abs()) as usize;
+                    // Place particles
+                    let n = (p1x - p2y).abs().max((p1y - p2y).abs()) as usize;
                     for step in 0..(n + 1) {
                         let t = if n == 0 { 0.0 } else { step as f64 / n as f64 };
-                        let x = (p1.x + t * (p2.x - p1.x)).round() as usize;
-                        let y = (p1.y + t * (p2.y - p1.y)).round() as usize;
+                        let x = (p1x + t * (p2x - p1x)).round() as usize;
+                        let y = (p1y + t * (p2y - p1y)).round() as usize;
                         for x in x..(x + brush_size) {
                             for y in y..(y + brush_size) {
-                                if x < sandbox.width && y < sandbox.height {
+                                if x < SIMULATION_WIDTH && y < SIMULATION_HEIGHT {
                                     match selected_particle {
                                         Some(selected_particle) => {
                                             if sandbox.cells[x][y].is_none() {
@@ -188,6 +221,7 @@ fn main() {
                     }
                 }
 
+                // Update the simulation
                 if last_update.elapsed() >= TARGET_TIME_PER_UPDATE && !paused {
                     last_update = Instant::now();
                     sandbox.update();
@@ -198,21 +232,10 @@ fn main() {
 
             Event::RedrawRequested(_) => {
                 sandbox.render(pixels.get_frame());
-                pixels.render().unwrap();
+                let _ = pixels.render();
             }
+
             _ => {}
         }
     });
-}
-
-fn clamp(value: f64, min: f64, max: f64) -> f64 {
-    assert!(min <= max);
-    let mut x = value;
-    if x < min {
-        x = min;
-    }
-    if x > max {
-        x = max;
-    }
-    x
 }
