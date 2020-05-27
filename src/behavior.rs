@@ -153,6 +153,67 @@ pub fn move_electricity(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, us
     (x, y)
 }
 
+pub fn move_life(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
+    // Fall down if able
+    if y != SIMULATION_HEIGHT - 1 {
+        if sandbox.cells[x][y + 1].is_none() {
+            // And increase the falling counter by 1
+            sandbox.cells[x][y].as_mut().unwrap().extra_data1 = sandbox.cells[x][y]
+                .as_mut()
+                .unwrap()
+                .extra_data1
+                .saturating_add(1);
+            sandbox.cells[x][y + 1] = sandbox.cells[x][y].take();
+            return (x, y + 1);
+        }
+    }
+
+    // Kill the particle if the falling counter > 60, else reset it
+    if sandbox.cells[x][y].unwrap().extra_data1 > 60 {
+        sandbox.cells[x][y].as_mut().unwrap().extra_data2 = 1;
+    } else {
+        sandbox.cells[x][y].as_mut().unwrap().extra_data1 = 0;
+    }
+
+    // And if still living
+    if sandbox.cells[x][y].unwrap().extra_data2 == 0 {
+        let drop_is_short_enough = |x: usize, y: usize| -> bool {
+            let mut y2 = y + 1;
+            let mut drop_size = 0;
+            while y2 < SIMULATION_HEIGHT {
+                if sandbox.cells[x][y2].is_none() {
+                    drop_size += 1;
+                } else {
+                    break;
+                }
+                y2 += 1;
+            }
+            drop_size < 31
+        };
+
+        // Move left if able and the drop is short enough
+        if x != 0 {
+            if drop_is_short_enough(x - 1, y) {
+                if sandbox.cells[x - 1][y].is_none() {
+                    sandbox.cells[x - 1][y] = sandbox.cells[x][y].take();
+                    return (x - 1, y);
+                }
+            }
+        }
+        // Else move right if able and the drop is short enough
+        if x != SIMULATION_WIDTH - 1 {
+            if drop_is_short_enough(x + 1, y) {
+                if sandbox.cells[x + 1][y].is_none() {
+                    sandbox.cells[x + 1][y] = sandbox.cells[x][y].take();
+                    return (x + 1, y);
+                }
+            }
+        }
+    }
+
+    (x, y)
+}
+
 pub fn update_sand(sandbox: &mut Sandbox, x: usize, y: usize) {
     if sandbox.cells[x][y].unwrap().tempature >= 120 {
         sandbox.cells[x][y].as_mut().unwrap().ptype = ParticleType::Glass;
@@ -197,6 +258,7 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Unstable => true,
             ParticleType::Electricity => true,
             ParticleType::Glass => false,
+            ParticleType::Life => true,
         }
     }
 
@@ -367,6 +429,7 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Unstable => true,
             ParticleType::Electricity => true,
             ParticleType::Glass => true,
+            ParticleType::Life => true,
         }
     }
 
@@ -414,6 +477,7 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Unstable => true,
             ParticleType::Electricity => true,
             ParticleType::Glass => true,
+            ParticleType::Life => true,
         }
     }
 
@@ -450,5 +514,13 @@ pub fn update_electricity(sandbox: &mut Sandbox, x: usize, y: usize) {
     // If this particle was unable able to move, delete it
     if sandbox.cells[x][y].unwrap().extra_data2 == -1 {
         sandbox.cells[x][y] = None;
+    }
+}
+
+pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
+    // When tempature less than -50, or greater than 50, this particle dies
+    let mut particle = sandbox.cells[x][y].as_mut().unwrap();
+    if particle.tempature < -50 || particle.tempature > 50 {
+        particle.extra_data2 = 1;
     }
 }

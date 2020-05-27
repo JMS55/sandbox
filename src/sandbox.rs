@@ -55,6 +55,7 @@ impl Sandbox {
                                     new_particle_position = move_solid(self, x, y);
                                 }
                             }
+                            ParticleType::Life => new_particle_position = move_life(self, x, y),
                         }
                         self.cells[new_particle_position.0][new_particle_position.1]
                             .as_mut()
@@ -80,6 +81,7 @@ impl Sandbox {
                 ParticleType::Unstable => 2,
                 ParticleType::Electricity => 2,
                 ParticleType::Glass => 2,
+                ParticleType::Life => 4,
             };
             assert!(tc > 1);
             tc
@@ -146,6 +148,7 @@ impl Sandbox {
                             ParticleType::Unstable => update_unstable(self, x, y),
                             ParticleType::Electricity => update_electricity(self, x, y),
                             ParticleType::Glass => {}
+                            ParticleType::Life => update_life(self, x, y),
                         }
                     }
                 }
@@ -187,6 +190,13 @@ impl Sandbox {
                         ParticleType::Unstable => (181, 158, 128),
                         ParticleType::Electricity => (247, 244, 49),
                         ParticleType::Glass => (159, 198, 197),
+                        ParticleType::Life => {
+                            if particle.extra_data2 == 0 {
+                                (135, 12, 211)
+                            } else {
+                                (90, 84, 84)
+                            }
+                        }
                     };
 
                     // Tint blue/red based on tempature
@@ -224,6 +234,7 @@ impl Sandbox {
                         }
                         ParticleType::Electricity => 200,
                         ParticleType::Glass => 50,
+                        ParticleType::Life => 0,
                     };
                     if noise_intensity != 0 {
                         m = (noise[noise_index] * noise_intensity as f32) as i16;
@@ -278,6 +289,7 @@ impl Particle {
                 ParticleType::Unstable => 0,
                 ParticleType::Electricity => 0,
                 ParticleType::Glass => 0,
+                ParticleType::Life => 0,
             },
             extra_data1: match ptype {
                 ParticleType::Sand => 0,
@@ -291,6 +303,7 @@ impl Particle {
                 ParticleType::Unstable => 0,
                 ParticleType::Electricity => 0,
                 ParticleType::Glass => 0,
+                ParticleType::Life => 0,
             },
             extra_data2: match ptype {
                 ParticleType::Sand => 0,
@@ -304,6 +317,7 @@ impl Particle {
                 ParticleType::Unstable => 0,
                 ParticleType::Electricity => 0,
                 ParticleType::Glass => 0,
+                ParticleType::Life => 0,
             },
             color_offset: rng.gen_range(-10, 11),
             last_update: 0,
@@ -324,6 +338,7 @@ pub enum ParticleType {
     Unstable,
     Electricity,
     Glass,
+    Life,
 }
 
 fn clamp(value: i16, min: i16, max: i16) -> i16 {

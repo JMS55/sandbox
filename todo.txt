@@ -1,22 +1,24 @@
 1. More particle types
-    * Make Plant look better and grow in a more interesting pattern (also add comments)
-    * Gasses
+    * Make dead Life particles turn into blood somehow, and then that to iron
     * Pyrotheum fluid
     * Quantum "portal" particles
-    * Life particles that can be killed for blood, and then blood can be further processed
-2. Resizing the window too small crashes
-3. Fix Electricity getting stuck with 1 particle of water in mid-air
-4. Make Electricity have a much lower noise when not in water
-5. Make Electricity not die when it hits itself
-6. Make Electricity die when it hits the last row
-7. Add some kind of background (cache noise from a few frames ago, and use that with a different scaling?)
-8. Animate Unstable explosion, maybe leave a particle/visual behind?
+    * Gasses
+2. Add some kind of background (cache noise from a few frames ago, and use that with a different scaling?)
 
-1. Save/Load simulations with files
+1. Make Plant look better and grow in a more interesting pattern (also add comments)
+2. Make particles move left/right randomly when they can do either
+3. Resizing the window too small crashes
+4. Fix Electricity getting stuck with 1 particle of water in mid-air
+5. Make Electricity have a much lower noise when not in water
+6. Make Electricity not die when it hits itself
+7. Make Electricity die when it hits the last row
+
+1. Animate Unstable explosion, maybe leave a particle/visual behind?
 2. Visualize axis lock controls and particle placement
-3 GUI
-4. Wasm
+3. Save/Load simulations with files
+4 GUI
 
 1. Physics based movement
 2. Liquid/Gas pressure (with rendering effects)
 3. App icon and package
+4. Wasm
