@@ -1,12 +1,16 @@
 1. More particle types
     * Make Plant look better and grow in a more interesting pattern (also add comments)
     * Gasses
+    * Pyrotheum fluid
     * Quantum "portal" particles
+    * Life particles that can be killed for blood, and then blood can be further processed
 2. Resizing the window too small crashes
 3. Fix Electricity getting stuck with 1 particle of water in mid-air
 4. Make Electricity have a much lower noise when not in water
 5. Make Electricity not die when it hits itself
-6. Add some kind of background (cache noise from a few frames ago, and use that with a different scaling?)
+6. Make Electricity die when it hits the last row
+7. Add some kind of background (cache noise from a few frames ago, and use that with a different scaling?)
+8. Animate Unstable explosion, maybe leave a particle/visual behind?
 
 1. Save/Load simulations with files
 2. Visualize axis lock controls and particle placement

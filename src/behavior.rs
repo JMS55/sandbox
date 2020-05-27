@@ -243,6 +243,8 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
         if let Some(particle) = sandbox.cells[x][y + 1] {
             if particle.ptype != ParticleType::Replicator {
                 if sandbox.cells[x][y + 2].is_none() {
+                    let mut particle = particle.clone();
+                    particle.color_offset = sandbox.rng.gen_range(-10, 11);
                     sandbox.cells[x][y + 2] = Some(particle);
                 }
             }
@@ -252,6 +254,8 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
         if let Some(particle) = sandbox.cells[x + 1][y] {
             if particle.ptype != ParticleType::Replicator {
                 if sandbox.cells[x + 2][y].is_none() {
+                    let mut particle = particle.clone();
+                    particle.color_offset = sandbox.rng.gen_range(-10, 11);
                     sandbox.cells[x + 2][y] = Some(particle);
                 }
             }
@@ -261,6 +265,8 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
         if let Some(particle) = sandbox.cells[x][y - 1] {
             if particle.ptype != ParticleType::Replicator {
                 if sandbox.cells[x][y - 2].is_none() {
+                    let mut particle = particle.clone();
+                    particle.color_offset = sandbox.rng.gen_range(-10, 11);
                     sandbox.cells[x][y - 2] = Some(particle);
                 }
             }
@@ -270,6 +276,8 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
         if let Some(particle) = sandbox.cells[x - 1][y] {
             if particle.ptype != ParticleType::Replicator {
                 if sandbox.cells[x - 2][y].is_none() {
+                    let mut particle = particle.clone();
+                    particle.color_offset = sandbox.rng.gen_range(-10, 11);
                     sandbox.cells[x - 2][y] = Some(particle);
                 }
             }
@@ -294,7 +302,7 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
             if sandbox.cells[x][y].unwrap().extra_data1 > 0 {
                 if y % 2 == 0 && x != SIMULATION_WIDTH - 1 {
                     if sandbox.cells[x + 1][y - 1].is_none() {
-                        let mut particle = Particle::new(ParticleType::Plant);
+                        let mut particle = Particle::new(ParticleType::Plant, &mut sandbox.rng);
                         particle.extra_data1 = sandbox.cells[x][y].unwrap().extra_data1 - 1;
                         particle.extra_data2 = 1;
                         sandbox.cells[x + 1][y - 1] = Some(particle);
@@ -302,7 +310,7 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
                     }
                 } else if x != 0 {
                     if sandbox.cells[x - 1][y - 1].is_none() {
-                        let mut particle = Particle::new(ParticleType::Plant);
+                        let mut particle = Particle::new(ParticleType::Plant, &mut sandbox.rng);
                         particle.extra_data1 = sandbox.cells[x][y].unwrap().extra_data1 - 1;
                         particle.extra_data2 = 1;
                         sandbox.cells[x - 1][y - 1] = Some(particle);
@@ -329,7 +337,8 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
                             && new_y < SIMULATION_HEIGHT as isize
                         {
                             if sandbox.cells[new_x as usize][new_y as usize].is_none() {
-                                let mut particle = Particle::new(ParticleType::Plant);
+                                let mut particle =
+                                    Particle::new(ParticleType::Plant, &mut sandbox.rng);
                                 particle.extra_data1 = -1;
                                 particle.extra_data2 = 1;
                                 sandbox.cells[new_x as usize][new_y as usize] = Some(particle);
@@ -343,7 +352,7 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
     }
 }
 
-// Every 1/10th of a second, check if tempature >= 0, and if so, delete itself and freeze around it
+// Check if tempature >= 0, and if so, wait 1/5th of a second, and then delete itself and freeze around it
 pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
     fn affected_by_cryotheum_coldsnap(ptype: ParticleType) -> bool {
         match ptype {
@@ -361,31 +370,33 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
         }
     }
 
-    sandbox.cells[x][y].as_mut().unwrap().extra_data1 += 1;
-    if sandbox.cells[x][y].unwrap().extra_data1 == 6 {
-        if sandbox.cells[x][y].unwrap().tempature >= 0 {
-            sandbox.cells[x][y] = None;
+    if sandbox.cells[x][y].unwrap().tempature >= 0 {
+        sandbox.cells[x][y].as_mut().unwrap().extra_data1 = 13;
+        return;
+    }
 
-            for x_offset in -10..=10 {
-                for y_offset in -10..=10 {
-                    let x = x as isize + x_offset;
-                    let y = y as isize + y_offset;
-                    if (0..(SIMULATION_WIDTH as isize)).contains(&x)
-                        && (0..(SIMULATION_HEIGHT as isize)).contains(&y)
-                    {
-                        if let Some(particle) = sandbox.cells[x as usize][y as usize].as_mut() {
-                            if affected_by_cryotheum_coldsnap(particle.ptype) {
-                                particle.tempature -= 100;
-                            }
+    if sandbox.cells[x][y].unwrap().extra_data1 > 1 {
+        sandbox.cells[x][y].as_mut().unwrap().extra_data1 -= 1;
+    }
+
+    if sandbox.cells[x][y].unwrap().extra_data1 == 1 {
+        sandbox.cells[x][y] = None;
+
+        for x_offset in (-10..=10).skip(0) {
+            for y_offset in (-10..=10).skip(0) {
+                let x = x as isize + x_offset;
+                let y = y as isize + y_offset;
+                if (0..(SIMULATION_WIDTH as isize)).contains(&x)
+                    && (0..(SIMULATION_HEIGHT as isize)).contains(&y)
+                {
+                    if let Some(particle) = sandbox.cells[x as usize][y as usize].as_mut() {
+                        if affected_by_cryotheum_coldsnap(particle.ptype) {
+                            particle.tempature -= 100;
                         }
                     }
                 }
             }
-
-            return;
         }
-
-        sandbox.cells[x][y].as_mut().unwrap().extra_data1 = 0;
     }
 }
 

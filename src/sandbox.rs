@@ -72,14 +72,14 @@ impl Sandbox {
                 ParticleType::Sand => 3,
                 ParticleType::WetSand => 4,
                 ParticleType::Water => 5,
-                ParticleType::Acid => 2,
+                ParticleType::Acid => 4,
                 ParticleType::Iridium => 8,
                 ParticleType::Replicator => 3,
                 ParticleType::Plant => 3,
                 ParticleType::Cryotheum => 2,
                 ParticleType::Unstable => 2,
                 ParticleType::Electricity => 2,
-                ParticleType::Glass => 3,
+                ParticleType::Glass => 2,
             };
             assert!(tc > 1);
             tc
@@ -169,7 +169,7 @@ impl Sandbox {
                 let mut color: (u8, u8, u8) = (20, 20, 20);
                 if let Some(particle) = &self.cells[x][y] {
                     // Base color
-                    color = match particle.ptype {
+                    let base_color: (u8, u8, u8) = match particle.ptype {
                         ParticleType::Sand => (196, 192, 135),
                         ParticleType::WetSand => (166, 162, 105),
                         ParticleType::Water => (8, 130, 201),
@@ -189,7 +189,17 @@ impl Sandbox {
                         ParticleType::Glass => (159, 198, 197),
                     };
 
+                    // Tint blue/red based on tempature
+                    let mut r = 0;
+                    let mut b = 0;
+                    if particle.tempature < 0 {
+                        b = clamp(particle.tempature.abs(), 0, 255);
+                    } else {
+                        r = clamp(particle.tempature, 0, 255);
+                    }
+
                     // Darken/Lighten based on noise
+                    let mut m = 0;
                     let noise_intensity = match particle.ptype {
                         ParticleType::Sand => 10,
                         ParticleType::WetSand => 10,
@@ -216,20 +226,18 @@ impl Sandbox {
                         ParticleType::Glass => 50,
                     };
                     if noise_intensity != 0 {
-                        let m = (noise[noise_index] * noise_intensity as f32) as i16;
-                        color.0 = clamp(color.0 as i16 + m, 0, 255) as u8;
-                        color.1 = clamp(color.1 as i16 + m, 0, 255) as u8;
-                        color.2 = clamp(color.2 as i16 + m, 0, 255) as u8;
+                        m = (noise[noise_index] * noise_intensity as f32) as i16;
                     }
 
-                    // Tint blue/red based on tempature
-                    if particle.tempature < 0 {
-                        let tempature = clamp(particle.tempature.abs(), 0, 255);
-                        color.2 = color.2.saturating_add(tempature as u8);
-                    } else {
-                        let tempature = clamp(particle.tempature, 0, 255);
-                        color.0 = color.0.saturating_add(tempature as u8);
-                    }
+                    // Combine everything together
+                    let r = base_color.0 as i16 + r + m + particle.color_offset as i16;
+                    let g = base_color.1 as i16 + m + particle.color_offset as i16;
+                    let b = base_color.2 as i16 + b + m + particle.color_offset as i16;
+                    color = (
+                        clamp(r, 0, 255) as u8,
+                        clamp(g, 0, 255) as u8,
+                        clamp(b, 0, 255) as u8,
+                    )
                 }
 
                 frame[frame_index] = color.0;
@@ -250,11 +258,12 @@ pub struct Particle {
     pub tempature: i16,
     pub extra_data1: i8,
     pub extra_data2: i8,
+    pub color_offset: i8,
     last_update: u8,
 }
 
 impl Particle {
-    pub fn new(ptype: ParticleType) -> Self {
+    pub fn new(ptype: ParticleType, rng: &mut impl Rng) -> Self {
         Self {
             ptype,
             tempature: match ptype {
@@ -296,6 +305,7 @@ impl Particle {
                 ParticleType::Electricity => 0,
                 ParticleType::Glass => 0,
             },
+            color_offset: rng.gen_range(-10, 11),
             last_update: 0,
         }
     }

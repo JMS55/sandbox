@@ -1,7 +1,8 @@
 mod behavior;
 mod sandbox;
 
-use pixels::{wgpu::Surface, Pixels, SurfaceTexture};
+use pixels::wgpu::{PowerPreference, RequestAdapterOptions, Surface};
+use pixels::{PixelsBuilder, SurfaceTexture};
 use sandbox::{Particle, ParticleType, Sandbox, SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use std::time::{Duration, Instant};
 use winit::dpi::{LogicalSize, PhysicalPosition};
@@ -27,11 +28,16 @@ fn main() {
     let surface_size = window.inner_size();
     let surface = Surface::create(&window);
     let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, surface);
-    let mut pixels = Pixels::new(
+    let mut pixels = PixelsBuilder::new(
         SIMULATION_WIDTH as u32,
         SIMULATION_HEIGHT as u32,
         surface_texture,
     )
+    .request_adapter_options(RequestAdapterOptions {
+        power_preference: PowerPreference::HighPerformance,
+        compatible_surface: None,
+    })
+    .build()
     .unwrap();
 
     // Simulation state
@@ -210,8 +216,10 @@ fn main() {
                                     match selected_particle {
                                         Some(selected_particle) => {
                                             if sandbox.cells[x][y].is_none() {
-                                                sandbox.cells[x][y] =
-                                                    Some(Particle::new(selected_particle));
+                                                sandbox.cells[x][y] = Some(Particle::new(
+                                                    selected_particle,
+                                                    &mut sandbox.rng,
+                                                ));
                                             }
                                         }
                                         None => sandbox.cells[x][y] = None,
