@@ -56,6 +56,7 @@ impl Sandbox {
                                 }
                             }
                             ParticleType::Life => new_particle_position = move_life(self, x, y),
+                            ParticleType::Blood => new_particle_position = move_liquid(self, x, y),
                         }
                         self.cells[new_particle_position.0][new_particle_position.1]
                             .as_mut()
@@ -81,7 +82,8 @@ impl Sandbox {
                 ParticleType::Unstable => 2,
                 ParticleType::Electricity => 2,
                 ParticleType::Glass => 2,
-                ParticleType::Life => 4,
+                ParticleType::Life => 3,
+                ParticleType::Blood => 2,
             };
             assert!(tc > 1);
             tc
@@ -149,6 +151,7 @@ impl Sandbox {
                             ParticleType::Electricity => update_electricity(self, x, y),
                             ParticleType::Glass => {}
                             ParticleType::Life => update_life(self, x, y),
+                            ParticleType::Blood => update_blood(self, x, y),
                         }
                     }
                 }
@@ -197,15 +200,18 @@ impl Sandbox {
                                 (90, 84, 84)
                             }
                         }
+                        ParticleType::Blood => (112, 4, 17),
                     };
 
                     // Tint blue/red based on tempature
                     let mut r = 0;
                     let mut b = 0;
-                    if particle.tempature < 0 {
-                        b = clamp(particle.tempature.abs(), 0, 255);
-                    } else {
-                        r = clamp(particle.tempature, 0, 255);
+                    if particle.ptype != ParticleType::Electricity {
+                        if particle.tempature < 0 {
+                            b = clamp(particle.tempature.abs(), 0, 255);
+                        } else {
+                            r = clamp(particle.tempature, 0, 255);
+                        }
                     }
 
                     // Darken/Lighten based on noise
@@ -235,6 +241,7 @@ impl Sandbox {
                         ParticleType::Electricity => 200,
                         ParticleType::Glass => 50,
                         ParticleType::Life => 0,
+                        ParticleType::Blood => 20,
                     };
                     if noise_intensity != 0 {
                         m = (noise[noise_index] * noise_intensity as f32) as i16;
@@ -287,9 +294,10 @@ impl Particle {
                 ParticleType::Plant => 0,
                 ParticleType::Cryotheum => -60,
                 ParticleType::Unstable => 0,
-                ParticleType::Electricity => 0,
+                ParticleType::Electricity => 300,
                 ParticleType::Glass => 0,
                 ParticleType::Life => 0,
+                ParticleType::Blood => 0,
             },
             extra_data1: match ptype {
                 ParticleType::Sand => 0,
@@ -304,6 +312,7 @@ impl Particle {
                 ParticleType::Electricity => 0,
                 ParticleType::Glass => 0,
                 ParticleType::Life => 0,
+                ParticleType::Blood => 0,
             },
             extra_data2: match ptype {
                 ParticleType::Sand => 0,
@@ -318,6 +327,7 @@ impl Particle {
                 ParticleType::Electricity => 0,
                 ParticleType::Glass => 0,
                 ParticleType::Life => 0,
+                ParticleType::Blood => 0,
             },
             color_offset: rng.gen_range(-10, 11),
             last_update: 0,
@@ -339,6 +349,7 @@ pub enum ParticleType {
     Electricity,
     Glass,
     Life,
+    Blood,
 }
 
 fn clamp(value: i16, min: i16, max: i16) -> i16 {

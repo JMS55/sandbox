@@ -142,12 +142,15 @@ pub fn move_electricity(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, us
                 return (x, y + 1);
             }
             Some(particle) => {
-                // Else mark for deletion if not above a replicator
+                // Else mark for deletion if not above a Replicator
                 if particle.ptype != ParticleType::Replicator {
                     sandbox.cells[x][y].as_mut().unwrap().extra_data2 = -1;
                 }
             }
         }
+    } else {
+        // Else mark for deletion if in the last row
+        sandbox.cells[x][y].as_mut().unwrap().extra_data2 = -1;
     }
 
     (x, y)
@@ -259,6 +262,7 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Electricity => true,
             ParticleType::Glass => false,
             ParticleType::Life => true,
+            ParticleType::Blood => true,
         }
     }
 
@@ -430,6 +434,7 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Electricity => true,
             ParticleType::Glass => true,
             ParticleType::Life => true,
+            ParticleType::Blood => true,
         }
     }
 
@@ -478,6 +483,7 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Electricity => true,
             ParticleType::Glass => true,
             ParticleType::Life => true,
+            ParticleType::Blood => true,
         }
     }
 
@@ -522,5 +528,68 @@ pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
     let mut particle = sandbox.cells[x][y].as_mut().unwrap();
     if particle.tempature < -50 || particle.tempature > 50 {
         particle.extra_data2 = 1;
+    }
+
+    // When alive and touching a Plant particle, chance to turn it into a new Life particle
+    if particle.extra_data2 == 0 {
+        if y != SIMULATION_HEIGHT - 1 {
+            if let Some(particle) = &sandbox.cells[x][y + 1] {
+                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.4) {
+                    sandbox.cells[x][y + 1] =
+                        Some(Particle::new(ParticleType::Life, &mut sandbox.rng));
+                    return;
+                }
+            }
+        }
+        if x != SIMULATION_WIDTH - 1 {
+            if let Some(particle) = &sandbox.cells[x + 1][y] {
+                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.4) {
+                    sandbox.cells[x + 1][y] =
+                        Some(Particle::new(ParticleType::Life, &mut sandbox.rng));
+                    return;
+                }
+            }
+        }
+        if y != 0 {
+            if let Some(particle) = &sandbox.cells[x][y - 1] {
+                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.4) {
+                    sandbox.cells[x][y - 1] =
+                        Some(Particle::new(ParticleType::Life, &mut sandbox.rng));
+                    return;
+                }
+            }
+        }
+        if x != 0 {
+            if let Some(particle) = &sandbox.cells[x - 1][y] {
+                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.4) {
+                    sandbox.cells[x - 1][y] =
+                        Some(Particle::new(ParticleType::Life, &mut sandbox.rng));
+                    return;
+                }
+            }
+        }
+    } else {
+        // Else if dead, if enough particles stacked above, chance to turn into blood
+        let mut offset = 0;
+        let mut particles_above = 0;
+        while y > 0 {
+            offset += 1;
+            if sandbox.cells[x][y - offset].is_some() {
+                particles_above += 1;
+            } else {
+                break;
+            }
+        }
+        if particles_above > 30 && sandbox.rng.gen_bool(0.1) {
+            sandbox.cells[x][y] = Some(Particle::new(ParticleType::Blood, &mut sandbox.rng));
+        }
+    }
+}
+
+pub fn update_blood(sandbox: &mut Sandbox, x: usize, y: usize) {
+    // Evaporate above a certain tempature
+    if sandbox.cells[x][y].unwrap().tempature >= 137 {
+        sandbox.cells[x][y] = None;
+        return;
     }
 }
