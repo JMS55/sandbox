@@ -159,6 +159,7 @@ fn main() {
                             Some(VirtualKeyCode::L) => {
                                 selected_particle = Some(ParticleType::Life);
                             }
+
                             _ => {}
                         }
                     }
@@ -222,10 +223,8 @@ fn main() {
                                     match selected_particle {
                                         Some(selected_particle) => {
                                             if sandbox.cells[x][y].is_none() {
-                                                sandbox.cells[x][y] = Some(Particle::new(
-                                                    selected_particle,
-                                                    &mut sandbox.rng,
-                                                ));
+                                                sandbox.cells[x][y] =
+                                                    Some(Particle::new(selected_particle));
                                             }
                                         }
                                         None => sandbox.cells[x][y] = None,

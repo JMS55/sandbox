@@ -57,6 +57,7 @@ impl Sandbox {
                             }
                             ParticleType::Life => new_particle_position = move_life(self, x, y),
                             ParticleType::Blood => new_particle_position = move_liquid(self, x, y),
+                            ParticleType::Smoke => new_particle_position = move_gas(self, x, y),
                         }
                         self.cells[new_particle_position.0][new_particle_position.1]
                             .as_mut()
@@ -84,6 +85,7 @@ impl Sandbox {
                 ParticleType::Glass => 2,
                 ParticleType::Life => 3,
                 ParticleType::Blood => 2,
+                ParticleType::Smoke => 6,
             };
             assert!(tc > 1);
             tc
@@ -152,6 +154,7 @@ impl Sandbox {
                             ParticleType::Glass => {}
                             ParticleType::Life => update_life(self, x, y),
                             ParticleType::Blood => update_blood(self, x, y),
+                            ParticleType::Smoke => update_smoke(self, x, y),
                         }
                     }
                 }
@@ -197,14 +200,17 @@ impl Sandbox {
                             }
                         }
                         ParticleType::Blood => (112, 4, 17),
+                        ParticleType::Smoke => (15, 15, 15),
                     };
 
                     // Tint blue/red based on tempature
                     let mut r = 0;
                     let mut b = 0;
+                    let mut g = 0;
                     if particle.ptype != ParticleType::Electricity {
                         if particle.tempature < 0 {
-                            b = clamp(particle.tempature.abs(), 0, 255);
+                            b = clamp(particle.tempature * -1, 0, 255);
+                            g = clamp((particle.tempature * -1) / 30, 0, 255);
                         } else {
                             r = clamp(particle.tempature, 0, 255);
                         }
@@ -238,6 +244,7 @@ impl Sandbox {
                         ParticleType::Glass => 50,
                         ParticleType::Life => 0,
                         ParticleType::Blood => 20,
+                        ParticleType::Smoke => 10,
                     };
                     if noise_intensity != 0 {
                         m = (noise[noise_index] * noise_intensity as f32) as i16;
@@ -245,7 +252,7 @@ impl Sandbox {
 
                     // Combine everything together
                     let r = base_color.0 as i16 + r + m + particle.color_offset as i16;
-                    let g = base_color.1 as i16 + m + particle.color_offset as i16;
+                    let g = base_color.1 as i16 + g + m + particle.color_offset as i16;
                     let b = base_color.2 as i16 + b + m + particle.color_offset as i16;
                     color = (
                         clamp(r, 0, 255) as u8,
@@ -277,7 +284,7 @@ pub struct Particle {
 }
 
 impl Particle {
-    pub fn new(ptype: ParticleType, rng: &mut impl Rng) -> Self {
+    pub fn new(ptype: ParticleType) -> Self {
         Self {
             ptype,
             tempature: match ptype {
@@ -294,6 +301,7 @@ impl Particle {
                 ParticleType::Glass => 0,
                 ParticleType::Life => 0,
                 ParticleType::Blood => 0,
+                ParticleType::Smoke => 0,
             },
             extra_data1: match ptype {
                 ParticleType::Sand => 0,
@@ -309,6 +317,7 @@ impl Particle {
                 ParticleType::Glass => 0,
                 ParticleType::Life => 0,
                 ParticleType::Blood => 0,
+                ParticleType::Smoke => 90 + thread_rng().gen_range(-20, 20),
             },
             extra_data2: match ptype {
                 ParticleType::Sand => 0,
@@ -324,8 +333,9 @@ impl Particle {
                 ParticleType::Glass => 0,
                 ParticleType::Life => 0,
                 ParticleType::Blood => 0,
+                ParticleType::Smoke => 90,
             },
-            color_offset: rng.gen_range(-10, 11),
+            color_offset: thread_rng().gen_range(-10, 11),
             last_update: 0,
         }
     }
@@ -346,6 +356,7 @@ pub enum ParticleType {
     Glass,
     Life,
     Blood,
+    Smoke,
 }
 
 fn clamp(value: i16, min: i16, max: i16) -> i16 {
