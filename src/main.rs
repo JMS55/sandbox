@@ -103,6 +103,7 @@ fn main() {
                 WindowEvent::KeyboardInput { input, .. } => {
                     if input.state == ElementState::Pressed {
                         match input.virtual_keycode {
+                            // Misc controls
                             Some(VirtualKeyCode::Escape) => *control_flow = ControlFlow::Exit,
                             Some(VirtualKeyCode::Return) => {
                                 let fullscreen = match window.fullscreen() {
@@ -123,6 +124,8 @@ fn main() {
                                     brush_size -= 1
                                 }
                             }
+
+                            // Particle selection controls
                             Some(VirtualKeyCode::D) => {
                                 selected_particle = None;
                             }
@@ -243,7 +246,10 @@ fn main() {
             }
 
             Event::RedrawRequested(_) => {
-                sandbox.render(pixels.get_frame(), start_time.elapsed().as_secs_f32());
+                sandbox.render(
+                    pixels.get_frame(),
+                    start_time.elapsed().as_secs_f32() * 20.0,
+                );
                 let _ = pixels.render();
             }
 

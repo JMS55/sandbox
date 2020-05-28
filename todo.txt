@@ -1,5 +1,7 @@
 { Immediate Todo }
-1. Add screenshot / gif recorder using the image crate or ffmpeg via std::process::Command
+1. Add screenshot / gif recorder using the image crate
+    * I probably want to send each frame to a seperate thread and write it to a file, instead of saving in memory and then writing to a file at the end
+    * Maybe just write each frame as it comes in is good enough?
 2. More particle types
     * Fire and Smoke
     * Add Metal (heat blood), Coal, and Steel
