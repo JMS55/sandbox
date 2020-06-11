@@ -209,10 +209,10 @@ impl Sandbox {
                     let mut g = 0;
                     if particle.ptype != ParticleType::Electricity {
                         if particle.tempature < 0 {
-                            b = clamp(particle.tempature * -1, 0, 255);
-                            g = clamp((particle.tempature * -1) / 30, 0, 255);
+                            b = particle.tempature * -1;
+                            g = (particle.tempature * -1) / 30;
                         } else {
-                            r = clamp(particle.tempature, 0, 255);
+                            r = particle.tempature;
                         }
                     }
 

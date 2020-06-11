@@ -519,7 +519,7 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Water => true,
             ParticleType::Acid => true,
             ParticleType::Iridium => false,
-            ParticleType::Replicator => true,
+            ParticleType::Replicator => false,
             ParticleType::Plant => true,
             ParticleType::Cryotheum => true,
             ParticleType::Unstable => true,

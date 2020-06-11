@@ -45,6 +45,7 @@ fn main() {
     let start_time = Instant::now();
     let mut last_update = Instant::now();
     let mut paused = false;
+    let mut update_once = false;
 
     // Brush state
     let mut selected_particle = None;
@@ -114,6 +115,7 @@ fn main() {
                             }
                             Some(VirtualKeyCode::Back) => sandbox = Sandbox::new(),
                             Some(VirtualKeyCode::Space) => paused = !paused,
+                            Some(VirtualKeyCode::Period) if paused => update_once = true,
                             Some(VirtualKeyCode::Equals) => {
                                 if brush_size < 10 {
                                     brush_size += 1
@@ -236,7 +238,8 @@ fn main() {
                 }
 
                 // Update the simulation
-                if last_update.elapsed() >= TARGET_TIME_PER_UPDATE && !paused {
+                if last_update.elapsed() >= TARGET_TIME_PER_UPDATE && (!paused || update_once) {
+                    update_once = false;
                     last_update = Instant::now();
                     sandbox.update();
                 }
