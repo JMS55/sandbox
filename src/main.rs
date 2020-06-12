@@ -190,10 +190,18 @@ fn main() {
             },
 
             Event::MainEventsCleared => {
-                // Snap the window size to multiples of SIMULATION_SIZE when less than 20% away
                 if let Some(lr) = last_resize {
+                    // Prevent the window from becoming smaller than SIMULATION_SIZE
+                    if lr.elapsed() >= Duration::from_millis(10) {
+                        let mut surface_size = window.inner_size();
+                        surface_size.width = surface_size.width.max(SIMULATION_WIDTH as u32);
+                        surface_size.height = surface_size.height.max(SIMULATION_HEIGHT as u32);
+                    }
+                    // Snap the window size to multiples of SIMULATION_SIZE when less than 20% away
                     if lr.elapsed() >= Duration::from_millis(50) {
                         let mut surface_size = window.inner_size();
+                        surface_size.width = surface_size.width.max(SIMULATION_WIDTH as u32);
+                        surface_size.height = surface_size.height.max(SIMULATION_HEIGHT as u32);
                         let width_ratio = surface_size.width as f64 / SIMULATION_WIDTH as f64;
                         let height_ratio = surface_size.height as f64 / SIMULATION_HEIGHT as f64;
                         if (width_ratio.fract() < 0.20 || width_ratio.fract() > 0.80)
