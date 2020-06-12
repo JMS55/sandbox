@@ -1,12 +1,25 @@
 mod behavior;
 mod sandbox;
 
+#[cfg(feature = "video-recording")]
+use {
+    gstreamer::glib::object::{Cast, ObjectExt},
+    gstreamer::{
+        Buffer, ElementExt, ElementExtManual, Event as GStreamerEvent, Format, GstBinExt,
+        MessageView, Pipeline, State, CLOCK_TIME_NONE,
+    },
+    gstreamer_app::AppSrc,
+    gstreamer_video::{VideoFormat, VideoInfo},
+    std::fs,
+    std::time::SystemTime,
+};
+
 use pixels::wgpu::{PowerPreference, RequestAdapterOptions, Surface};
 use pixels::{PixelsBuilder, SurfaceTexture};
 use sandbox::{Particle, ParticleType, Sandbox, SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use std::time::{Duration, Instant};
 use winit::dpi::{LogicalSize, PhysicalPosition};
-use winit::event::{ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent};
+use winit::event::{ElementState, Event as WinitEvent, MouseButton, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Fullscreen, WindowBuilder};
 
@@ -40,6 +53,36 @@ fn main() {
     .build()
     .unwrap();
 
+    // Setup the video recording pipeline
+    #[cfg(feature = "video-recording")]
+    let (video_recording_pipeline, video_recording_src) = {
+        gstreamer::init().unwrap();
+
+        let video_recording_pipeline = gstreamer::parse_launch(
+            "appsrc name=src is-live=true do-timestamp=true ! videoconvert ! x264enc ! mp4mux ! filesink name=filesink",
+        )
+        .unwrap()
+        .downcast::<Pipeline>()
+        .unwrap();
+
+        let video_recording_src = video_recording_pipeline
+            .get_by_name("src")
+            .unwrap()
+            .dynamic_cast::<AppSrc>()
+            .unwrap();
+        let video_info = VideoInfo::new(
+            VideoFormat::Rgba,
+            SIMULATION_WIDTH as u32,
+            SIMULATION_HEIGHT as u32,
+        )
+        .build()
+        .unwrap();
+        video_recording_src.set_caps(Some(&video_info.to_caps().unwrap()));
+        video_recording_src.set_property_format(Format::Time);
+
+        (video_recording_pipeline, video_recording_src)
+    };
+
     // Simulation state
     let mut sandbox = Sandbox::new();
     let start_time = Instant::now();
@@ -62,10 +105,23 @@ fn main() {
     let mut prev_cursor_position = PhysicalPosition::<f64>::new(0.0, 0.0);
     let mut curr_cursor_position = PhysicalPosition::<f64>::new(0.0, 0.0);
 
+    // Video recording state
+    #[cfg(feature = "video-recording")]
+    let (mut is_recording, filesink, mut video_file_location) = {
+        let filesink = video_recording_pipeline.get_by_name("filesink").unwrap();
+
+        let mut video_file_location = dirs_next::video_dir().unwrap();
+        video_file_location.push("sandbox");
+        let _ = fs::create_dir(&video_file_location);
+        video_file_location.push("placeholder.mp4");
+
+        (false, filesink, video_file_location)
+    };
+
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
-            Event::WindowEvent { event, .. } => match event {
+            WinitEvent::WindowEvent { event, .. } => match event {
                 // Window events
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::Resized(new_size) => {
@@ -126,6 +182,34 @@ fn main() {
                                     brush_size -= 1
                                 }
                             }
+                            #[cfg(feature = "video-recording")]
+                            Some(VirtualKeyCode::Key1) => {
+                                is_recording = !is_recording;
+                                if is_recording {
+                                    video_file_location.set_file_name(&format!(
+                                        "sandbox-{}.mp4",
+                                        humantime::format_rfc3339_seconds(SystemTime::now())
+                                    ));
+                                    filesink
+                                        .set_property(
+                                            "location",
+                                            &video_file_location.to_str().unwrap(),
+                                        )
+                                        .unwrap();
+                                    video_recording_pipeline.set_state(State::Playing).unwrap();
+                                } else {
+                                    video_recording_pipeline
+                                        .send_event(GStreamerEvent::new_eos().build());
+                                    let bus = video_recording_pipeline.get_bus().unwrap();
+                                    for message in bus.iter_timed(CLOCK_TIME_NONE) {
+                                        match message.view() {
+                                            MessageView::Eos(..) => break,
+                                            _ => {}
+                                        }
+                                    }
+                                    video_recording_pipeline.set_state(State::Null).unwrap();
+                                }
+                            }
 
                             // Particle selection controls
                             Some(VirtualKeyCode::D) => {
@@ -165,12 +249,26 @@ fn main() {
                             _ => {}
                         }
                     }
+
+                    #[cfg(feature = "video-recording")]
+                    if is_recording && *control_flow == ControlFlow::Exit {
+                        is_recording = false;
+                        video_recording_pipeline.send_event(GStreamerEvent::new_eos().build());
+                        let bus = video_recording_pipeline.get_bus().unwrap();
+                        for message in bus.iter_timed(CLOCK_TIME_NONE) {
+                            match message.view() {
+                                MessageView::Eos(..) => break,
+                                _ => {}
+                            }
+                        }
+                        video_recording_pipeline.set_state(State::Null).unwrap();
+                    }
                 }
 
                 _ => {}
             },
 
-            Event::MainEventsCleared => {
+            WinitEvent::MainEventsCleared => {
                 // Snap the window size to multiples of SIMULATION_SIZE when less than 20% away
                 if let Some(lr) = last_resize {
                     if lr.elapsed() >= Duration::from_millis(50) {
@@ -247,11 +345,20 @@ fn main() {
                 window.request_redraw();
             }
 
-            Event::RedrawRequested(_) => {
-                sandbox.render(
-                    pixels.get_frame(),
-                    start_time.elapsed().as_secs_f32() * 20.0,
-                );
+            WinitEvent::RedrawRequested(_) => {
+                // Generate frame
+                let frame = pixels.get_frame();
+                sandbox.render(frame, start_time.elapsed().as_secs_f32() * 20.0);
+
+                // Record frame to video
+                #[cfg(feature = "video-recording")]
+                if is_recording {
+                    video_recording_src
+                        .push_buffer(Buffer::from_slice(frame.to_vec()))
+                        .unwrap();
+                }
+
+                // Render frame to window
                 let _ = pixels.render();
             }
 

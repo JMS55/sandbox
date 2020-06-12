@@ -1,14 +1,11 @@
-{ Immediate Todo }
-1. Add screenshot / gif recorder using the image crate
-    * I probably want to send each frame to a seperate thread and write it to a file, instead of saving in memory and then writing to a file at the end
-    * Maybe just write each frame as it comes in is good enough?
-2. More particle types
+## Immediate Todo
+1. More particle types
     * Fire
     * Add Metal (heat blood), Coal, and Steel
     * Quantum "portal" particles
-3. Add some kind of background (maybe cache noise from a few frames ago, and use that with a different scaling?)
+2. Add some kind of background (maybe cache noise from a few frames ago, and use that with a different scaling?)
 
-{ Later Todo }
+## Later Todo
 1. Make Plant look better and grow in a more interesting pattern (also add comments)
 2. Make particles move left/right randomly when they can do either
 3. Figure out why axis lock sometimes breaks
@@ -16,15 +13,10 @@
 5. Fix Electricity getting stuck with 1 particle of water in mid-air
 6. Make Electricity have a much lower noise when not in water
 
-{ Eventual Todo }
+## Eventual Todo
 1. Animate Unstable explosion, maybe leave a particle/visual behind?
 2. Visualize axis lock controls, particle placement, paused gameplay, etc
 3. Save/Load simulations with files
 4 GUI
 5. Plan out gameplay progression. Start with a limited set of elements, create new ones to unlock them
-
-{ Strech Goals }
-1. Physics based movement
-2. Liquid/Gas pressure (with rendering effects)
-3. App icon and package
-4. Wasm
+6. App icon and package

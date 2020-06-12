@@ -3,11 +3,20 @@ name = "sandbox"
 version = "0.1.0"
 edition = "2018"
 
+[features]
+video-recording = ["gstreamer", "gstreamer-app", "gstreamer-video", "dirs-next", "humantime"]
+
 [dependencies]
 pixels = "0.0"
 winit = "0.22"
 rand = "0.7"
 simdnoise = "3.1"
+
+gstreamer = { version = "0.15", optional = true }
+gstreamer-app = { version = "0.15", optional = true }
+gstreamer-video = { version = "0.15", optional = true }
+dirs-next = { version = "1.0", optional = true }
+humantime = { version = "2.0", optional = true }
 
 [profile.dev]
 opt-level = 3
