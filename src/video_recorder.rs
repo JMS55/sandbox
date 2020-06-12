@@ -1,16 +1,14 @@
 use crate::sandbox::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
-use {
-    gstreamer::glib::object::{Cast, ObjectExt},
-    gstreamer::{
-        Buffer, Element, ElementExt, ElementExtManual, Event, Format, GstBinExt, MessageView,
-        Pipeline, State, CLOCK_TIME_NONE,
-    },
-    gstreamer_app::AppSrc,
-    gstreamer_video::{VideoFormat, VideoInfo},
-    std::fs,
-    std::path::PathBuf,
-    std::time::SystemTime,
+use gstreamer::glib::object::{Cast, ObjectExt};
+use gstreamer::{
+    Buffer, Element, ElementExt, ElementExtManual, Event, Format, GstBinExt, MessageView, Pipeline,
+    State, CLOCK_TIME_NONE,
 };
+use gstreamer_app::AppSrc;
+use gstreamer_video::{VideoFormat, VideoInfo};
+use std::fs;
+use std::path::PathBuf;
+use std::time::SystemTime;
 
 pub struct VideoRecorder {
     pub is_recording: bool,
