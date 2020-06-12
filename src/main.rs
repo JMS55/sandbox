@@ -226,10 +226,14 @@ fn main() {
                 for (p1, mut p2) in particle_placement_queue.drain(..) {
                     // Adjust coordinates
                     if let Some(x) = x_axis_locked {
-                        p2.x = x;
+                        if selected_particle != Some(ParticleType::Electricity) {
+                            p2.x = x;
+                        }
                     }
                     if let Some(y) = y_axis_locked {
-                        p2.y = y;
+                        if selected_particle != Some(ParticleType::Electricity) {
+                            p2.y = y;
+                        }
                     }
                     let p1 = pixels
                         .window_pos_to_pixel(p1.into())

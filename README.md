@@ -1,16 +1,14 @@
 # Sandbox
 > A sand simulation game
 
-## Keybindings
-### Misc
-* <kbd>Esc</kbd> Quits the game
-* <kbd>Enter</kbd> Toggles fullscreen
-* <kbd>Backspace</kbd> Clears the sandbox
-* <kbd>Space</kbd> Toggles pause
-* <kbd>.</kbd> Advances one frame when paused
+## Controls
+* Click and drag the mouse to place particles
 * <kbd>+</kbd> Increases brush size
 * <kbd>-</kbd> Decreases brush size
-* <kbd>1</kbd> Starts/stops recording a video
+* <kbd>Shift</kbd> Horizontal axis lock
+* <kbd>Ctrl</kbd> Vertical axis lock
+* Axis lock - When held, it creates a straight line between where you first started holding it, and the current mouse location
+    * Not enabled for Electricity
 ### Particle Types
 * <kbd>D</kbd> Eraser tool
 * <kbd>S</kbd> Sand
@@ -23,6 +21,14 @@
 * <kbd>U</kbd> Unstable
 * <kbd>E</kbd> Electricity
 * <kbd>L</kbd> Life
+* There are some particles that can't be directly placed, and aren't listed here. Play around, and figure out how to create them!
+### Misc
+* <kbd>Esc</kbd> Quits the game
+* <kbd>Enter</kbd> Toggles fullscreen
+* <kbd>Backspace</kbd> Clears the sandbox
+* <kbd>Space</kbd> Toggles pause
+* <kbd>.</kbd> Advances one frame when paused
+* <kbd>1</kbd> Starts/stops recording a video
 
 ## Video Recording
 Sandbox has the ability to record a video of the screen as you play.
