@@ -8,7 +8,7 @@
 * <kbd>Shift</kbd> Horizontal axis lock
 * <kbd>Ctrl</kbd> Vertical axis lock
 * Axis lock - When held, it creates a straight line between where you first started holding it, and the current mouse location
-    * Not enabled for Electricity
+    * Not enabled for Electricity or Fire
 ### Particle Types
 * <kbd>D</kbd> Eraser tool
 * <kbd>S</kbd> Sand
@@ -21,6 +21,7 @@
 * <kbd>U</kbd> Unstable
 * <kbd>E</kbd> Electricity
 * <kbd>L</kbd> Life
+* <kbd>F</kbd> Fire
 * There are some particles that can't be directly placed, and aren't listed here. Play around, and figure out how to create them!
 ### Misc
 * <kbd>Esc</kbd> Quits the game

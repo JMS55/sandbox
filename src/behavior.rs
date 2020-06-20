@@ -303,6 +303,7 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Life => true,
             ParticleType::Blood => true,
             ParticleType::Smoke => false,
+            ParticleType::Fire => true,
         }
     }
 
@@ -446,6 +447,7 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Life => true,
             ParticleType::Blood => true,
             ParticleType::Smoke => false,
+            ParticleType::Fire => true,
         }
     }
 
@@ -499,6 +501,7 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Life => true,
             ParticleType::Blood => true,
             ParticleType::Smoke => false,
+            ParticleType::Fire => false,
         }
     }
 
@@ -614,5 +617,70 @@ pub fn update_smoke(sandbox: &mut Sandbox, x: usize, y: usize) {
         }
     } else {
         particle.extra_data1 -= 1;
+    }
+}
+
+pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
+    // Replace adjacent flammable particles with fire
+    fn is_flammable(ptype: ParticleType) -> bool {
+        match ptype {
+            ParticleType::Sand => false,
+            ParticleType::WetSand => false,
+            ParticleType::Water => false,
+            ParticleType::Acid => false,
+            ParticleType::Iridium => false,
+            ParticleType::Replicator => false,
+            ParticleType::Plant => true,
+            ParticleType::Cryotheum => true,
+            ParticleType::Unstable => false,
+            ParticleType::Electricity => false,
+            ParticleType::Glass => false,
+            ParticleType::Life => true,
+            ParticleType::Blood => true,
+            ParticleType::Smoke => false,
+            ParticleType::Fire => false,
+        }
+    }
+
+    // When this particle has tempature < 40, delete it
+    if sandbox.cells[x][y].unwrap().tempature < 40 {
+        sandbox.cells[x][y] = None;
+    }
+
+    if y != SIMULATION_HEIGHT - 1 {
+        if let Some(particle) = &sandbox.cells[x][y + 1] {
+            if is_flammable(particle.ptype) {
+                sandbox.cells[x][y] = None;
+                sandbox.cells[x][y + 1] = Some(Particle::new(ParticleType::Fire));
+                return;
+            }
+        }
+    }
+    if x != SIMULATION_WIDTH - 1 {
+        if let Some(particle) = &sandbox.cells[x + 1][y] {
+            if is_flammable(particle.ptype) {
+                sandbox.cells[x][y] = None;
+                sandbox.cells[x + 1][y] = Some(Particle::new(ParticleType::Fire));
+                return;
+            }
+        }
+    }
+    if y != 0 {
+        if let Some(particle) = &sandbox.cells[x][y - 1] {
+            if is_flammable(particle.ptype) {
+                sandbox.cells[x][y] = None;
+                sandbox.cells[x][y - 1] = Some(Particle::new(ParticleType::Fire));
+                return;
+            }
+        }
+    }
+    if x != 0 {
+        if let Some(particle) = &sandbox.cells[x - 1][y] {
+            if is_flammable(particle.ptype) {
+                sandbox.cells[x][y] = None;
+                sandbox.cells[x - 1][y] = Some(Particle::new(ParticleType::Fire));
+                return;
+            }
+        }
     }
 }

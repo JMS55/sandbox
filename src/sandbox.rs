@@ -58,6 +58,7 @@ impl Sandbox {
                             ParticleType::Life => new_particle_position = move_life(self, x, y),
                             ParticleType::Blood => new_particle_position = move_liquid(self, x, y),
                             ParticleType::Smoke => new_particle_position = move_gas(self, x, y),
+                            ParticleType::Fire => new_particle_position = move_gas(self, x, y),
                         }
                         self.cells[new_particle_position.0][new_particle_position.1]
                             .as_mut()
@@ -86,6 +87,7 @@ impl Sandbox {
                 ParticleType::Life => 3,
                 ParticleType::Blood => 2,
                 ParticleType::Smoke => 6,
+                ParticleType::Fire => 2,
             };
             assert!(tc > 1);
             tc
@@ -155,6 +157,7 @@ impl Sandbox {
                             ParticleType::Life => update_life(self, x, y),
                             ParticleType::Blood => update_blood(self, x, y),
                             ParticleType::Smoke => update_smoke(self, x, y),
+                            ParticleType::Fire => update_fire(self, x, y),
                         }
                     }
                 }
@@ -201,6 +204,7 @@ impl Sandbox {
                         }
                         ParticleType::Blood => (112, 4, 17),
                         ParticleType::Smoke => (15, 15, 15),
+                        ParticleType::Fire => (237, 86, 4),
                     };
 
                     // Tint blue/red based on tempature
@@ -214,6 +218,11 @@ impl Sandbox {
                         } else {
                             r = particle.tempature;
                         }
+                    }
+
+                    // Add Fire hue
+                    if particle.ptype == ParticleType::Fire {
+                        g += particle.extra_data1 as i16;
                     }
 
                     // Darken/Lighten based on noise
@@ -245,6 +254,7 @@ impl Sandbox {
                         ParticleType::Life => 0,
                         ParticleType::Blood => 20,
                         ParticleType::Smoke => 10,
+                        ParticleType::Fire => 50,
                     };
                     if noise_intensity != 0 {
                         m = (noise[noise_index] * noise_intensity as f32) as i16;
@@ -301,6 +311,7 @@ impl Particle {
                 ParticleType::Glass => 0,
                 ParticleType::Life => 0,
                 ParticleType::Blood => 0,
+                ParticleType::Fire => 130,
                 ParticleType::Smoke => 0,
             },
             extra_data1: match ptype {
@@ -318,6 +329,7 @@ impl Particle {
                 ParticleType::Life => 0,
                 ParticleType::Blood => 0,
                 ParticleType::Smoke => 90 + thread_rng().gen_range(-20, 20),
+                ParticleType::Fire => thread_rng().gen_range(0, 60),
             },
             extra_data2: match ptype {
                 ParticleType::Sand => 0,
@@ -334,6 +346,7 @@ impl Particle {
                 ParticleType::Life => 0,
                 ParticleType::Blood => 0,
                 ParticleType::Smoke => 90,
+                ParticleType::Fire => 0,
             },
             color_offset: thread_rng().gen_range(-10, 11),
             last_update: 0,
@@ -357,6 +370,7 @@ pub enum ParticleType {
     Life,
     Blood,
     Smoke,
+    Fire,
 }
 
 fn clamp(value: i16, min: i16, max: i16) -> i16 {

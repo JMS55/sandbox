@@ -175,14 +175,19 @@ fn main() {
                             Some(VirtualKeyCode::L) => {
                                 selected_particle = Some(ParticleType::Life);
                             }
+                            Some(VirtualKeyCode::F) => {
+                                selected_particle = Some(ParticleType::Fire);
+                            }
 
                             _ => {}
                         }
                     }
 
                     #[cfg(feature = "video-recording")]
-                    if video_recorder.is_recording && *control_flow == ControlFlow::Exit {
-                        video_recorder.stop_recording();
+                    {
+                        if video_recorder.is_recording && *control_flow == ControlFlow::Exit {
+                            video_recorder.stop_recording();
+                        }
                     }
                 }
 
@@ -226,12 +231,16 @@ fn main() {
                 for (p1, mut p2) in particle_placement_queue.drain(..) {
                     // Adjust coordinates
                     if let Some(x) = x_axis_locked {
-                        if selected_particle != Some(ParticleType::Electricity) {
+                        if selected_particle != Some(ParticleType::Electricity)
+                            && selected_particle != Some(ParticleType::Fire)
+                        {
                             p2.x = x;
                         }
                     }
                     if let Some(y) = y_axis_locked {
-                        if selected_particle != Some(ParticleType::Electricity) {
+                        if selected_particle != Some(ParticleType::Electricity)
+                            && selected_particle != Some(ParticleType::Fire)
+                        {
                             p2.y = y;
                         }
                     }
