@@ -183,9 +183,9 @@ impl Sandbox {
                         ParticleType::Replicator => (68, 11, 67),
                         ParticleType::Plant => {
                             if particle.extra_data1 < 2 {
-                                (75, 209, 216)
+                                (6, 89, 9)
                             } else {
-                                (86, 216, 143)
+                                (20, 61, 21)
                             }
                         }
                         ParticleType::Cryotheum => (12, 191, 201),
@@ -310,7 +310,7 @@ impl Particle {
                 ParticleType::Acid => 0,
                 ParticleType::Iridium => 0,
                 ParticleType::Replicator => 0,
-                ParticleType::Plant => thread_rng().gen_range(5, 21),
+                ParticleType::Plant => thread_rng().gen_range(1, 18),
                 ParticleType::Cryotheum => 0,
                 ParticleType::Unstable => 0,
                 ParticleType::Electricity => 0,

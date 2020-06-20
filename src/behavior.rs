@@ -392,6 +392,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
+    // If above WetSand or another Plant that's growable, mark as growable (extra_data2 = 1)
     if y != SIMULATION_HEIGHT - 1 {
         if let Some(particle) = sandbox.cells[x][y + 1] {
             if particle.ptype == ParticleType::WetSand {
@@ -403,53 +404,23 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
         }
     }
 
+    // If growable and growing_time_left (extra_data_2) > 0, create another Plant nearby with 1 less growing_time_left
     if y != 0 {
         if sandbox.cells[x][y].unwrap().extra_data2 == 1 {
-            if sandbox.cells[x][y].unwrap().extra_data1 > 0 {
-                if y % 2 == 0 && x != SIMULATION_WIDTH - 1 {
-                    if sandbox.cells[x + 1][y - 1].is_none() {
+            let extra_data1 = sandbox.cells[x][y].unwrap().extra_data1;
+            if extra_data1 > 0 {
+                let x_offset = sandbox.rng.gen_range(-1, 2);
+                let y_offset = sandbox.rng.gen_range(-2, 3);
+                let x = x as isize + x_offset;
+                let y = y as isize + y_offset;
+                if (0..(SIMULATION_WIDTH as isize)).contains(&x)
+                    && (0..(SIMULATION_HEIGHT as isize)).contains(&y)
+                {
+                    if sandbox.cells[x as usize][y as usize].is_none() {
                         let mut particle = Particle::new(ParticleType::Plant);
-                        particle.extra_data1 = sandbox.cells[x][y].unwrap().extra_data1 - 1;
+                        particle.extra_data1 = extra_data1 - 1;
                         particle.extra_data2 = 1;
-                        sandbox.cells[x + 1][y - 1] = Some(particle);
-                        sandbox.cells[x][y].as_mut().unwrap().extra_data1 = -1;
-                    }
-                } else if x != 0 {
-                    if sandbox.cells[x - 1][y - 1].is_none() {
-                        let mut particle = Particle::new(ParticleType::Plant);
-                        particle.extra_data1 = sandbox.cells[x][y].unwrap().extra_data1 - 1;
-                        particle.extra_data2 = 1;
-                        sandbox.cells[x - 1][y - 1] = Some(particle);
-                        sandbox.cells[x][y].as_mut().unwrap().extra_data1 = -1;
-                    }
-                }
-            }
-
-            if sandbox.cells[x][y].unwrap().extra_data1 == 0 {
-                for y_offset in 0..=10 {
-                    let x_range = if y_offset < 4 {
-                        4
-                    } else if y_offset < 9 {
-                        8
-                    } else {
-                        6
-                    };
-                    for x_offset in -x_range..=x_range {
-                        let new_x = x as isize + x_offset;
-                        let new_y = y as isize + y_offset;
-                        if new_x > -1
-                            && new_x < SIMULATION_WIDTH as isize
-                            && new_y > -1
-                            && new_y < SIMULATION_HEIGHT as isize
-                        {
-                            if sandbox.cells[new_x as usize][new_y as usize].is_none() {
-                                let mut particle = Particle::new(ParticleType::Plant);
-                                particle.extra_data1 = -1;
-                                particle.extra_data2 = 1;
-                                sandbox.cells[new_x as usize][new_y as usize] = Some(particle);
-                                sandbox.cells[x][y].as_mut().unwrap().extra_data1 = -1;
-                            }
-                        }
+                        sandbox.cells[x as usize][y as usize] = Some(particle);
                     }
                 }
             }
