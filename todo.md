@@ -1,7 +1,6 @@
 ## Immediate Todo
 1. More particle types
     * Add Metal (heat blood), Coal, and Steel
-    * Quantum "portal" particles
 2. Add some kind of background (maybe cache noise from a few frames ago, and use that with a different scaling?)
 
 ## Later Todo

@@ -318,6 +318,7 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Blood => true,
             ParticleType::Smoke => false,
             ParticleType::Fire => true,
+            ParticleType::Mirror => false,
         }
     }
 
@@ -462,6 +463,7 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Blood => true,
             ParticleType::Smoke => false,
             ParticleType::Fire => true,
+            ParticleType::Mirror => true,
         }
     }
 
@@ -516,6 +518,7 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Blood => true,
             ParticleType::Smoke => false,
             ParticleType::Fire => false,
+            ParticleType::Mirror => true,
         }
     }
 
@@ -653,6 +656,7 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Blood => true,
             ParticleType::Smoke => false,
             ParticleType::Fire => false,
+            ParticleType::Mirror => false,
         }
     }
 
@@ -695,6 +699,35 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
                 sandbox.cells[x][y] = None;
                 sandbox.cells[x - 1][y] = Some(Particle::new(ParticleType::Fire));
                 return;
+            }
+        }
+    }
+}
+
+pub fn update_mirror(sandbox: &mut Sandbox, x: usize, y: usize) {
+    // Update the frame counter
+    let extra_data1 = &mut sandbox.cells[x][y].as_mut().unwrap().extra_data1;
+    *extra_data1 += 1;
+    if *extra_data1 > 120 {
+        *extra_data1 = 0;
+    }
+
+    // If a non-Mirror particle is above this particle, teleport it down to the last empty cell before another non-Mirror particle
+    if y != 0 {
+        if sandbox.cells[x][y - 1].is_some() {
+            if sandbox.cells[x][y - 1].unwrap().ptype != ParticleType::Mirror {
+                let mut new_y = y + 1;
+                while new_y != SIMULATION_HEIGHT {
+                    if sandbox.cells[x][new_y].is_none() {
+                        sandbox.cells[x][new_y] = sandbox.cells[x][y - 1].take();
+                        return;
+                    } else {
+                        if sandbox.cells[x][new_y].unwrap().ptype != ParticleType::Mirror {
+                            return;
+                        }
+                    }
+                    new_y += 1;
+                }
             }
         }
     }

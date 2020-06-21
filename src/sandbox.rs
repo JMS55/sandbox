@@ -59,6 +59,7 @@ impl Sandbox {
                             ParticleType::Blood => new_particle_position = move_liquid(self, x, y),
                             ParticleType::Smoke => new_particle_position = move_gas(self, x, y),
                             ParticleType::Fire => new_particle_position = move_fire(self, x, y),
+                            ParticleType::Mirror => {}
                         }
                         self.cells[new_particle_position.0][new_particle_position.1]
                             .as_mut()
@@ -88,6 +89,7 @@ impl Sandbox {
                 ParticleType::Blood => 2,
                 ParticleType::Smoke => 6,
                 ParticleType::Fire => 2,
+                ParticleType::Mirror => 7,
             };
             assert!(tc > 1);
             tc
@@ -158,6 +160,7 @@ impl Sandbox {
                             ParticleType::Blood => update_blood(self, x, y),
                             ParticleType::Smoke => update_smoke(self, x, y),
                             ParticleType::Fire => update_fire(self, x, y),
+                            ParticleType::Mirror => update_mirror(self, x, y),
                         }
                     }
                 }
@@ -205,6 +208,24 @@ impl Sandbox {
                         ParticleType::Blood => (112, 4, 17),
                         ParticleType::Smoke => (15, 15, 15),
                         ParticleType::Fire => (237, 86, 4),
+                        ParticleType::Mirror => {
+                            // Lerp green-pink-green
+                            let mut t = particle.extra_data1 as f64 / 59.0;
+                            let c1 = (78.0 / 255.0, 216.0 / 255.0, 131.0 / 255.0);
+                            let c2 = (216.0 / 255.0, 78.0 / 255.0, 163.0 / 255.0);
+                            let ((r1, g1, b1), (r2, g2, b2)) = {
+                                if particle.extra_data1 < 60 {
+                                    (c1, c2)
+                                } else {
+                                    t = (particle.extra_data1 - 60) as f64 / 59.0;
+                                    (c2, c1)
+                                }
+                            };
+                            let r = (1.0 - t) * r1 + t * r2;
+                            let b = (1.0 - t) * b1 + t * b2;
+                            let g = (1.0 - t) * g1 + t * g2;
+                            ((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
+                        }
                     };
 
                     // Tint blue/red based on tempature
@@ -255,6 +276,7 @@ impl Sandbox {
                         ParticleType::Blood => 20,
                         ParticleType::Smoke => 10,
                         ParticleType::Fire => 50,
+                        ParticleType::Mirror => 20,
                     };
                     if noise_intensity != 0 {
                         m = (noise[noise_index] * noise_intensity as f32) as i16;
@@ -313,6 +335,7 @@ impl Particle {
                 ParticleType::Blood => 0,
                 ParticleType::Fire => 130,
                 ParticleType::Smoke => 0,
+                ParticleType::Mirror => 0,
             },
             extra_data1: match ptype {
                 ParticleType::Sand => 0,
@@ -330,6 +353,7 @@ impl Particle {
                 ParticleType::Blood => 0,
                 ParticleType::Smoke => 90 + thread_rng().gen_range(-20, 20),
                 ParticleType::Fire => thread_rng().gen_range(0, 60),
+                ParticleType::Mirror => 0,
             },
             extra_data2: match ptype {
                 ParticleType::Sand => 0,
@@ -347,6 +371,7 @@ impl Particle {
                 ParticleType::Blood => 0,
                 ParticleType::Smoke => 90,
                 ParticleType::Fire => 0,
+                ParticleType::Mirror => 0,
             },
             color_offset: thread_rng().gen_range(-10, 11),
             last_update: 0,
@@ -371,6 +396,7 @@ pub enum ParticleType {
     Blood,
     Smoke,
     Fire,
+    Mirror,
 }
 
 fn clamp(value: i16, min: i16, max: i16) -> i16 {

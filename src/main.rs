@@ -178,6 +178,9 @@ fn main() {
                             Some(VirtualKeyCode::F) => {
                                 selected_particle = Some(ParticleType::Fire);
                             }
+                            Some(VirtualKeyCode::M) => {
+                                selected_particle = Some(ParticleType::Mirror);
+                            }
 
                             _ => {}
                         }

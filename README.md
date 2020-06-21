@@ -22,6 +22,7 @@
 * <kbd>E</kbd> Electricity
 * <kbd>L</kbd> Life
 * <kbd>F</kbd> Fire
+* <kbd>M</kbd> Mirror
 * There are some particles that can't be directly placed, and aren't listed here. Play around, and figure out how to create them!
 ### Misc
 * <kbd>Esc</kbd> Quits the game
