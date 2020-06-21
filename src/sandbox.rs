@@ -58,7 +58,7 @@ impl Sandbox {
                             ParticleType::Life => new_particle_position = move_life(self, x, y),
                             ParticleType::Blood => new_particle_position = move_liquid(self, x, y),
                             ParticleType::Smoke => new_particle_position = move_gas(self, x, y),
-                            ParticleType::Fire => new_particle_position = move_gas(self, x, y),
+                            ParticleType::Fire => new_particle_position = move_fire(self, x, y),
                         }
                         self.cells[new_particle_position.0][new_particle_position.1]
                             .as_mut()

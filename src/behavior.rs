@@ -256,6 +256,20 @@ pub fn move_life(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
     (x, y)
 }
 
+pub fn move_fire(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
+    let new_position = move_gas(sandbox, x, y);
+    let extra_data2 = &mut sandbox.cells[new_position.0][new_position.1]
+        .as_mut()
+        .unwrap()
+        .extra_data2;
+    if new_position == (x, y) {
+        *extra_data2 += 1;
+    } else {
+        *extra_data2 = extra_data2.saturating_sub(1);
+    }
+    new_position
+}
+
 pub fn update_sand(sandbox: &mut Sandbox, x: usize, y: usize) {
     if sandbox.cells[x][y].unwrap().tempature >= 120 {
         sandbox.cells[x][y].as_mut().unwrap().ptype = ParticleType::Glass;
@@ -642,8 +656,9 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
         }
     }
 
-    // When this particle has tempature < 40, delete it
-    if sandbox.cells[x][y].unwrap().tempature < 40 {
+    // When this particle hasn't moved for more than 1/2 a second or tempature < 40, delete it
+    if sandbox.cells[x][y].unwrap().extra_data2 > 30 || sandbox.cells[x][y].unwrap().tempature < 40
+    {
         sandbox.cells[x][y] = None;
     }
 
