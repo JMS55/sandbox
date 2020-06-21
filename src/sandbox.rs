@@ -241,9 +241,12 @@ impl Sandbox {
                         }
                     }
 
-                    // Add Fire hue
+                    // Add Fire hue and shade
                     if particle.ptype == ParticleType::Fire {
                         g += particle.extra_data1 as i16;
+                        r -= (particle.extra_data2 / 3) as i16;
+                        g -= (particle.extra_data2 / 3) as i16;
+                        b -= (particle.extra_data2 / 3) as i16;
                     }
 
                     // Darken/Lighten based on noise
