@@ -666,12 +666,13 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
         sandbox.cells[x][y] = None;
     }
 
-    if y != SIMULATION_HEIGHT - 1 {
+    if y != SIMULATION_HEIGHT - 1 && sandbox.rng.gen_bool(0.5) {
         if let Some(particle) = &sandbox.cells[x][y + 1] {
             if is_flammable(particle.ptype) {
                 sandbox.cells[x][y] = None;
-                sandbox.cells[x][y + 1] = Some(Particle::new(ParticleType::Fire));
-                return;
+                if sandbox.rng.gen_bool(0.70) {
+                    sandbox.cells[x][y + 1] = Some(Particle::new(ParticleType::Fire));
+                }
             }
         }
     }
@@ -679,17 +680,19 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
         if let Some(particle) = &sandbox.cells[x + 1][y] {
             if is_flammable(particle.ptype) {
                 sandbox.cells[x][y] = None;
-                sandbox.cells[x + 1][y] = Some(Particle::new(ParticleType::Fire));
-                return;
+                if sandbox.rng.gen_bool(0.70) {
+                    sandbox.cells[x + 1][y] = Some(Particle::new(ParticleType::Fire));
+                }
             }
         }
     }
-    if y != 0 {
+    if y != 0 && sandbox.rng.gen_bool(0.5) {
         if let Some(particle) = &sandbox.cells[x][y - 1] {
             if is_flammable(particle.ptype) {
                 sandbox.cells[x][y] = None;
-                sandbox.cells[x][y - 1] = Some(Particle::new(ParticleType::Fire));
-                return;
+                if sandbox.rng.gen_bool(0.70) {
+                    sandbox.cells[x][y - 1] = Some(Particle::new(ParticleType::Fire));
+                }
             }
         }
     }
@@ -697,8 +700,9 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
         if let Some(particle) = &sandbox.cells[x - 1][y] {
             if is_flammable(particle.ptype) {
                 sandbox.cells[x][y] = None;
-                sandbox.cells[x - 1][y] = Some(Particle::new(ParticleType::Fire));
-                return;
+                if sandbox.rng.gen_bool(0.70) {
+                    sandbox.cells[x - 1][y] = Some(Particle::new(ParticleType::Fire));
+                }
             }
         }
     }
