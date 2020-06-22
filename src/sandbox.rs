@@ -3,21 +3,42 @@ use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
 use simdnoise::NoiseBuilder;
 
-pub const SIMULATION_WIDTH: usize = 500;
-pub const SIMULATION_HEIGHT: usize = 300;
+pub const SIMULATION_WIDTH: usize = 480;
+pub const SIMULATION_HEIGHT: usize = 270;
 
 pub struct Sandbox {
     pub cells: Box<[[Option<Particle>; SIMULATION_HEIGHT]; SIMULATION_WIDTH]>,
     pub rng: ThreadRng,
     update_counter: u8,
+    background: Box<[u8; SIMULATION_HEIGHT * SIMULATION_WIDTH * 4]>,
 }
 
 impl Sandbox {
     pub fn new() -> Self {
+        let mut background = [30; SIMULATION_HEIGHT * SIMULATION_WIDTH * 4];
+        let mut i = 0;
+        for y in 0..SIMULATION_HEIGHT {
+            for x in 0..SIMULATION_WIDTH {
+                if x % 6 == 0 || y % 6 == 0 {
+                    background[i] = 60;
+                    background[i + 1] = 60;
+                    background[i + 2] = 60;
+                }
+                if x % 16 == 0 || y % 16 == 0 {
+                    background[i] = 80;
+                    background[i + 1] = 80;
+                    background[i + 2] = 80;
+                }
+                background[i + 3] = 255;
+                i += 4;
+            }
+        }
+
         Self {
             cells: Box::new([[None; SIMULATION_HEIGHT]; SIMULATION_WIDTH]),
             rng: thread_rng(),
             update_counter: 1,
+            background: Box::new(background),
         }
     }
 
@@ -169,6 +190,8 @@ impl Sandbox {
     }
 
     pub fn render(&mut self, frame: &mut [u8], dt: f32) {
+        frame.copy_from_slice(&*self.background);
+
         let noise =
             NoiseBuilder::turbulence_2d_offset(dt, SIMULATION_WIDTH * 2, dt, SIMULATION_HEIGHT / 2)
                 .generate_scaled(-1.0, 1.0);
@@ -177,13 +200,12 @@ impl Sandbox {
         let mut noise_index = 0;
         for y in 0..SIMULATION_HEIGHT {
             for x in 0..SIMULATION_WIDTH {
-                let mut color: (u8, u8, u8) = (20, 20, 20);
                 if let Some(particle) = &self.cells[x][y] {
                     // Base color
                     let base_color: (u8, u8, u8) = match particle.ptype {
                         ParticleType::Sand => (196, 192, 135),
                         ParticleType::WetSand => (166, 162, 105),
-                        ParticleType::Water => (8, 130, 201),
+                        ParticleType::Water => (26, 91, 165),
                         ParticleType::Acid => (128, 209, 0),
                         ParticleType::Iridium => (205, 210, 211),
                         ParticleType::Replicator => (68, 11, 67),
@@ -195,7 +217,7 @@ impl Sandbox {
                             }
                         }
                         ParticleType::Cryotheum => (12, 191, 201),
-                        ParticleType::Unstable => (73, 73, 73),
+                        ParticleType::Unstable => (84, 68, 45),
                         ParticleType::Electricity => (247, 244, 49),
                         ParticleType::Glass => (159, 198, 197),
                         ParticleType::Life => {
@@ -268,7 +290,7 @@ impl Sandbox {
                         ParticleType::Cryotheum => 10,
                         ParticleType::Unstable => {
                             if particle.tempature > 0 {
-                                (10.0 * (particle.tempature as f64 / 200.0)) as i16
+                                (particle.tempature as f64 / 5.0).round() as i16
                             } else {
                                 0
                             }
@@ -289,17 +311,16 @@ impl Sandbox {
                     let r = base_color.0 as i16 + r + m + particle.color_offset as i16;
                     let g = base_color.1 as i16 + g + m + particle.color_offset as i16;
                     let b = base_color.2 as i16 + b + m + particle.color_offset as i16;
-                    color = (
+                    let color = (
                         clamp(r, 0, 255) as u8,
                         clamp(g, 0, 255) as u8,
                         clamp(b, 0, 255) as u8,
-                    )
-                }
+                    );
 
-                frame[frame_index] = color.0;
-                frame[frame_index + 1] = color.1;
-                frame[frame_index + 2] = color.2;
-                frame[frame_index + 3] = 255;
+                    frame[frame_index] = color.0;
+                    frame[frame_index + 1] = color.1;
+                    frame[frame_index + 2] = color.2;
+                }
 
                 frame_index += 4;
                 noise_index += 1;
