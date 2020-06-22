@@ -206,7 +206,7 @@ impl Sandbox {
                             }
                         }
                         ParticleType::Blood => (112, 4, 17),
-                        ParticleType::Smoke => (15, 15, 15),
+                        ParticleType::Smoke => (5, 5, 5),
                         ParticleType::Fire => (237, 86, 4),
                         ParticleType::Mirror => {
                             // Lerp green-pink-green

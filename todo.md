@@ -2,6 +2,11 @@
 1. More particle types
     * Add Metal (heat blood), Coal, and Steel
 2. Add some kind of background (maybe cache noise from a few frames ago, and use that with a different scaling?)
+3. Code cleanup
+    * Move Particle and ParticleType into a new file
+    * Localize all particle properties as methods on ParticleType
+    * Use consts or something to identify extra_data per particle type
+    * Implement indexing on Sandbox, to not have to go through cells
 
 ## Later Todo
 1. Make particles move left/right randomly when they can do either
