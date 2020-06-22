@@ -19,15 +19,15 @@ impl Sandbox {
         let mut i = 0;
         for y in 0..SIMULATION_HEIGHT {
             for x in 0..SIMULATION_WIDTH {
-                if x % 6 == 0 || y % 6 == 0 {
+                if (x + 8) % 16 == 0 || (y + 8) % 16 == 0 {
                     background[i] = 60;
                     background[i + 1] = 60;
                     background[i + 2] = 60;
                 }
                 if x % 16 == 0 || y % 16 == 0 {
-                    background[i] = 80;
-                    background[i + 1] = 80;
-                    background[i + 2] = 80;
+                    background[i] = 70;
+                    background[i + 1] = 70;
+                    background[i + 2] = 70;
                 }
                 background[i + 3] = 255;
                 i += 4;
@@ -207,7 +207,7 @@ impl Sandbox {
                         ParticleType::WetSand => (166, 162, 105),
                         ParticleType::Water => (26, 91, 165),
                         ParticleType::Acid => (128, 209, 0),
-                        ParticleType::Iridium => (205, 210, 211),
+                        ParticleType::Iridium => (100, 100, 100),
                         ParticleType::Replicator => (68, 11, 67),
                         ParticleType::Plant => {
                             if particle.extra_data1 < 2 {
