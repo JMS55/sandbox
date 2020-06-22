@@ -1,6 +1,5 @@
 ## Immediate Todo
 1. More particle types
-    * Add Metal (heat blood), Coal, and Steel
 2. Add some kind of background (maybe cache noise from a few frames ago, and use that with a different scaling?)
 3. Code cleanup
     * Move Particle and ParticleType into a new file

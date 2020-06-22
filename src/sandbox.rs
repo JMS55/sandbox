@@ -3,8 +3,8 @@ use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
 use simdnoise::NoiseBuilder;
 
-pub const SIMULATION_WIDTH: usize = 600;
-pub const SIMULATION_HEIGHT: usize = 400;
+pub const SIMULATION_WIDTH: usize = 500;
+pub const SIMULATION_HEIGHT: usize = 300;
 
 pub struct Sandbox {
     pub cells: Box<[[Option<Particle>; SIMULATION_HEIGHT]; SIMULATION_WIDTH]>,
@@ -195,7 +195,7 @@ impl Sandbox {
                             }
                         }
                         ParticleType::Cryotheum => (12, 191, 201),
-                        ParticleType::Unstable => (181, 158, 128),
+                        ParticleType::Unstable => (73, 73, 73),
                         ParticleType::Electricity => (247, 244, 49),
                         ParticleType::Glass => (159, 198, 197),
                         ParticleType::Life => {

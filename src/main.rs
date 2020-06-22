@@ -20,8 +20,8 @@ fn main() {
     let window = WindowBuilder::new()
         .with_title("Sandbox")
         .with_inner_size(LogicalSize::new(
-            (SIMULATION_WIDTH * 2) as f64,
-            (SIMULATION_HEIGHT * 2) as f64,
+            (SIMULATION_WIDTH * 3) as f64,
+            (SIMULATION_HEIGHT * 3) as f64,
         ))
         .build(&event_loop)
         .unwrap();
