@@ -15,11 +15,13 @@ pub struct Sandbox {
 
 impl Sandbox {
     pub fn new() -> Self {
+        // Generate background
         let mut background = [30; SIMULATION_HEIGHT * SIMULATION_WIDTH * 4];
         let mut i = 0;
         for y in 0..SIMULATION_HEIGHT {
             for x in 0..SIMULATION_WIDTH {
-                if (x + 8) % 16 == 0 || (y + 8) % 16 == 0 {
+                // Generate grid
+                if x % 8 == 0 || y % 8 == 0 {
                     background[i] = 60;
                     background[i + 1] = 60;
                     background[i + 2] = 60;
@@ -29,6 +31,27 @@ impl Sandbox {
                     background[i + 1] = 70;
                     background[i + 2] = 70;
                 }
+                if x % 32 == 0 || y % 32 == 0 {
+                    background[i] = 80;
+                    background[i + 1] = 80;
+                    background[i + 2] = 80;
+                }
+
+                // Apply stripes
+                if y % 2 == 0 {
+                    background[i] -= 5;
+                    background[i + 1] -= 5;
+                    background[i + 2] -= 5;
+                }
+
+                // Apply vignette
+                let x = x as isize - (SIMULATION_WIDTH as isize / 2);
+                let y = y as isize - (SIMULATION_HEIGHT as isize / 2);
+                let m = ((x.abs() + y.abs()) as f64 / 20.0).round() as u8;
+                background[i] -= m;
+                background[i + 1] -= m;
+                background[i + 2] -= m;
+
                 background[i + 3] = 255;
                 i += 4;
             }
