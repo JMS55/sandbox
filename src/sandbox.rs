@@ -1,4 +1,5 @@
 use crate::behavior::*;
+use crate::heap_array::{create_background_array, create_cells_array};
 use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
 use simdnoise::NoiseBuilder;
@@ -16,7 +17,7 @@ pub struct Sandbox {
 impl Sandbox {
     pub fn new() -> Self {
         // Generate background
-        let mut background = [30; SIMULATION_HEIGHT * SIMULATION_WIDTH * 4];
+        let mut background = create_background_array(30);
         let mut i = 0;
         for y in 0..SIMULATION_HEIGHT {
             for x in 0..SIMULATION_WIDTH {
@@ -58,10 +59,10 @@ impl Sandbox {
         }
 
         Self {
-            cells: Box::new([[None; SIMULATION_HEIGHT]; SIMULATION_WIDTH]),
+            cells: create_cells_array(None),
             rng: thread_rng(),
             update_counter: 1,
-            background: Box::new(background),
+            background: background,
         }
     }
 

@@ -1,4 +1,5 @@
 mod behavior;
+mod heap_array;
 mod sandbox;
 #[cfg(feature = "video-recording")]
 mod video_recorder;

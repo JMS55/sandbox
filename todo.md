@@ -18,3 +18,4 @@
 2. Improve axis lock, don't leave gaps when moving perpendicular at high speeds
 3. Fix Electricity getting stuck with 1 particle of water in mid-air
 4. Make Fire not spread so fast when starting from the top/left
+5. Replace heap_array.rs with 'placement' when it gets added to rust
