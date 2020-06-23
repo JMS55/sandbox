@@ -5,7 +5,7 @@
     * Localize all particle properties as methods on ParticleType
     * Use consts or something to identify extra_data per particle type
     * Implement indexing on Sandbox, to not have to go through cells
-3. Scale video recording to match pixels resolution
+3. Scale video recording by 4
 
 ## Later Todo
 1. Visualize axis lock controls, particle placement, paused gameplay, etc

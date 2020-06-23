@@ -18,8 +18,11 @@ gstreamer-video = { version = "0.15", optional = true }
 dirs-next = { version = "1.0", optional = true }
 humantime = { version = "2.0", optional = true }
 
-[profile.dev]
+[profile.dev.package."*"]
 opt-level = 3
+
+[profile.dev]
+opt-level = 1
 
 [profile.release]
 lto = true
