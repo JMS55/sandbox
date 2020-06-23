@@ -604,10 +604,9 @@ pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
         // Else if dead, and if enough particles stacked above, chance to turn into blood
         let mut count = 1;
         while count <= y {
-            if sandbox.cells[x][y - count].is_some() {
-                count += 1;
-            } else {
-                break;
+            match sandbox.cells[x][y - count] {
+                Some(_) => count += 1,
+                None => break,
             }
         }
         count -= 1;
