@@ -601,18 +601,17 @@ pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
             }
         }
     } else {
-        // Else if dead, if enough particles stacked above, chance to turn into blood
-        let mut offset = 0;
-        let mut particles_above = 0;
-        while y > 0 {
-            offset += 1;
-            if sandbox.cells[x][y - offset].is_some() {
-                particles_above += 1;
+        // Else if dead, and if enough particles stacked above, chance to turn into blood
+        let mut count = 1;
+        while count <= y {
+            if sandbox.cells[x][y - count].is_some() {
+                count += 1;
             } else {
                 break;
             }
         }
-        if particles_above > 30 && sandbox.rng.gen_bool(0.1) {
+        count -= 1;
+        if count > 30 && sandbox.rng.gen_bool(0.1) {
             sandbox.cells[x][y] = Some(Particle::new(ParticleType::Blood));
         }
     }

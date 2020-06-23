@@ -85,9 +85,8 @@ impl VideoRecorder {
         self.pipeline.send_event(Event::new_eos().build());
         let bus = self.pipeline.get_bus().unwrap();
         for message in bus.iter_timed(CLOCK_TIME_NONE) {
-            match message.view() {
-                MessageView::Eos(..) => break,
-                _ => {}
+            if let MessageView::Eos(..) = message.view() {
+                break;
             }
         }
         self.pipeline.set_state(State::Null).unwrap();
