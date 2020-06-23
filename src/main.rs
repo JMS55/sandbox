@@ -227,41 +227,43 @@ fn main() {
                 }
 
                 // Place particles in a straight line from prev_cursor_position to curr_cursor_position
-                // In addition, uses data cached from WindowEvent::CursorMoved to ensure all gestures are properly captured
+                // In addition, use data cached from WindowEvent::CursorMoved to ensure all gestures are properly captured
                 if should_place_particles {
                     particle_placement_queue.push((prev_cursor_position, curr_cursor_position));
                 }
                 for (p1, mut p2) in particle_placement_queue.drain(..) {
                     // Adjust coordinates
-                    if let Some(x) = x_axis_locked {
+                    if let Some(locked_x) = x_axis_locked {
                         if selected_particle != Some(ParticleType::Electricity)
                             && selected_particle != Some(ParticleType::Fire)
                         {
-                            p2.x = x;
+                            p2.x = locked_x;
                         }
                     }
-                    if let Some(y) = y_axis_locked {
+                    if let Some(locked_y) = y_axis_locked {
                         if selected_particle != Some(ParticleType::Electricity)
                             && selected_particle != Some(ParticleType::Fire)
                         {
-                            p2.y = y;
+                            p2.y = locked_y;
                         }
                     }
-                    let p1 = pixels
+                    let (p1x, p1y) = pixels
                         .window_pos_to_pixel(p1.into())
                         .unwrap_or_else(|p| pixels.clamp_pixel_pos(p));
-                    let p2 = pixels
+                    let (p2x, p2y) = pixels
                         .window_pos_to_pixel(p2.into())
                         .unwrap_or_else(|p| pixels.clamp_pixel_pos(p));
-                    let (p1x, p1y) = (p1.0 as f64, p1.1 as f64);
-                    let (p2x, p2y) = (p2.0 as f64, p2.1 as f64);
 
-                    // Place particles
-                    let n = (p1x - p2y).abs().max((p1y - p2y).abs()) as usize;
-                    for step in 0..(n + 1) {
-                        let t = if n == 0 { 0.0 } else { step as f64 / n as f64 };
-                        let x = (p1x + t * (p2x - p1x)).round() as usize;
-                        let y = (p1y + t * (p2y - p1y)).round() as usize;
+                    // Place particles (Bresenham's line algorithm)
+                    let (mut p1x, mut p1y) = (p1x as isize, p1y as isize);
+                    let (p2x, p2y) = (p2x as isize, p2y as isize);
+                    let dx = (p2x - p1x).abs();
+                    let sx = if p1x < p2x { 1 } else { -1 };
+                    let dy = -(p2y - p1y).abs();
+                    let sy = if p1y < p2y { 1 } else { -1 };
+                    let mut err = dx + dy;
+                    loop {
+                        let (x, y) = (p1x as usize, p1y as usize);
                         for x in x..(x + brush_size) {
                             for y in y..(y + brush_size) {
                                 if x < SIMULATION_WIDTH && y < SIMULATION_HEIGHT {
@@ -276,6 +278,19 @@ fn main() {
                                     }
                                 }
                             }
+                        }
+
+                        if p1x == p2x && p1y == p2y {
+                            break;
+                        }
+                        let e2 = 2 * err;
+                        if e2 >= dy {
+                            err += dy;
+                            p1x += sx;
+                        }
+                        if e2 <= dx {
+                            err += dx;
+                            p1y += sy;
                         }
                     }
                 }

@@ -15,6 +15,6 @@
 
 ## Eventual Todo
 1. Make particles move left/right randomly when they can do either
-2. Figure out why axis lock sometimes dosen't place enough particles to make a line
+2. Improve axis lock, don't leave gaps when moving perpendicular at high speeds
 3. Fix Electricity getting stuck with 1 particle of water in mid-air
 4. Make Fire not spread so fast when starting from the top/left
