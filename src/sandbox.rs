@@ -62,7 +62,7 @@ impl Sandbox {
             cells: create_cells_array(None),
             rng: thread_rng(),
             update_counter: 1,
-            background: background,
+            background,
         }
     }
 

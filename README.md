@@ -1,5 +1,5 @@
 # Sandbox
-> A sand simulation game
+### A sand simulation game
 
 ## Controls
 * Click and drag the mouse to place particles
