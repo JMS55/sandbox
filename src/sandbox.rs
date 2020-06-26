@@ -75,8 +75,13 @@ impl Sandbox {
                     if particle.last_update != self.update_counter {
                         let mut new_particle_position = (x, y);
                         match particle.ptype {
-                            ParticleType::Sand => new_particle_position = move_powder(self, x, y),
-                            ParticleType::WetSand => new_particle_position = move_solid(self, x, y),
+                            ParticleType::Sand => {
+                                if particle.extra_data1 == 0 {
+                                    new_particle_position = move_powder(self, x, y);
+                                } else if particle.extra_data1 == 1 {
+                                    new_particle_position = move_solid(self, x, y);
+                                }
+                            }
                             ParticleType::Water => new_particle_position = move_liquid(self, x, y),
                             ParticleType::Acid => new_particle_position = move_liquid(self, x, y),
                             ParticleType::Iridium => {}
@@ -101,6 +106,10 @@ impl Sandbox {
                                 }
                             }
                             ParticleType::Life => new_particle_position = move_life(self, x, y),
+                            ParticleType::SuperLife => {
+                                let (x, y) = move_life(self, x, y);
+                                new_particle_position = move_life(self, x, y);
+                            }
                             ParticleType::Blood => new_particle_position = move_liquid(self, x, y),
                             ParticleType::Smoke => new_particle_position = move_gas(self, x, y),
                             ParticleType::Fire => new_particle_position = move_fire(self, x, y),
@@ -120,7 +129,6 @@ impl Sandbox {
         fn thermal_conductivity(ptype: ParticleType) -> i16 {
             let tc = match ptype {
                 ParticleType::Sand => 3,
-                ParticleType::WetSand => 4,
                 ParticleType::Water => 5,
                 ParticleType::Acid => 4,
                 ParticleType::Iridium => 8,
@@ -131,6 +139,7 @@ impl Sandbox {
                 ParticleType::Electricity => 2,
                 ParticleType::Glass => 2,
                 ParticleType::Life => 3,
+                ParticleType::SuperLife => 3,
                 ParticleType::Blood => 2,
                 ParticleType::Smoke => 6,
                 ParticleType::Fire => 2,
@@ -191,7 +200,6 @@ impl Sandbox {
                     if particle.last_update != self.update_counter {
                         match particle.ptype {
                             ParticleType::Sand => update_sand(self, x, y),
-                            ParticleType::WetSand => {}
                             ParticleType::Water => update_water(self, x, y),
                             ParticleType::Acid => update_acid(self, x, y),
                             ParticleType::Iridium => {}
@@ -202,6 +210,7 @@ impl Sandbox {
                             ParticleType::Electricity => update_electricity(self, x, y),
                             ParticleType::Glass => {}
                             ParticleType::Life => update_life(self, x, y),
+                            ParticleType::SuperLife => update_life(self, x, y),
                             ParticleType::Blood => update_blood(self, x, y),
                             ParticleType::Smoke => update_smoke(self, x, y),
                             ParticleType::Fire => update_fire(self, x, y),
@@ -227,8 +236,13 @@ impl Sandbox {
                 if let Some(particle) = &self.cells[x][y] {
                     // Base color
                     let base_color: (u8, u8, u8) = match particle.ptype {
-                        ParticleType::Sand => (196, 192, 135),
-                        ParticleType::WetSand => (166, 162, 105),
+                        ParticleType::Sand => {
+                            if particle.extra_data1 == 0 {
+                                (196, 192, 135)
+                            } else {
+                                (166, 162, 105)
+                            }
+                        }
                         ParticleType::Water => (26, 91, 165),
                         ParticleType::Acid => (128, 209, 0),
                         ParticleType::Iridium => (100, 100, 100),
@@ -247,6 +261,13 @@ impl Sandbox {
                         ParticleType::Life => {
                             if particle.extra_data2 == 0 {
                                 (135, 12, 211)
+                            } else {
+                                (90, 84, 84)
+                            }
+                        }
+                        ParticleType::SuperLife => {
+                            if particle.extra_data2 == 0 {
+                                (188, 20, 183)
                             } else {
                                 (90, 84, 84)
                             }
@@ -299,7 +320,6 @@ impl Sandbox {
                     let mut m = 0;
                     let noise_intensity = match particle.ptype {
                         ParticleType::Sand => 10,
-                        ParticleType::WetSand => 10,
                         ParticleType::Water => 30,
                         ParticleType::Acid => 50,
                         ParticleType::Iridium => 0,
@@ -322,6 +342,7 @@ impl Sandbox {
                         ParticleType::Electricity => 200,
                         ParticleType::Glass => 50,
                         ParticleType::Life => 0,
+                        ParticleType::SuperLife => 15,
                         ParticleType::Blood => 20,
                         ParticleType::Smoke => 10,
                         ParticleType::Fire => 50,
@@ -369,7 +390,6 @@ impl Particle {
             ptype,
             tempature: match ptype {
                 ParticleType::Sand => 0,
-                ParticleType::WetSand => -5,
                 ParticleType::Water => -10,
                 ParticleType::Acid => 0,
                 ParticleType::Iridium => 0,
@@ -380,6 +400,7 @@ impl Particle {
                 ParticleType::Electricity => 300,
                 ParticleType::Glass => 0,
                 ParticleType::Life => 0,
+                ParticleType::SuperLife => 0,
                 ParticleType::Blood => 0,
                 ParticleType::Fire => 130,
                 ParticleType::Smoke => 0,
@@ -387,7 +408,6 @@ impl Particle {
             },
             extra_data1: match ptype {
                 ParticleType::Sand => 0,
-                ParticleType::WetSand => 0,
                 ParticleType::Water => 0,
                 ParticleType::Acid => 0,
                 ParticleType::Iridium => 0,
@@ -398,6 +418,7 @@ impl Particle {
                 ParticleType::Electricity => 0,
                 ParticleType::Glass => 0,
                 ParticleType::Life => 0,
+                ParticleType::SuperLife => 0,
                 ParticleType::Blood => 0,
                 ParticleType::Smoke => 90 + thread_rng().gen_range(-20, 20),
                 ParticleType::Fire => thread_rng().gen_range(0, 60),
@@ -405,7 +426,6 @@ impl Particle {
             },
             extra_data2: match ptype {
                 ParticleType::Sand => 0,
-                ParticleType::WetSand => 0,
                 ParticleType::Water => 0,
                 ParticleType::Acid => 0,
                 ParticleType::Iridium => 0,
@@ -416,6 +436,7 @@ impl Particle {
                 ParticleType::Electricity => 0,
                 ParticleType::Glass => 0,
                 ParticleType::Life => 0,
+                ParticleType::SuperLife => 0,
                 ParticleType::Blood => 0,
                 ParticleType::Smoke => 90,
                 ParticleType::Fire => 0,
@@ -430,7 +451,6 @@ impl Particle {
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum ParticleType {
     Sand,
-    WetSand,
     Water,
     Acid,
     Iridium,
@@ -441,6 +461,7 @@ pub enum ParticleType {
     Electricity,
     Glass,
     Life,
+    SuperLife,
     Blood,
     Smoke,
     Fire,

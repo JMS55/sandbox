@@ -271,6 +271,13 @@ pub fn move_fire(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
 }
 
 pub fn update_sand(sandbox: &mut Sandbox, x: usize, y: usize) {
+    // When wet and tempature >= 30, dry out
+    if sandbox.cells[x][y].unwrap().extra_data1 == 1 && sandbox.cells[x][y].unwrap().tempature >= 30
+    {
+        sandbox.cells[x][y].as_mut().unwrap().extra_data1 = 0;
+    }
+
+    // When tempature >= 120, turn into Glass
     if sandbox.cells[x][y].unwrap().tempature >= 120 {
         sandbox.cells[x][y].as_mut().unwrap().ptype = ParticleType::Glass;
     }
@@ -285,15 +292,13 @@ pub fn update_water(sandbox: &mut Sandbox, x: usize, y: usize) {
     let mut y2 = y + 1;
     while y2 < SIMULATION_HEIGHT {
         match &sandbox.cells[x][y2] {
-            Some(particle) => match particle.ptype {
-                ParticleType::Sand => {
+            Some(particle) => {
+                if particle.ptype == ParticleType::Sand && particle.extra_data1 == 0 {
                     sandbox.cells[x][y] = None;
-                    sandbox.cells[x][y2].as_mut().unwrap().ptype = ParticleType::WetSand;
+                    sandbox.cells[x][y2].as_mut().unwrap().extra_data1 = 1;
                     return;
                 }
-                ParticleType::WetSand => {}
-                _ => return,
-            },
+            }
             None => return,
         }
         y2 += 1;
@@ -304,7 +309,6 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
     fn dissolved_by_acid(ptype: ParticleType) -> bool {
         match ptype {
             ParticleType::Sand => true,
-            ParticleType::WetSand => true,
             ParticleType::Water => true,
             ParticleType::Acid => false,
             ParticleType::Iridium => false,
@@ -315,6 +319,7 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Electricity => true,
             ParticleType::Glass => false,
             ParticleType::Life => true,
+            ParticleType::SuperLife => true,
             ParticleType::Blood => true,
             ParticleType::Smoke => false,
             ParticleType::Fire => true,
@@ -408,10 +413,16 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
+    // If tempature > 100, turn into Fire
+    if sandbox.cells[x][y].unwrap().tempature > 100 {
+        sandbox.cells[x][y].as_mut().unwrap().ptype = ParticleType::Fire;
+        return;
+    }
+
     // If above WetSand or another Plant that's growable, mark as growable (extra_data2 = 1)
     if y != SIMULATION_HEIGHT - 1 {
         if let Some(particle) = sandbox.cells[x][y + 1] {
-            if particle.ptype == ParticleType::WetSand {
+            if particle.ptype == ParticleType::Sand && particle.extra_data1 == 1 {
                 sandbox.cells[x][y].as_mut().unwrap().extra_data2 = 1;
             }
             if particle.ptype == ParticleType::Plant && particle.extra_data2 == 1 {
@@ -449,7 +460,6 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
     fn affected_by_cryotheum_coldsnap(ptype: ParticleType) -> bool {
         match ptype {
             ParticleType::Sand => true,
-            ParticleType::WetSand => true,
             ParticleType::Water => true,
             ParticleType::Acid => true,
             ParticleType::Iridium => true,
@@ -460,6 +470,7 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Electricity => true,
             ParticleType::Glass => true,
             ParticleType::Life => true,
+            ParticleType::SuperLife => true,
             ParticleType::Blood => true,
             ParticleType::Smoke => false,
             ParticleType::Fire => true,
@@ -504,7 +515,6 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
     fn vaporized_by_unstable(ptype: ParticleType) -> bool {
         match ptype {
             ParticleType::Sand => true,
-            ParticleType::WetSand => true,
             ParticleType::Water => true,
             ParticleType::Acid => true,
             ParticleType::Iridium => false,
@@ -515,6 +525,7 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Electricity => true,
             ParticleType::Glass => true,
             ParticleType::Life => true,
+            ParticleType::SuperLife => true,
             ParticleType::Blood => true,
             ParticleType::Smoke => false,
             ParticleType::Fire => false,
@@ -567,35 +578,64 @@ pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
     }
 
     // When alive and touching a Plant particle, chance to turn it into a new Life particle
+    // When alive and touching a Blood particle, turn into SuperLife
     if particle.extra_data2 == 0 {
         if y != SIMULATION_HEIGHT - 1 {
             if let Some(particle) = &sandbox.cells[x][y + 1] {
-                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.4) {
+                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.2) {
                     sandbox.cells[x][y + 1] = Some(Particle::new(ParticleType::Life));
+                    return;
+                }
+                if particle.ptype == ParticleType::Blood
+                    && sandbox.cells[x][y].unwrap().ptype != ParticleType::SuperLife
+                {
+                    sandbox.cells[x][y + 1] = None;
+                    sandbox.cells[x][y].as_mut().unwrap().ptype = ParticleType::SuperLife;
                     return;
                 }
             }
         }
         if x != SIMULATION_WIDTH - 1 {
             if let Some(particle) = &sandbox.cells[x + 1][y] {
-                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.4) {
+                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.2) {
                     sandbox.cells[x + 1][y] = Some(Particle::new(ParticleType::Life));
+                    return;
+                }
+                if particle.ptype == ParticleType::Blood
+                    && sandbox.cells[x][y].unwrap().ptype != ParticleType::SuperLife
+                {
+                    sandbox.cells[x + 1][y] = None;
+                    sandbox.cells[x][y].as_mut().unwrap().ptype = ParticleType::SuperLife;
                     return;
                 }
             }
         }
         if y != 0 {
             if let Some(particle) = &sandbox.cells[x][y - 1] {
-                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.4) {
+                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.2) {
                     sandbox.cells[x][y - 1] = Some(Particle::new(ParticleType::Life));
+                    return;
+                }
+                if particle.ptype == ParticleType::Blood
+                    && sandbox.cells[x][y].unwrap().ptype != ParticleType::SuperLife
+                {
+                    sandbox.cells[x][y - 1] = None;
+                    sandbox.cells[x][y].as_mut().unwrap().ptype = ParticleType::SuperLife;
                     return;
                 }
             }
         }
         if x != 0 {
             if let Some(particle) = &sandbox.cells[x - 1][y] {
-                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.4) {
+                if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.2) {
                     sandbox.cells[x - 1][y] = Some(Particle::new(ParticleType::Life));
+                    return;
+                }
+                if particle.ptype == ParticleType::Blood
+                    && sandbox.cells[x][y].unwrap().ptype != ParticleType::SuperLife
+                {
+                    sandbox.cells[x - 1][y] = None;
+                    sandbox.cells[x][y].as_mut().unwrap().ptype = ParticleType::SuperLife;
                     return;
                 }
             }
@@ -636,11 +676,9 @@ pub fn update_smoke(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
-    // Replace adjacent flammable particles with fire
     fn is_flammable(ptype: ParticleType) -> bool {
         match ptype {
             ParticleType::Sand => false,
-            ParticleType::WetSand => false,
             ParticleType::Water => false,
             ParticleType::Acid => false,
             ParticleType::Iridium => false,
@@ -651,7 +689,8 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
             ParticleType::Electricity => false,
             ParticleType::Glass => false,
             ParticleType::Life => true,
-            ParticleType::Blood => true,
+            ParticleType::SuperLife => false,
+            ParticleType::Blood => false,
             ParticleType::Smoke => false,
             ParticleType::Fire => false,
             ParticleType::Mirror => false,
@@ -664,6 +703,7 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
         sandbox.cells[x][y] = None;
     }
 
+    // Replace adjacent flammable particles with fire
     if y != SIMULATION_HEIGHT - 1 && sandbox.rng.gen_bool(0.5) {
         if let Some(particle) = &sandbox.cells[x][y + 1] {
             if is_flammable(particle.ptype) {
