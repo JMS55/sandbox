@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.jms55.Sandbox</id>
+
+  <name>Sandbox</name>
+  <summary>A sand simulation game</summary>
+
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>AGPL-3.0-only</project_license>
+
+  <description>
+    <p>
+      A sand simulation game
+    </p>
+  </description>
+
+  <launchable type="desktop-id">io.github.jms55.Sandbox.desktop</launchable>
+</component>

@@ -1,4 +1,5 @@
-use crate::sandbox::{Particle, SIMULATION_HEIGHT, SIMULATION_WIDTH};
+use crate::particle::Particle;
+use crate::sandbox::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use std::mem::ManuallyDrop;
 
 // These functions create a heap allocated array like Box::new([T; N]), but unlike Box::new() no data touches the stack.

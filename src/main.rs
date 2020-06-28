@@ -1,12 +1,14 @@
 mod behavior;
 mod heap_array;
+mod particle;
 mod sandbox;
 #[cfg(feature = "video-recording")]
 mod video_recorder;
 
+use particle::{Particle, ParticleType};
 use pixels::wgpu::{PowerPreference, RequestAdapterOptions, Surface};
 use pixels::{PixelsBuilder, SurfaceTexture};
-use sandbox::{Particle, ParticleType, Sandbox, SIMULATION_HEIGHT, SIMULATION_WIDTH};
+use sandbox::{Sandbox, SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use std::time::{Duration, Instant};
 use winit::dpi::{LogicalSize, PhysicalPosition};
 use winit::event::{ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent};
@@ -16,6 +18,9 @@ use winit::window::{Fullscreen, WindowBuilder};
 const TARGET_TIME_PER_UPDATE: Duration = Duration::from_nanos(16666670);
 
 fn main() {
+    #[cfg(target_os = "linux")]
+    std::env::set_var("WINIT_UNIX_BACKEND", "x11");
+
     // Setup winit
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
@@ -255,6 +260,14 @@ fn main() {
                         .window_pos_to_pixel(p2.into())
                         .unwrap_or_else(|p| pixels.clamp_pixel_pos(p));
 
+                    // Don't place multiple Electricity vertically
+                    let brush_size_x = brush_size;
+                    let brush_size_y = if selected_particle == Some(ParticleType::Electricity) {
+                        1
+                    } else {
+                        brush_size
+                    };
+
                     // Place particles (Bresenham's line algorithm)
                     let (mut p1x, mut p1y) = (p1x as isize, p1y as isize);
                     let (p2x, p2y) = (p2x as isize, p2y as isize);
@@ -265,17 +278,17 @@ fn main() {
                     let mut err = dx + dy;
                     loop {
                         let (x, y) = (p1x as usize, p1y as usize);
-                        for x in x..(x + brush_size) {
-                            for y in y..(y + brush_size) {
+                        for x in x..(x + brush_size_x) {
+                            for y in y..(y + brush_size_y) {
                                 if x < SIMULATION_WIDTH && y < SIMULATION_HEIGHT {
                                     match selected_particle {
                                         Some(selected_particle) => {
-                                            if sandbox.cells[x][y].is_none() {
-                                                sandbox.cells[x][y] =
+                                            if sandbox[x][y].is_none() {
+                                                sandbox[x][y] =
                                                     Some(Particle::new(selected_particle));
                                             }
                                         }
-                                        None => sandbox.cells[x][y] = None,
+                                        None => sandbox[x][y] = None,
                                     }
                                 }
                             }

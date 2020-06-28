@@ -1,0 +1,62 @@
+{
+    "app-id": "io.github.jms55.Sandbox",
+    "runtime": "org.freedesktop.Platform",
+    "runtime-version": "19.08",
+    "sdk": "org.freedesktop.Sdk",
+    "sdk-extensions": [
+        "org.freedesktop.Sdk.Extension.rust-stable"
+    ],
+    "finish-args": [
+        "--device=dri",
+        "--socket=x11",
+        "--share=ipc"
+    ],
+    "build-options": {
+        "append-path": "/usr/lib/sdk/rust-stable/bin",
+        "build-args": [
+            "--share=network"
+        ]
+    },
+    "command": "sandbox",
+    "modules": [
+        {
+            "name": "sandbox",
+            "buildsystem": "simple",
+            "build-commands": [
+                "head -n -8 Cargo.toml > t && mv t Cargo.toml",
+                "cargo build --release",
+                "install -D ./target/release/sandbox -t /app/bin/",
+                "install -Dm644 io.github.jms55.Sandbox.appdata.xml -t /app/share/metainfo/",
+                "install -Dm644 io.github.jms55.Sandbox.desktop -t /app/share/applications/",
+                "install -Dm644 io.github.jms55.Sandbox.svg -t /app/share/icons/hicolor/scalable/apps/"
+            ],
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": "../src",
+                    "dest": "src"
+                },
+                {
+                    "type": "file",
+                    "path": "../Cargo.toml"
+                },
+                {
+                    "type": "file",
+                    "path": "../Cargo.lock"
+                },
+                {
+                    "type": "file",
+                    "path": "io.github.jms55.Sandbox.appdata.xml"
+                },
+                {
+                    "type": "file",
+                    "path": "io.github.jms55.Sandbox.desktop"
+                },
+                {
+                    "type": "file",
+                    "path": "io.github.jms55.Sandbox.svg"
+                }
+            ]
+        }
+    ]
+}

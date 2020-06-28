@@ -1,8 +1,9 @@
-use crate::behavior::*;
 use crate::heap_array::{create_background_array, create_cells_array};
+use crate::particle::{Particle, ParticleType};
 use rand::rngs::ThreadRng;
-use rand::{thread_rng, Rng};
+use rand::thread_rng;
 use simdnoise::NoiseBuilder;
+use std::ops::{Index, IndexMut};
 
 pub const SIMULATION_WIDTH: usize = 480;
 pub const SIMULATION_HEIGHT: usize = 270;
@@ -71,51 +72,10 @@ impl Sandbox {
         self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
         for x in 0..SIMULATION_WIDTH {
             for y in 0..SIMULATION_HEIGHT {
-                if let Some(particle) = &self.cells[x][y] {
+                if let Some(particle) = self[x][y] {
                     if particle.last_update != self.update_counter {
-                        let mut new_particle_position = (x, y);
-                        match particle.ptype {
-                            ParticleType::Sand => {
-                                if particle.extra_data1 == 0 {
-                                    new_particle_position = move_powder(self, x, y);
-                                } else if particle.extra_data1 == 1 {
-                                    new_particle_position = move_solid(self, x, y);
-                                }
-                            }
-                            ParticleType::Water => new_particle_position = move_liquid(self, x, y),
-                            ParticleType::Acid => new_particle_position = move_liquid(self, x, y),
-                            ParticleType::Iridium => {}
-                            ParticleType::Replicator => {}
-                            ParticleType::Plant => {
-                                if particle.extra_data2 == 0 {
-                                    new_particle_position = move_powder(self, x, y);
-                                }
-                            }
-                            ParticleType::Cryotheum => {
-                                new_particle_position = move_solid(self, x, y);
-                            }
-                            ParticleType::Unstable => {}
-                            ParticleType::Electricity => {
-                                new_particle_position = move_electricity(self, x, y);
-                            }
-                            ParticleType::Glass => {
-                                if particle.tempature >= 30 {
-                                    new_particle_position = move_liquid(self, x, y);
-                                } else {
-                                    new_particle_position = move_solid(self, x, y);
-                                }
-                            }
-                            ParticleType::Life => new_particle_position = move_life(self, x, y),
-                            ParticleType::SuperLife => {
-                                let (x, y) = move_life(self, x, y);
-                                new_particle_position = move_life(self, x, y);
-                            }
-                            ParticleType::Blood => new_particle_position = move_liquid(self, x, y),
-                            ParticleType::Smoke => new_particle_position = move_gas(self, x, y),
-                            ParticleType::Fire => new_particle_position = move_fire(self, x, y),
-                            ParticleType::Mirror => {}
-                        }
-                        self.cells[new_particle_position.0][new_particle_position.1]
+                        let new_particle_position = particle.move_particle(self, x, y);
+                        self[new_particle_position.0][new_particle_position.1]
                             .as_mut()
                             .unwrap()
                             .last_update = self.update_counter
@@ -125,67 +85,44 @@ impl Sandbox {
         }
 
         // Transfer tempature between adjacent particles
-        // Higher thermal conductivity = Slower tempature transfer
-        fn thermal_conductivity(ptype: ParticleType) -> i16 {
-            let tc = match ptype {
-                ParticleType::Sand => 3,
-                ParticleType::Water => 5,
-                ParticleType::Acid => 4,
-                ParticleType::Iridium => 8,
-                ParticleType::Replicator => 3,
-                ParticleType::Plant => 3,
-                ParticleType::Cryotheum => 2,
-                ParticleType::Unstable => 2,
-                ParticleType::Electricity => 2,
-                ParticleType::Glass => 2,
-                ParticleType::Life => 3,
-                ParticleType::SuperLife => 3,
-                ParticleType::Blood => 2,
-                ParticleType::Smoke => 6,
-                ParticleType::Fire => 2,
-                ParticleType::Mirror => 7,
-            };
-            assert!(tc > 1);
-            tc
-        }
         let cells_copy = self.cells.clone();
         for x in 0..SIMULATION_WIDTH {
             for y in 0..SIMULATION_HEIGHT {
                 if let Some(particle1) = &cells_copy[x][y] {
                     if y != SIMULATION_HEIGHT - 1 {
-                        if let Some(particle2) = &self.cells[x][y + 1] {
-                            let tc = thermal_conductivity(particle1.ptype)
-                                + thermal_conductivity(particle2.ptype);
+                        if let Some(particle2) = &self[x][y + 1] {
+                            let tc =
+                                particle1.thermal_conductivity() + particle2.thermal_conductivity();
                             let t = particle1.tempature / tc;
-                            self.cells[x][y].as_mut().unwrap().tempature -= t;
-                            self.cells[x][y + 1].as_mut().unwrap().tempature += t;
+                            self[x][y].as_mut().unwrap().tempature -= t;
+                            self[x][y + 1].as_mut().unwrap().tempature += t;
                         }
                     }
                     if x != SIMULATION_WIDTH - 1 {
-                        if let Some(particle2) = &self.cells[x + 1][y] {
-                            let tc = thermal_conductivity(particle1.ptype)
-                                + thermal_conductivity(particle2.ptype);
+                        if let Some(particle2) = &self[x + 1][y] {
+                            let tc =
+                                particle1.thermal_conductivity() + particle2.thermal_conductivity();
                             let t = particle1.tempature / tc;
-                            self.cells[x][y].as_mut().unwrap().tempature -= t;
-                            self.cells[x + 1][y].as_mut().unwrap().tempature += t;
+                            self[x][y].as_mut().unwrap().tempature -= t;
+                            self[x + 1][y].as_mut().unwrap().tempature += t;
                         }
                     }
                     if y != 0 {
-                        if let Some(particle2) = &self.cells[x][y - 1] {
-                            let tc = thermal_conductivity(particle1.ptype)
-                                + thermal_conductivity(particle2.ptype);
+                        if let Some(particle2) = &self[x][y - 1] {
+                            let tc =
+                                particle1.thermal_conductivity() + particle2.thermal_conductivity();
                             let t = particle1.tempature / tc;
-                            self.cells[x][y].as_mut().unwrap().tempature -= t;
-                            self.cells[x][y - 1].as_mut().unwrap().tempature += t;
+                            self[x][y].as_mut().unwrap().tempature -= t;
+                            self[x][y - 1].as_mut().unwrap().tempature += t;
                         }
                     }
                     if x != 0 {
-                        if let Some(particle2) = &self.cells[x - 1][y] {
-                            let tc = thermal_conductivity(particle1.ptype)
-                                + thermal_conductivity(particle2.ptype);
+                        if let Some(particle2) = &self[x - 1][y] {
+                            let tc =
+                                particle1.thermal_conductivity() + particle2.thermal_conductivity();
                             let t = particle1.tempature / tc;
-                            self.cells[x][y].as_mut().unwrap().tempature -= t;
-                            self.cells[x - 1][y].as_mut().unwrap().tempature += t;
+                            self[x][y].as_mut().unwrap().tempature -= t;
+                            self[x - 1][y].as_mut().unwrap().tempature += t;
                         }
                     }
                 }
@@ -196,26 +133,9 @@ impl Sandbox {
         self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
         for x in 0..SIMULATION_WIDTH {
             for y in 0..SIMULATION_HEIGHT {
-                if let Some(particle) = &self.cells[x][y] {
+                if let Some(particle) = self[x][y] {
                     if particle.last_update != self.update_counter {
-                        match particle.ptype {
-                            ParticleType::Sand => update_sand(self, x, y),
-                            ParticleType::Water => update_water(self, x, y),
-                            ParticleType::Acid => update_acid(self, x, y),
-                            ParticleType::Iridium => {}
-                            ParticleType::Replicator => update_replicator(self, x, y),
-                            ParticleType::Plant => update_plant(self, x, y),
-                            ParticleType::Cryotheum => update_cryotheum(self, x, y),
-                            ParticleType::Unstable => update_unstable(self, x, y),
-                            ParticleType::Electricity => update_electricity(self, x, y),
-                            ParticleType::Glass => {}
-                            ParticleType::Life => update_life(self, x, y),
-                            ParticleType::SuperLife => update_life(self, x, y),
-                            ParticleType::Blood => update_blood(self, x, y),
-                            ParticleType::Smoke => update_smoke(self, x, y),
-                            ParticleType::Fire => update_fire(self, x, y),
-                            ParticleType::Mirror => update_mirror(self, x, y),
-                        }
+                        particle.update(self, x, y);
                     }
                 }
             }
@@ -233,67 +153,9 @@ impl Sandbox {
         let mut noise_index = 0;
         for y in 0..SIMULATION_HEIGHT {
             for x in 0..SIMULATION_WIDTH {
-                if let Some(particle) = &self.cells[x][y] {
+                if let Some(particle) = &self[x][y] {
                     // Base color
-                    let base_color: (u8, u8, u8) = match particle.ptype {
-                        ParticleType::Sand => {
-                            if particle.extra_data1 == 0 {
-                                (196, 192, 135)
-                            } else {
-                                (166, 162, 105)
-                            }
-                        }
-                        ParticleType::Water => (26, 91, 165),
-                        ParticleType::Acid => (128, 209, 0),
-                        ParticleType::Iridium => (100, 100, 100),
-                        ParticleType::Replicator => (68, 11, 67),
-                        ParticleType::Plant => {
-                            if particle.extra_data1 < 2 {
-                                (6, 89, 9)
-                            } else {
-                                (20, 61, 21)
-                            }
-                        }
-                        ParticleType::Cryotheum => (12, 191, 201),
-                        ParticleType::Unstable => (84, 68, 45),
-                        ParticleType::Electricity => (247, 244, 49),
-                        ParticleType::Glass => (159, 198, 197),
-                        ParticleType::Life => {
-                            if particle.extra_data2 == 0 {
-                                (135, 12, 211)
-                            } else {
-                                (90, 84, 84)
-                            }
-                        }
-                        ParticleType::SuperLife => {
-                            if particle.extra_data2 == 0 {
-                                (188, 20, 183)
-                            } else {
-                                (90, 84, 84)
-                            }
-                        }
-                        ParticleType::Blood => (112, 4, 17),
-                        ParticleType::Smoke => (5, 5, 5),
-                        ParticleType::Fire => (237, 86, 4),
-                        ParticleType::Mirror => {
-                            // Lerp green-pink-green
-                            let mut t = particle.extra_data1 as f64 / 59.0;
-                            let c1 = (78.0 / 255.0, 216.0 / 255.0, 131.0 / 255.0);
-                            let c2 = (216.0 / 255.0, 78.0 / 255.0, 163.0 / 255.0);
-                            let ((r1, g1, b1), (r2, g2, b2)) = {
-                                if particle.extra_data1 < 60 {
-                                    (c1, c2)
-                                } else {
-                                    t = (particle.extra_data1 - 60) as f64 / 59.0;
-                                    (c2, c1)
-                                }
-                            };
-                            let r = (1.0 - t) * r1 + t * r2;
-                            let b = (1.0 - t) * b1 + t * b2;
-                            let g = (1.0 - t) * g1 + t * g2;
-                            ((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
-                        }
-                    };
+                    let base_color = particle.base_color();
 
                     // Tint blue/red based on tempature
                     let mut r = 0;
@@ -318,38 +180,9 @@ impl Sandbox {
 
                     // Darken/Lighten based on noise
                     let mut m = 0;
-                    let noise_intensity = match particle.ptype {
-                        ParticleType::Sand => 10,
-                        ParticleType::Water => 30,
-                        ParticleType::Acid => 50,
-                        ParticleType::Iridium => 0,
-                        ParticleType::Replicator => 10,
-                        ParticleType::Plant => {
-                            if particle.extra_data1 < 2 {
-                                10
-                            } else {
-                                5
-                            }
-                        }
-                        ParticleType::Cryotheum => 10,
-                        ParticleType::Unstable => {
-                            if particle.tempature > 0 {
-                                (particle.tempature as f64 / 5.0).round() as i16
-                            } else {
-                                0
-                            }
-                        }
-                        ParticleType::Electricity => 200,
-                        ParticleType::Glass => 50,
-                        ParticleType::Life => 0,
-                        ParticleType::SuperLife => 15,
-                        ParticleType::Blood => 20,
-                        ParticleType::Smoke => 10,
-                        ParticleType::Fire => 50,
-                        ParticleType::Mirror => 20,
-                    };
-                    if noise_intensity != 0 {
-                        m = (noise[noise_index] * noise_intensity as f32) as i16;
+                    let shimmer_intensity = particle.shimmer_intensity();
+                    if shimmer_intensity != 0 {
+                        m = (noise[noise_index] * shimmer_intensity as f32) as i16;
                     }
 
                     // Combine everything together
@@ -374,98 +207,18 @@ impl Sandbox {
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct Particle {
-    pub ptype: ParticleType,
-    pub tempature: i16,
-    pub extra_data1: i8,
-    pub extra_data2: i8,
-    pub color_offset: i8,
-    last_update: u8,
-}
+impl Index<usize> for Sandbox {
+    type Output = [Option<Particle>; SIMULATION_HEIGHT];
 
-impl Particle {
-    pub fn new(ptype: ParticleType) -> Self {
-        Self {
-            ptype,
-            tempature: match ptype {
-                ParticleType::Sand => 0,
-                ParticleType::Water => -10,
-                ParticleType::Acid => 0,
-                ParticleType::Iridium => 0,
-                ParticleType::Replicator => 0,
-                ParticleType::Plant => 0,
-                ParticleType::Cryotheum => -60,
-                ParticleType::Unstable => 0,
-                ParticleType::Electricity => 300,
-                ParticleType::Glass => 0,
-                ParticleType::Life => 0,
-                ParticleType::SuperLife => 0,
-                ParticleType::Blood => 0,
-                ParticleType::Fire => 130,
-                ParticleType::Smoke => 0,
-                ParticleType::Mirror => 0,
-            },
-            extra_data1: match ptype {
-                ParticleType::Sand => 0,
-                ParticleType::Water => 0,
-                ParticleType::Acid => 0,
-                ParticleType::Iridium => 0,
-                ParticleType::Replicator => 0,
-                ParticleType::Plant => thread_rng().gen_range(1, 18),
-                ParticleType::Cryotheum => 0,
-                ParticleType::Unstable => 0,
-                ParticleType::Electricity => 0,
-                ParticleType::Glass => 0,
-                ParticleType::Life => 0,
-                ParticleType::SuperLife => 0,
-                ParticleType::Blood => 0,
-                ParticleType::Smoke => 90 + thread_rng().gen_range(-20, 20),
-                ParticleType::Fire => thread_rng().gen_range(0, 60),
-                ParticleType::Mirror => 0,
-            },
-            extra_data2: match ptype {
-                ParticleType::Sand => 0,
-                ParticleType::Water => 0,
-                ParticleType::Acid => 0,
-                ParticleType::Iridium => 0,
-                ParticleType::Replicator => 0,
-                ParticleType::Plant => 0,
-                ParticleType::Cryotheum => 0,
-                ParticleType::Unstable => 0,
-                ParticleType::Electricity => 0,
-                ParticleType::Glass => 0,
-                ParticleType::Life => 0,
-                ParticleType::SuperLife => 0,
-                ParticleType::Blood => 0,
-                ParticleType::Smoke => 90,
-                ParticleType::Fire => 0,
-                ParticleType::Mirror => 0,
-            },
-            color_offset: thread_rng().gen_range(-10, 11),
-            last_update: 0,
-        }
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.cells[index]
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
-pub enum ParticleType {
-    Sand,
-    Water,
-    Acid,
-    Iridium,
-    Replicator,
-    Plant,
-    Cryotheum,
-    Unstable,
-    Electricity,
-    Glass,
-    Life,
-    SuperLife,
-    Blood,
-    Smoke,
-    Fire,
-    Mirror,
+impl IndexMut<usize> for Sandbox {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.cells[index]
+    }
 }
 
 fn clamp(value: i16, min: i16, max: i16) -> i16 {

@@ -1,11 +1,10 @@
 use crate::sandbox::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use gstreamer::glib::object::{Cast, ObjectExt};
 use gstreamer::{
-    Buffer, Element, ElementExt, ElementExtManual, Event, Format, GstBinExt, MessageView, Pipeline,
-    State, CLOCK_TIME_NONE,
+    Buffer, Element, ElementExt, ElementExtManual, Event, GstBinExt, MessageView, Pipeline, State,
+    CLOCK_TIME_NONE,
 };
 use gstreamer_app::AppSrc;
-use gstreamer_video::{VideoFormat, VideoInfo};
 use std::fs;
 use std::path::PathBuf;
 use std::time::SystemTime;
@@ -23,7 +22,16 @@ impl VideoRecorder {
         gstreamer::init().unwrap();
 
         let pipeline = gstreamer::parse_launch(
-            "appsrc name=src is-live=true do-timestamp=true ! videoconvert ! x264enc ! mp4mux ! filesink name=filesink",
+            &format!(
+                "appsrc name=src format=time is-live=true do-timestamp=true caps=video/x-raw,format=RGBA,width={},height={} !
+                videoconvert !
+                videoscale method=nearest-neighbour ! video/x-raw,width=1920,height=1080 !
+                x264enc !
+                mp4mux !
+                filesink name=filesink",
+                SIMULATION_WIDTH,
+                SIMULATION_HEIGHT
+            )
         )
         .unwrap()
         .downcast::<Pipeline>()
@@ -32,17 +40,8 @@ impl VideoRecorder {
         let app_src = pipeline
             .get_by_name("src")
             .unwrap()
-            .dynamic_cast::<AppSrc>()
+            .downcast::<AppSrc>()
             .unwrap();
-        let video_info = VideoInfo::new(
-            VideoFormat::Rgba,
-            SIMULATION_WIDTH as u32,
-            SIMULATION_HEIGHT as u32,
-        )
-        .build()
-        .unwrap();
-        app_src.set_caps(Some(&video_info.to_caps().unwrap()));
-        app_src.set_property_format(Format::Time);
 
         let filesink = pipeline.get_by_name("filesink").unwrap();
 
