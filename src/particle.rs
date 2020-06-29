@@ -174,7 +174,13 @@ impl Particle {
             ParticleType::Water => (26, 91, 165),
             ParticleType::Acid => (128, 209, 0),
             ParticleType::Iridium => (100, 100, 100),
-            ParticleType::Replicator => (68, 11, 67),
+            ParticleType::Replicator => {
+                if self.extra_data1 == 0 {
+                    (68, 11, 67)
+                } else {
+                    (88, 31, 107)
+                }
+            }
             ParticleType::Plant => {
                 if self.extra_data1 < 2 {
                     (6, 89, 9)

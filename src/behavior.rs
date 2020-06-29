@@ -345,9 +345,11 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
+    sandbox[x][y].as_mut().unwrap().extra_data1 = 0;
     if y < SIMULATION_HEIGHT - 2 {
         if let Some(particle) = sandbox[x][y + 1] {
             if particle.ptype != ParticleType::Replicator {
+                sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x][y + 2].is_none() {
                     let mut particle = particle.clone();
                     particle.color_offset = sandbox.rng.gen_range(-10, 11);
@@ -359,6 +361,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
     if x < SIMULATION_WIDTH - 2 {
         if let Some(particle) = sandbox[x + 1][y] {
             if particle.ptype != ParticleType::Replicator {
+                sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x + 2][y].is_none() {
                     let mut particle = particle.clone();
                     particle.color_offset = sandbox.rng.gen_range(-10, 11);
@@ -370,6 +373,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
     if y > 1 {
         if let Some(particle) = sandbox[x][y - 1] {
             if particle.ptype != ParticleType::Replicator {
+                sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x][y - 2].is_none() {
                     let mut particle = particle.clone();
                     particle.color_offset = sandbox.rng.gen_range(-10, 11);
@@ -381,6 +385,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
     if x > 1 {
         if let Some(particle) = sandbox[x - 1][y] {
             if particle.ptype != ParticleType::Replicator {
+                sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x - 2][y].is_none() {
                     let mut particle = particle.clone();
                     particle.color_offset = sandbox.rng.gen_range(-10, 11);
