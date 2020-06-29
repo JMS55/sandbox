@@ -26,7 +26,7 @@
                 "head -n -8 Cargo.toml > t && mv t Cargo.toml",
                 "cargo build --release",
                 "install -D ./target/release/sandbox -t /app/bin/",
-                "install -Dm644 io.github.jms55.Sandbox.appdata.xml -t /app/share/metainfo/",
+                "install -Dm644 io.github.jms55.Sandbox.metainfo.xml -t /app/share/metainfo/",
                 "install -Dm644 io.github.jms55.Sandbox.desktop -t /app/share/applications/",
                 "install -Dm644 io.github.jms55.Sandbox.svg -t /app/share/icons/hicolor/scalable/apps/"
             ],
@@ -46,7 +46,7 @@
                 },
                 {
                     "type": "file",
-                    "path": "io.github.jms55.Sandbox.appdata.xml"
+                    "path": "io.github.jms55.Sandbox.metainfo.xml"
                 },
                 {
                     "type": "file",

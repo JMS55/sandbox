@@ -1,10 +1,12 @@
 ## Immediate Todo
 1. Visualize axis lock controls, particle placement, paused gameplay, video recording start/finish, etc
 2. FPS display
-3. GUI
-4. Save/Load simulations with files
-5. Bump app version to 1.0
-6. Flathub
+---
+4. GUI
+5. Save/Load simulations with files
+6. Bump app version to 1.0
+7. Flathub
+8. MISX package
 
 ## Later Todo
 1. Make particles move left/right randomly when they can do either
