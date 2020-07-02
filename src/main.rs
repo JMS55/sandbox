@@ -8,7 +8,7 @@ mod video_recorder;
 use particle::{Particle, ParticleType};
 use pixels::wgpu::{PowerPreference, RequestAdapterOptions, Surface};
 use pixels::{PixelsBuilder, SurfaceTexture};
-use sandbox::{Sandbox, SIMULATION_HEIGHT, SIMULATION_WIDTH};
+use sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use std::time::{Duration, Instant};
 use winit::dpi::{LogicalSize, PhysicalPosition};
 use winit::event::{ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent};
@@ -26,8 +26,8 @@ fn main() {
     let window = WindowBuilder::new()
         .with_title("Sandbox")
         .with_inner_size(LogicalSize::new(
-            (SIMULATION_WIDTH * 3) as f64,
-            (SIMULATION_HEIGHT * 3) as f64,
+            (SANDBOX_WIDTH * 3) as f64,
+            (SANDBOX_HEIGHT * 3) as f64,
         ))
         .build(&event_loop)
         .unwrap();
@@ -36,17 +36,14 @@ fn main() {
     let surface_size = window.inner_size();
     let surface = Surface::create(&window);
     let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, surface);
-    let mut pixels = PixelsBuilder::new(
-        SIMULATION_WIDTH as u32,
-        SIMULATION_HEIGHT as u32,
-        surface_texture,
-    )
-    .request_adapter_options(RequestAdapterOptions {
-        power_preference: PowerPreference::HighPerformance,
-        compatible_surface: None,
-    })
-    .build()
-    .unwrap();
+    let mut pixels =
+        PixelsBuilder::new(SANDBOX_WIDTH as u32, SANDBOX_HEIGHT as u32, surface_texture)
+            .request_adapter_options(RequestAdapterOptions {
+                power_preference: PowerPreference::HighPerformance,
+                compatible_surface: None,
+            })
+            .build()
+            .unwrap();
 
     // Setup the video recorder
     #[cfg(feature = "video-recording")]
@@ -208,23 +205,22 @@ fn main() {
                     // Prevent the window from becoming smaller than SIMULATION_SIZE
                     if lr.elapsed() >= Duration::from_millis(10) {
                         let mut surface_size = window.inner_size();
-                        surface_size.width = surface_size.width.max(SIMULATION_WIDTH as u32);
-                        surface_size.height = surface_size.height.max(SIMULATION_HEIGHT as u32);
+                        surface_size.width = surface_size.width.max(SANDBOX_WIDTH as u32);
+                        surface_size.height = surface_size.height.max(SANDBOX_HEIGHT as u32);
                     }
                     // Snap the window size to multiples of SIMULATION_SIZE when less than 20% away
                     if lr.elapsed() >= Duration::from_millis(50) {
                         let mut surface_size = window.inner_size();
-                        surface_size.width = surface_size.width.max(SIMULATION_WIDTH as u32);
-                        surface_size.height = surface_size.height.max(SIMULATION_HEIGHT as u32);
-                        let width_ratio = surface_size.width as f64 / SIMULATION_WIDTH as f64;
-                        let height_ratio = surface_size.height as f64 / SIMULATION_HEIGHT as f64;
+                        surface_size.width = surface_size.width.max(SANDBOX_WIDTH as u32);
+                        surface_size.height = surface_size.height.max(SANDBOX_HEIGHT as u32);
+                        let width_ratio = surface_size.width as f64 / SANDBOX_WIDTH as f64;
+                        let height_ratio = surface_size.height as f64 / SANDBOX_HEIGHT as f64;
                         if (width_ratio.fract() < 0.20 || width_ratio.fract() > 0.80)
                             && (height_ratio.fract() < 0.20 || height_ratio.fract() > 0.80)
                         {
-                            surface_size.width =
-                                width_ratio.round() as u32 * SIMULATION_WIDTH as u32;
+                            surface_size.width = width_ratio.round() as u32 * SANDBOX_WIDTH as u32;
                             surface_size.height =
-                                height_ratio.round() as u32 * SIMULATION_HEIGHT as u32;
+                                height_ratio.round() as u32 * SANDBOX_HEIGHT as u32;
                             window.set_inner_size(surface_size);
                             pixels.resize(surface_size.width, surface_size.height);
                         }
@@ -280,7 +276,7 @@ fn main() {
                         let (x, y) = (p1x as usize, p1y as usize);
                         for x in x..(x + brush_size_x) {
                             for y in y..(y + brush_size_y) {
-                                if x < SIMULATION_WIDTH && y < SIMULATION_HEIGHT {
+                                if x < SANDBOX_WIDTH && y < SANDBOX_HEIGHT {
                                     match selected_particle {
                                         Some(selected_particle) => {
                                             if sandbox[x][y].is_none() {

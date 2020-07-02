@@ -1,4 +1,4 @@
-use crate::sandbox::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
+use crate::sandbox::{SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use gstreamer::glib::object::{Cast, ObjectExt};
 use gstreamer::{
     Buffer, Element, ElementExt, ElementExtManual, Event, GstBinExt, MessageView, Pipeline, State,
@@ -29,8 +29,8 @@ impl VideoRecorder {
                 x264enc !
                 mp4mux !
                 filesink name=filesink",
-                SIMULATION_WIDTH,
-                SIMULATION_HEIGHT
+                SANDBOX_WIDTH,
+                SANDBOX_HEIGHT
             )
         )
         .unwrap()

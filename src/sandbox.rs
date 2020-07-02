@@ -5,14 +5,14 @@ use rand::thread_rng;
 use simdnoise::NoiseBuilder;
 use std::ops::{Index, IndexMut};
 
-pub const SIMULATION_WIDTH: usize = 480;
-pub const SIMULATION_HEIGHT: usize = 270;
+pub const SANDBOX_WIDTH: usize = 480;
+pub const SANDBOX_HEIGHT: usize = 270;
 
 pub struct Sandbox {
-    pub cells: Box<[[Option<Particle>; SIMULATION_HEIGHT]; SIMULATION_WIDTH]>,
+    pub cells: Box<[[Option<Particle>; SANDBOX_HEIGHT]; SANDBOX_WIDTH]>,
     pub rng: ThreadRng,
     update_counter: u8,
-    background: Box<[u8; SIMULATION_HEIGHT * SIMULATION_WIDTH * 4]>,
+    background: Box<[u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 4]>,
 }
 
 impl Sandbox {
@@ -20,8 +20,8 @@ impl Sandbox {
         // Generate background
         let mut background = create_background_array(30);
         let mut i = 0;
-        for y in 0..SIMULATION_HEIGHT {
-            for x in 0..SIMULATION_WIDTH {
+        for y in 0..SANDBOX_HEIGHT {
+            for x in 0..SANDBOX_WIDTH {
                 // Generate grid
                 if x % 8 == 0 || y % 8 == 0 {
                     background[i] = 60;
@@ -47,8 +47,8 @@ impl Sandbox {
                 }
 
                 // Apply vignette
-                let x = x as isize - (SIMULATION_WIDTH as isize / 2);
-                let y = y as isize - (SIMULATION_HEIGHT as isize / 2);
+                let x = x as isize - (SANDBOX_WIDTH as isize / 2);
+                let y = y as isize - (SANDBOX_HEIGHT as isize / 2);
                 let m = ((x.abs() + y.abs()) as f64 / 20.0).round() as u8;
                 background[i] -= m;
                 background[i + 1] -= m;
@@ -70,8 +70,8 @@ impl Sandbox {
     pub fn update(&mut self) {
         // Move particles
         self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
-        for x in 0..SIMULATION_WIDTH {
-            for y in 0..SIMULATION_HEIGHT {
+        for x in 0..SANDBOX_WIDTH {
+            for y in 0..SANDBOX_HEIGHT {
                 if let Some(particle) = self[x][y] {
                     if particle.last_update != self.update_counter {
                         let new_particle_position = particle.move_particle(self, x, y);
@@ -86,10 +86,10 @@ impl Sandbox {
 
         // Transfer tempature between adjacent particles
         let cells_copy = self.cells.clone();
-        for x in 0..SIMULATION_WIDTH {
-            for y in 0..SIMULATION_HEIGHT {
+        for x in 0..SANDBOX_WIDTH {
+            for y in 0..SANDBOX_HEIGHT {
                 if let Some(particle1) = &cells_copy[x][y] {
-                    if y != SIMULATION_HEIGHT - 1 {
+                    if y != SANDBOX_HEIGHT - 1 {
                         if let Some(particle2) = &self[x][y + 1] {
                             let tc =
                                 particle1.thermal_conductivity() + particle2.thermal_conductivity();
@@ -98,7 +98,7 @@ impl Sandbox {
                             self[x][y + 1].as_mut().unwrap().tempature += t;
                         }
                     }
-                    if x != SIMULATION_WIDTH - 1 {
+                    if x != SANDBOX_WIDTH - 1 {
                         if let Some(particle2) = &self[x + 1][y] {
                             let tc =
                                 particle1.thermal_conductivity() + particle2.thermal_conductivity();
@@ -131,8 +131,8 @@ impl Sandbox {
 
         // Perform particle interactions and state updates
         self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
-        for x in 0..SIMULATION_WIDTH {
-            for y in 0..SIMULATION_HEIGHT {
+        for x in 0..SANDBOX_WIDTH {
+            for y in 0..SANDBOX_HEIGHT {
                 if let Some(particle) = self[x][y] {
                     if particle.last_update != self.update_counter {
                         particle.update(self, x, y);
@@ -146,13 +146,13 @@ impl Sandbox {
         frame.copy_from_slice(&*self.background);
 
         let noise =
-            NoiseBuilder::turbulence_2d_offset(dt, SIMULATION_WIDTH * 2, dt, SIMULATION_HEIGHT / 2)
+            NoiseBuilder::turbulence_2d_offset(dt, SANDBOX_WIDTH * 2, dt, SANDBOX_HEIGHT / 2)
                 .generate_scaled(-1.0, 1.0);
 
         let mut frame_index = 0;
         let mut noise_index = 0;
-        for y in 0..SIMULATION_HEIGHT {
-            for x in 0..SIMULATION_WIDTH {
+        for y in 0..SANDBOX_HEIGHT {
+            for x in 0..SANDBOX_WIDTH {
                 if let Some(particle) = &self[x][y] {
                     // Base color
                     let base_color = particle.base_color();
@@ -208,7 +208,7 @@ impl Sandbox {
 }
 
 impl Index<usize> for Sandbox {
-    type Output = [Option<Particle>; SIMULATION_HEIGHT];
+    type Output = [Option<Particle>; SANDBOX_HEIGHT];
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.cells[index]
