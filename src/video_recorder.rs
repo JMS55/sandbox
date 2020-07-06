@@ -1,7 +1,8 @@
 use crate::sandbox::{SANDBOX_HEIGHT, SANDBOX_WIDTH};
+use gstreamer::event::Eos;
 use gstreamer::glib::object::{Cast, ObjectExt};
 use gstreamer::{
-    Buffer, Element, ElementExt, ElementExtManual, Event, GstBinExt, MessageView, Pipeline, State,
+    Buffer, Element, ElementExt, ElementExtManual, GstBinExt, MessageView, Pipeline, State,
     CLOCK_TIME_NONE,
 };
 use gstreamer_app::AppSrc;
@@ -81,7 +82,7 @@ impl VideoRecorder {
 
     pub fn stop_recording(&mut self) {
         self.is_recording = false;
-        self.pipeline.send_event(Event::new_eos().build());
+        self.pipeline.send_event(Eos::new());
         let bus = self.pipeline.get_bus().unwrap();
         for message in bus.iter_timed(CLOCK_TIME_NONE) {
             if let MessageView::Eos(..) = message.view() {

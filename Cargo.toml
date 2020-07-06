@@ -12,9 +12,9 @@ winit = "0.22"
 rand = "0.7"
 simdnoise = "3.1"
 
-gstreamer = { version = "0.15", optional = true }
-gstreamer-app = { version = "0.15", optional = true }
-gstreamer-video = { version = "0.15", optional = true }
+gstreamer = { version = "0.16.0", optional = true }
+gstreamer-app = { version = "0.16", optional = true }
+gstreamer-video = { version = "0.16", optional = true }
 dirs-next = { version = "1.0", optional = true }
 humantime = { version = "2.0", optional = true }
 
