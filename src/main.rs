@@ -57,7 +57,7 @@ fn main() {
     let mut update_once = false;
 
     // Brush state
-    let mut selected_particle = None;
+    let mut selected_particle = Some(ParticleType::Sand);
     let mut brush_size = 3;
     let mut x_axis_locked = None;
     let mut y_axis_locked = None;
