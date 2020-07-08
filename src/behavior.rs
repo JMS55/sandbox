@@ -1,6 +1,7 @@
 use crate::particle::{Particle, ParticleType};
 use crate::sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use rand::Rng;
+use std::ptr;
 
 pub fn move_solid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
     // Move 1 down if able
@@ -252,6 +253,63 @@ pub fn move_life(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
                 }
             }
         }
+    }
+
+    (x, y)
+}
+
+pub fn move_super_life(sandbox: &mut Sandbox, mut x: usize, mut y: usize) -> (usize, usize) {
+    // Switch with an adjacent Life particle
+    let mut swapped = false;
+    if !swapped && y != SANDBOX_HEIGHT - 1 {
+        if let Some(particle) = &sandbox[x][y + 1] {
+            if particle.ptype == ParticleType::Life {
+                unsafe {
+                    ptr::swap(&mut sandbox[x][y + 1], &mut sandbox[x][y]);
+                }
+                y += 1;
+                swapped = true;
+            }
+        }
+    }
+    if !swapped && x != SANDBOX_WIDTH - 1 {
+        if let Some(particle) = &sandbox[x + 1][y] {
+            if particle.ptype == ParticleType::Life {
+                unsafe {
+                    ptr::swap(&mut sandbox[x + 1][y], &mut sandbox[x][y]);
+                }
+                x += 1;
+                swapped = true;
+            }
+        }
+    }
+    if !swapped && y != 0 {
+        if let Some(particle) = &sandbox[x][y - 1] {
+            if particle.ptype == ParticleType::Life {
+                unsafe {
+                    ptr::swap(&mut sandbox[x][y - 1], &mut sandbox[x][y]);
+                }
+                y -= 1;
+                swapped = true;
+            }
+        }
+    }
+    if !swapped && x != 0 {
+        if let Some(particle) = &sandbox[x - 1][y] {
+            if particle.ptype == ParticleType::Life {
+                unsafe {
+                    ptr::swap(&mut sandbox[x - 1][y], &mut sandbox[x][y]);
+                }
+                x -= 1;
+            }
+        }
+    }
+
+    // Then move like normal Life twice
+    for _ in 0..2 {
+        let (x2, y2) = move_life(sandbox, x, y);
+        x = x2;
+        y = y2;
     }
 
     (x, y)

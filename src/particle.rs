@@ -12,6 +12,26 @@ pub struct Particle {
     pub last_update: u8,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum ParticleType {
+    Sand,
+    Water,
+    Acid,
+    Iridium,
+    Replicator,
+    Plant,
+    Cryotheum,
+    Unstable,
+    Electricity,
+    Glass,
+    Life,
+    SuperLife,
+    Blood,
+    Smoke,
+    Fire,
+    Mirror,
+}
+
 impl Particle {
     pub fn new(ptype: ParticleType) -> Self {
         Self {
@@ -105,10 +125,7 @@ impl Particle {
                 }
             }
             ParticleType::Life => new_position = move_life(sandbox, x, y),
-            ParticleType::SuperLife => {
-                let (x, y) = move_life(sandbox, x, y);
-                new_position = move_life(sandbox, x, y);
-            }
+            ParticleType::SuperLife => new_position = move_super_life(sandbox, x, y),
             ParticleType::Blood => new_position = move_liquid(sandbox, x, y),
             ParticleType::Smoke => new_position = move_gas(sandbox, x, y),
             ParticleType::Fire => new_position = move_fire(sandbox, x, y),
@@ -346,24 +363,4 @@ impl Particle {
             ParticleType::Mirror => false,
         }
     }
-}
-
-#[derive(Copy, Clone, PartialEq, Eq)]
-pub enum ParticleType {
-    Sand,
-    Water,
-    Acid,
-    Iridium,
-    Replicator,
-    Plant,
-    Cryotheum,
-    Unstable,
-    Electricity,
-    Glass,
-    Life,
-    SuperLife,
-    Blood,
-    Smoke,
-    Fire,
-    Mirror,
 }
