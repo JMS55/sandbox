@@ -13,9 +13,9 @@
     ],
     "build-options": {
         "append-path": "/usr/lib/sdk/rust-stable/bin",
-        "build-args": [
-            "--share=network"
-        ]
+        "env": {
+            "CARGO_HOME": "/run/build/sandbox/cargo"
+        }
     },
     "command": "sandbox",
     "modules": [
@@ -24,38 +24,19 @@
             "buildsystem": "simple",
             "build-commands": [
                 "head -n -8 Cargo.toml > t && mv t Cargo.toml",
-                "cargo build --release",
-                "install -D ./target/release/sandbox -t /app/bin/",
-                "install -Dm644 com.github.jms55.sandbox.metainfo.xml -t /app/share/metainfo/",
-                "install -Dm644 com.github.jms55.sandbox.desktop -t /app/share/applications/",
-                "install -Dm644 com.github.jms55.sandbox.svg -t /app/share/icons/hicolor/scalable/apps/"
+                "cargo --offline fetch",
+                "cargo --offline build --release",
+                "install -Dm755 ./target/release/sandbox -t /app/bin/",
+                "install -Dm644 ./flatpak/com.github.jms55.sandbox.metainfo.xml -t /app/share/metainfo/",
+                "install -Dm644 ./flatpak/com.github.jms55.sandbox.desktop -t /app/share/applications/",
+                "install -Dm644 ./flatpak/com.github.jms55.sandbox.svg -t /app/share/icons/hicolor/scalable/apps/"
             ],
             "sources": [
                 {
                     "type": "dir",
-                    "path": "../src",
-                    "dest": "src"
+                    "path": "../"
                 },
-                {
-                    "type": "file",
-                    "path": "../Cargo.toml"
-                },
-                {
-                    "type": "file",
-                    "path": "../Cargo.lock"
-                },
-                {
-                    "type": "file",
-                    "path": "com.github.jms55.sandbox.metainfo.xml"
-                },
-                {
-                    "type": "file",
-                    "path": "com.github.jms55.sandbox.desktop"
-                },
-                {
-                    "type": "file",
-                    "path": "com.github.jms55.sandbox.svg"
-                }
+                "crate-sources.json"
             ]
         }
     ]

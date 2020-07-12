@@ -22,9 +22,8 @@
 1. Bump Cargo.toml version
 2. Update CHANGELOG.md
 3. Add another release element to flatpak/com.github.jms55.sandbox.metainfo
-4. Fix description in flatpak/com.github.jms55.sandbox.metainfo to match README.md if needed
-5. Update flatpak/screenshot.png if needed
-6. Tag git commit
-7. Update flathub repo
-    * Update com.github.jms55.sandbox.json from upstream if needed, and update the tag and commit
-    * Re-vendor dependencies
+4. Update flatpak/cargo-sources.json
+5. Fix description in flatpak/com.github.jms55.sandbox.metainfo to match README.md if needed
+6. Update flatpak/screenshot.png if needed
+7. Tag git commit
+8. Update flathub repo
