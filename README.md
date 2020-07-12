@@ -1,8 +1,10 @@
 # Sandbox
 ### A sand simulation game
-![Project icon](flatpak/io.github.jms55.Sandbox.svg)
+![Project icon](flatpak/com.github.jms55.sandbox.svg)
+![Game screenshot](flatpak/screenshot.png)
 
 ## Controls
+### Basic Controls
 * Click and drag the mouse to place particles
 * <kbd>+</kbd> Increases brush size
 * <kbd>-</kbd> Decreases brush size

@@ -5,7 +5,7 @@ Type=Application
 Name=Sandbox
 Comment=A sand simulation game
 Categories=Game;Simulation;
-Icon=io.github.jms55.Sandbox
+Icon=com.github.jms55.sandbox
 
 Exec=sandbox
 Terminal=false
