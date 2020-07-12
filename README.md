@@ -1,6 +1,7 @@
 # Sandbox
 ### A sand simulation game
 ![Project icon](flatpak/com.github.jms55.Sandbox.svg)
+<a href="https://flathub.org/apps/details/com.github.jms55.Sandbox"><img width="240" alt="Download on Flathub" src="https://flathub.org/assets/badges/flathub-badge-en.png"/></a>
 ![Game screenshot](flatpak/screenshot.png)
 
 ## Controls
@@ -40,15 +41,15 @@ Sandbox has the ability to record a video of the screen as you play.
 
 Videos will be saved to the following folders:
 
-| Platform | Folder              | Example               |
-| -------- | ------------------- | --------------------- |
-| Linux    | `XDG_VIDEOS_DIR`    | /home/alice/Videos    |
-| Windows  | `FOLDERID_Videos`   | C:\Users\Alice\Videos |
-| macOS    | `$HOME/Movies`      | /Users/Alice/Movies   |
+| Platform | Folder                      | Example                       |
+| -------- | --------------------------- | ----------------------------- |
+| Linux    | `XDG_VIDEOS_DIR/sandbox`    | /home/alice/Videos/sandbox    |
+| Windows  | `FOLDERID_Videos\sandbox`   | C:\Users\Alice\Videos\sandbox |
+| macOS    | `$HOME/Movies/sandbox`      | /Users/Alice/Movies/sandbox   |
 
 ---
 
-Video recording is not enabled by default, and can be enabled by passing `--features video-recording` to cargo when compiling.
+When building from source, video recording is not enabled by default, and can be enabled by passing `--features video-recording` to cargo when compiling.
 
 You must also have the following non-rust dependencies installed on your system:
 * GStreamer

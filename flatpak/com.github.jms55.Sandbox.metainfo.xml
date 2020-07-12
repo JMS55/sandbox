@@ -22,42 +22,7 @@
   <summary>A sand simulation game</summary>
   <description>
     <p>A sand simulation game</p>
-    <p>Basic Controls</p>
-    <ul>
-      <li>Click and drag the mouse to place particles</li>
-      <li>+: Increases brush size</li>
-      <li>-: Decreases brush size</li>
-      <li>Shift: Horizontal axis lock</li>
-      <li>Ctrl: Vertical axis lock</li>
-      <li>Axis lock - When held, it creates a straight line between where you first started holding it, and the current
-            mouse location (Not enabled for Electricity or Fire)</li>
-    </ul>
-    <p>Particle Type Controls</p>
-    <ul>
-      <li>D: Eraser tool</li>
-      <li>S: Sand</li>
-      <li>W: Water</li>
-      <li>A: Acid</li>
-      <li>I: Iridium</li>
-      <li>R: Replicator</li>
-      <li>P: Plant</li>
-      <li>C: Cryotheum</li>
-      <li>U: Unstable</li>
-      <li>E: Electricity</li>
-      <li>L: Life</li>
-      <li>F: Fire</li>
-      <li>M: Mirror</li>
-      <li>There are some particles that can't be directly placed, and aren't listed here. Play around, and figure
-            out how to create them!</li>
-    </ul>
-    <p>Miscellaneous Controls</p>
-    <ul>
-      <li>Esc: Quits the game</li>
-      <li>Enter: Toggles fullscreen</li>
-      <li>Backspace: Clears the sandbox</li>
-      <li>Space: Toggles pause</li>
-      <li>.: Advances one frame when paused</li>
-    </ul>
+    <p>For instructions on how to play visit https://github.com/JMS55/sandbox#controls</p>
   </description>
 
   <screenshots>
