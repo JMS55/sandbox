@@ -1,6 +1,6 @@
 # Sandbox
 ### A sand simulation game
-![Project icon](flatpak/com.github.jms55.sandbox.svg)
+![Project icon](flatpak/com.github.jms55.Sandbox.svg)
 ![Game screenshot](flatpak/screenshot.png)
 
 ## Controls
