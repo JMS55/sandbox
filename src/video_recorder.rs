@@ -22,18 +22,16 @@ impl VideoRecorder {
     pub fn new() -> Self {
         gstreamer::init().unwrap();
 
-        let pipeline = gstreamer::parse_launch(
-            &format!(
-                "appsrc name=src format=time is-live=true do-timestamp=true caps=video/x-raw,format=RGBA,width={},height={} !
-                videoconvert !
-                videoscale method=nearest-neighbour ! video/x-raw,width=1920,height=1080 !
-                x264enc !
-                mp4mux !
-                filesink name=filesink",
-                SANDBOX_WIDTH,
-                SANDBOX_HEIGHT
-            )
-        )
+        let pipeline = gstreamer::parse_launch(&format!(
+            "appsrc name=src format=time is-live=true do-timestamp=true caps=video/x-raw,format=RGBA,width={},height={},framerate=60/1 !
+            videoconvert !
+            videoscale method=nearest-neighbour ! video/x-raw,width=1920,height=1080 !
+            videorate ! video/x-raw,framerate=60/1 !
+            x264enc !
+            mp4mux !
+            filesink name=filesink",
+            SANDBOX_WIDTH, SANDBOX_HEIGHT
+        ))
         .unwrap()
         .downcast::<Pipeline>()
         .unwrap();
@@ -49,7 +47,7 @@ impl VideoRecorder {
         let mut video_file_location = dirs_next::video_dir().unwrap();
         video_file_location.push("sandbox");
         let _ = fs::create_dir(&video_file_location);
-        video_file_location.push("placeholder.mp4");
+        video_file_location.push("placeholder");
 
         Self {
             is_recording: false,
@@ -85,8 +83,13 @@ impl VideoRecorder {
         self.pipeline.send_event(Eos::new());
         let bus = self.pipeline.get_bus().unwrap();
         for message in bus.iter_timed(CLOCK_TIME_NONE) {
-            if let MessageView::Eos(..) = message.view() {
-                break;
+            match message.view() {
+                MessageView::Eos(..) => break,
+                MessageView::Error(error) => {
+                    println!("Error recording video: {:?}", error);
+                    break;
+                }
+                _ => {}
             }
         }
         self.pipeline.set_state(State::Null).unwrap();

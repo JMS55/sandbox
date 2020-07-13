@@ -10,15 +10,10 @@
 2. Fix Electricity getting stuck with 1 particle of water in mid-air
 3. Make Fire not spread so fast when starting from the top/left
 
-4. Video recording file has the wrong framerate
-5. Tweak x264enc settings
-6. Hardware accelerated h264 encoding, with x264enc fallback
-
-7. Remove Cargo.toml hacks from flatpak build when the rust sdk extension updates
-
-8. Add back support for wayland when less buggy (missing virtual keycodes, slow input events infinitely triggering, buggy fullscreen toggling on gnome, buggy decorations)
-9. Replace heap_array.rs with 'placement new' when it gets added to rust
-10. WASM
+4. Remove Cargo.toml hacks from flatpak build when the rust sdk extension updates
+5. Add back support for wayland when less buggy (missing virtual keycodes, slow input events infinitely triggering, buggy fullscreen toggling on gnome, buggy decorations)
+6. Replace heap_array.rs with 'placement new' when it gets added to rust
+7. WASM
 
 ## Release Procedure
 1. Bump Cargo.toml version
