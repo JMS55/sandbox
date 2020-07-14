@@ -1441,6 +1441,7 @@ dependencies = [
 name = "sandbox"
 version = "1.0.0"
 dependencies = [
+ "anyhow",
  "dirs-next",
  "gstreamer",
  "gstreamer-app",

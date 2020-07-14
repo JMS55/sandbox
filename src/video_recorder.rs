@@ -1,4 +1,5 @@
 use crate::sandbox::{SANDBOX_HEIGHT, SANDBOX_WIDTH};
+use anyhow::{Context, Error};
 use gstreamer::event::Eos;
 use gstreamer::glib::object::{Cast, ObjectExt};
 use gstreamer::{
@@ -19,8 +20,8 @@ pub struct VideoRecorder {
 }
 
 impl VideoRecorder {
-    pub fn new() -> Self {
-        gstreamer::init().unwrap();
+    pub fn new() -> Result<Self, Error> {
+        gstreamer::init().context("Failed to initialize gstreamer")?;
 
         let pipeline = gstreamer::parse_launch(&format!(
             "appsrc name=src format=time is-live=true do-timestamp=true caps=video/x-raw,format=RGBA,width={},height={},framerate=60/1 !
@@ -32,30 +33,34 @@ impl VideoRecorder {
             filesink name=filesink",
             SANDBOX_WIDTH, SANDBOX_HEIGHT
         ))
-        .unwrap()
+        .context("Failed to create the pipeline")?
         .downcast::<Pipeline>()
-        .unwrap();
+        .map_err(|_| Error::msg("Failed to downcast the pipeline"))?;
 
         let app_src = pipeline
             .get_by_name("src")
-            .unwrap()
+            .context("Failed to find the appsrc element")?
             .downcast::<AppSrc>()
-            .unwrap();
+            .map_err(|_| Error::msg("Failed to downcast the appsrc element"))?;
 
-        let filesink = pipeline.get_by_name("filesink").unwrap();
+        let filesink = pipeline
+            .get_by_name("filesink")
+            .context("Failed to find filesink appsrc element")?;
 
-        let mut video_file_location = dirs_next::video_dir().unwrap();
+        let mut video_file_location = dirs_next::video_dir()
+            .context("Failed to determine the video destination directory")?;
         video_file_location.push("sandbox");
-        let _ = fs::create_dir(&video_file_location);
+        fs::create_dir_all(&video_file_location)
+            .context("Failed to create the video destination directory")?;
         video_file_location.push("placeholder");
 
-        Self {
+        Ok(Self {
             is_recording: false,
             pipeline,
             app_src,
             filesink,
             video_file_location,
-        }
+        })
     }
 
     pub fn start_recording(&mut self) {

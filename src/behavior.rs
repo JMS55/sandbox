@@ -264,9 +264,7 @@ pub fn move_super_life(sandbox: &mut Sandbox, mut x: usize, mut y: usize) -> (us
     if !swapped && y != SANDBOX_HEIGHT - 1 {
         if let Some(particle) = &sandbox[x][y + 1] {
             if particle.ptype == ParticleType::Life {
-                unsafe {
-                    ptr::swap(&mut sandbox[x][y + 1], &mut sandbox[x][y]);
-                }
+                unsafe { ptr::swap(&mut sandbox[x][y + 1], &mut sandbox[x][y]) }
                 y += 1;
                 swapped = true;
             }
@@ -275,9 +273,7 @@ pub fn move_super_life(sandbox: &mut Sandbox, mut x: usize, mut y: usize) -> (us
     if !swapped && x != SANDBOX_WIDTH - 1 {
         if let Some(particle) = &sandbox[x + 1][y] {
             if particle.ptype == ParticleType::Life {
-                unsafe {
-                    ptr::swap(&mut sandbox[x + 1][y], &mut sandbox[x][y]);
-                }
+                unsafe { ptr::swap(&mut sandbox[x + 1][y], &mut sandbox[x][y]) }
                 x += 1;
                 swapped = true;
             }
@@ -286,9 +282,7 @@ pub fn move_super_life(sandbox: &mut Sandbox, mut x: usize, mut y: usize) -> (us
     if !swapped && y != 0 {
         if let Some(particle) = &sandbox[x][y - 1] {
             if particle.ptype == ParticleType::Life {
-                unsafe {
-                    ptr::swap(&mut sandbox[x][y - 1], &mut sandbox[x][y]);
-                }
+                unsafe { ptr::swap(&mut sandbox[x][y - 1], &mut sandbox[x][y]) }
                 y -= 1;
                 swapped = true;
             }
@@ -297,9 +291,7 @@ pub fn move_super_life(sandbox: &mut Sandbox, mut x: usize, mut y: usize) -> (us
     if !swapped && x != 0 {
         if let Some(particle) = &sandbox[x - 1][y] {
             if particle.ptype == ParticleType::Life {
-                unsafe {
-                    ptr::swap(&mut sandbox[x - 1][y], &mut sandbox[x][y]);
-                }
+                unsafe { ptr::swap(&mut sandbox[x - 1][y], &mut sandbox[x][y]) }
                 x -= 1;
             }
         }

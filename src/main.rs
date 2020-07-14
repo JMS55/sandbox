@@ -47,7 +47,13 @@ fn main() {
 
     // Setup the video recorder
     #[cfg(feature = "video-recording")]
-    let mut video_recorder = video_recorder::VideoRecorder::new();
+    let mut video_recorder = match video_recorder::VideoRecorder::new() {
+        Ok(video_recorder) => Some(video_recorder),
+        Err(error) => {
+            eprintln!("Warning: Video recording disabled: {}", error);
+            None
+        }
+    };
 
     // Simulation state
     let mut sandbox = Sandbox::new();
@@ -137,10 +143,12 @@ fn main() {
                             }
                             #[cfg(feature = "video-recording")]
                             Some(VirtualKeyCode::Key1) => {
-                                if video_recorder.is_recording {
-                                    video_recorder.stop_recording();
-                                } else {
-                                    video_recorder.start_recording();
+                                if let Some(video_recorder) = video_recorder.as_mut() {
+                                    if video_recorder.is_recording {
+                                        video_recorder.stop_recording();
+                                    } else {
+                                        video_recorder.start_recording();
+                                    }
                                 }
                             }
 
@@ -190,7 +198,7 @@ fn main() {
                     }
 
                     #[cfg(feature = "video-recording")]
-                    {
+                    if let Some(video_recorder) = video_recorder.as_mut() {
                         if video_recorder.is_recording && *control_flow == ControlFlow::Exit {
                             video_recorder.stop_recording();
                         }
@@ -322,7 +330,9 @@ fn main() {
 
                 // Record frame to video
                 #[cfg(feature = "video-recording")]
-                video_recorder.upload_frame(frame);
+                if let Some(video_recorder) = video_recorder.as_mut() {
+                    video_recorder.upload_frame(frame);
+                }
 
                 // Render frame to window
                 let _ = pixels.render();
