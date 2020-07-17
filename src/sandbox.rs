@@ -1,8 +1,13 @@
 use crate::heap_array::{create_background_array, create_cells_array};
 use crate::particle::{Particle, ParticleType};
+use crossbeam_queue::ArrayQueue;
 use rand::rngs::ThreadRng;
 use rand::thread_rng;
+use simdnoise::NoiseBuilder;
 use std::ops::{Index, IndexMut};
+use std::sync::Arc;
+use std::thread;
+use std::time::Instant;
 
 pub const SANDBOX_WIDTH: usize = 480;
 pub const SANDBOX_HEIGHT: usize = 270;
@@ -12,6 +17,7 @@ pub struct Sandbox {
     pub rng: ThreadRng,
     update_counter: u8,
     background: Box<[u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 4]>,
+    noise_queue: Arc<ArrayQueue<Vec<f32>>>,
 }
 
 impl Sandbox {
@@ -58,12 +64,44 @@ impl Sandbox {
             }
         }
 
+        // Setup noise queue
+        let noise_queue = Arc::new(ArrayQueue::<Vec<f32>>::new(10));
+        thread::spawn({
+            let noise_queue = Arc::clone(&noise_queue);
+            move || {
+                let start_time = Instant::now();
+                loop {
+                    if !noise_queue.is_full() {
+                        let dt = start_time.elapsed().as_secs_f32() * 20.0;
+                        let noise = NoiseBuilder::turbulence_2d_offset(
+                            dt,
+                            SANDBOX_WIDTH * 2,
+                            dt,
+                            SANDBOX_HEIGHT / 2,
+                        )
+                        .generate_scaled(-1.0, 1.0);
+                        noise_queue.push(noise).unwrap();
+                    }
+                }
+            }
+        });
+
         Self {
             cells: create_cells_array(None),
             rng: thread_rng(),
             update_counter: 1,
             background,
+            noise_queue,
         }
+    }
+
+    pub fn empty_out(&mut self) {
+        for list in self.cells.iter_mut() {
+            for cell in list.iter_mut() {
+                *cell = None;
+            }
+        }
+        self.update_counter = 1;
     }
 
     pub fn update(&mut self) {
@@ -141,8 +179,10 @@ impl Sandbox {
         }
     }
 
-    pub fn render(&mut self, frame: &mut [u8], noise: Option<Vec<f32>>) {
+    pub fn render(&mut self, frame: &mut [u8]) {
         frame.copy_from_slice(&*self.background);
+
+        let noise = self.noise_queue.pop().ok();
 
         let mut frame_index = 0;
         let mut noise_index = 0;
