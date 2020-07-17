@@ -5,10 +5,14 @@ mod sandbox;
 #[cfg(feature = "video-recording")]
 mod video_recorder;
 
+use crossbeam_queue::ArrayQueue;
 use particle::{Particle, ParticleType};
 use pixels::wgpu::{PowerPreference, RequestAdapterOptions, Surface};
 use pixels::{PixelsBuilder, SurfaceTexture};
 use sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
+use simdnoise::NoiseBuilder;
+use std::sync::Arc;
+use std::thread;
 use std::time::{Duration, Instant};
 use winit::dpi::{LogicalSize, PhysicalPosition};
 use winit::event::{ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent};
@@ -55,9 +59,30 @@ fn main() {
         }
     };
 
+    // Setup noise queue
+    let noise_queue = Arc::new(ArrayQueue::<Vec<f32>>::new(10));
+    thread::spawn({
+        let noise_queue = Arc::clone(&noise_queue);
+        move || {
+            let start_time = Instant::now();
+            loop {
+                if !noise_queue.is_full() {
+                    let dt = start_time.elapsed().as_secs_f32() * 20.0;
+                    let noise = NoiseBuilder::turbulence_2d_offset(
+                        dt,
+                        SANDBOX_WIDTH * 2,
+                        dt,
+                        SANDBOX_HEIGHT / 2,
+                    )
+                    .generate_scaled(-1.0, 1.0);
+                    noise_queue.push(noise).unwrap();
+                }
+            }
+        }
+    });
+
     // Simulation state
     let mut sandbox = Sandbox::new();
-    let start_time = Instant::now();
     let mut last_update = Instant::now();
     let mut paused = false;
     let mut update_once = false;
@@ -326,7 +351,7 @@ fn main() {
             Event::RedrawRequested(_) => {
                 // Generate frame
                 let frame = pixels.get_frame();
-                sandbox.render(frame, start_time.elapsed().as_secs_f32() * 20.0);
+                sandbox.render(frame, noise_queue.pop().ok());
 
                 // Record frame to video
                 #[cfg(feature = "video-recording")]

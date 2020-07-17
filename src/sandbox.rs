@@ -2,7 +2,6 @@ use crate::heap_array::{create_background_array, create_cells_array};
 use crate::particle::{Particle, ParticleType};
 use rand::rngs::ThreadRng;
 use rand::thread_rng;
-use simdnoise::NoiseBuilder;
 use std::ops::{Index, IndexMut};
 
 pub const SANDBOX_WIDTH: usize = 480;
@@ -142,12 +141,8 @@ impl Sandbox {
         }
     }
 
-    pub fn render(&mut self, frame: &mut [u8], dt: f32) {
+    pub fn render(&mut self, frame: &mut [u8], noise: Option<Vec<f32>>) {
         frame.copy_from_slice(&*self.background);
-
-        let noise =
-            NoiseBuilder::turbulence_2d_offset(dt, SANDBOX_WIDTH * 2, dt, SANDBOX_HEIGHT / 2)
-                .generate_scaled(-1.0, 1.0);
 
         let mut frame_index = 0;
         let mut noise_index = 0;
@@ -180,9 +175,11 @@ impl Sandbox {
 
                     // Darken/Lighten based on noise
                     let mut m = 0;
-                    let shimmer_intensity = particle.shimmer_intensity();
-                    if shimmer_intensity != 0 {
-                        m = (noise[noise_index] * shimmer_intensity as f32) as i16;
+                    if let Some(noise) = &noise {
+                        let shimmer_intensity = particle.shimmer_intensity();
+                        if shimmer_intensity != 0 {
+                            m = (noise[noise_index] * shimmer_intensity as f32) as i16;
+                        }
                     }
 
                     // Combine everything together
