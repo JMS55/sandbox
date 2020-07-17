@@ -189,7 +189,7 @@ impl Particle {
                 }
             }
             ParticleType::Water => (26, 91, 165),
-            ParticleType::Acid => (128, 209, 0),
+            ParticleType::Acid => (138, 209, 0),
             ParticleType::Iridium => (100, 100, 100),
             ParticleType::Replicator => {
                 if self.extra_data1 == 0 {
@@ -277,6 +277,27 @@ impl Particle {
             ParticleType::Smoke => 10,
             ParticleType::Fire => 50,
             ParticleType::Mirror => 20,
+        }
+    }
+
+    pub fn is_glowing(&self) -> bool {
+        match self.ptype {
+            ParticleType::Sand => false,
+            ParticleType::Water => false,
+            ParticleType::Acid => true,
+            ParticleType::Iridium => false,
+            ParticleType::Replicator => false,
+            ParticleType::Plant => false,
+            ParticleType::Cryotheum => false,
+            ParticleType::Unstable => false,
+            ParticleType::Electricity => true,
+            ParticleType::Glass => false,
+            ParticleType::Life => false,
+            ParticleType::SuperLife => false,
+            ParticleType::Blood => false,
+            ParticleType::Smoke => false,
+            ParticleType::Fire => true,
+            ParticleType::Mirror => false,
         }
     }
 

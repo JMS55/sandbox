@@ -1,10 +1,12 @@
 mod behavior;
+mod glow_post_process;
 mod heap_array;
 mod particle;
 mod sandbox;
 #[cfg(feature = "video-recording")]
 mod video_recorder;
 
+use glow_post_process::GlowPostProcess;
 use particle::{Particle, ParticleType};
 use pixels::wgpu::{PowerPreference, RequestAdapterOptions, Surface};
 use pixels::{PixelsBuilder, SurfaceTexture};
@@ -38,6 +40,7 @@ fn main() {
     let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, surface);
     let mut pixels =
         PixelsBuilder::new(SANDBOX_WIDTH as u32, SANDBOX_HEIGHT as u32, surface_texture)
+            .add_render_pass(GlowPostProcess::new)
             .request_adapter_options(RequestAdapterOptions {
                 power_preference: PowerPreference::HighPerformance,
                 compatible_surface: None,
