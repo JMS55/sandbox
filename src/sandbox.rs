@@ -1,11 +1,10 @@
 use crate::heap_array::{create_background_array, create_cells_array};
 use crate::particle::{Particle, ParticleType};
-use crossbeam_queue::ArrayQueue;
+use flume::{bounded as bounded_queue, Receiver};
 use rand::rngs::ThreadRng;
 use rand::thread_rng;
 use simdnoise::NoiseBuilder;
 use std::ops::{Index, IndexMut};
-use std::sync::Arc;
 use std::thread;
 use std::time::Instant;
 
@@ -17,7 +16,7 @@ pub struct Sandbox {
     pub rng: ThreadRng,
     update_counter: u8,
     background: Box<[u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 4]>,
-    noise_queue: Arc<ArrayQueue<Vec<f32>>>,
+    noise_queue_receiver: Receiver<Vec<f32>>,
 }
 
 impl Sandbox {
@@ -65,24 +64,19 @@ impl Sandbox {
         }
 
         // Setup noise queue
-        let noise_queue = Arc::new(ArrayQueue::<Vec<f32>>::new(10));
-        thread::spawn({
-            let noise_queue = Arc::clone(&noise_queue);
-            move || {
-                let start_time = Instant::now();
-                loop {
-                    if !noise_queue.is_full() {
-                        let dt = start_time.elapsed().as_secs_f32() * 20.0;
-                        let noise = NoiseBuilder::turbulence_2d_offset(
-                            dt,
-                            SANDBOX_WIDTH * 2,
-                            dt,
-                            SANDBOX_HEIGHT / 2,
-                        )
-                        .generate_scaled(-1.0, 1.0);
-                        noise_queue.push(noise).unwrap();
-                    }
-                }
+        let (noise_queue_sender, noise_queue_receiver) = bounded_queue(10);
+        thread::spawn(move || {
+            let start_time = Instant::now();
+            loop {
+                let dt = start_time.elapsed().as_secs_f32() * 20.0;
+                let noise = NoiseBuilder::turbulence_2d_offset(
+                    dt,
+                    SANDBOX_WIDTH * 2,
+                    dt,
+                    SANDBOX_HEIGHT / 2,
+                )
+                .generate_scaled(-1.0, 1.0);
+                let _ = noise_queue_sender.send(noise);
             }
         });
 
@@ -91,7 +85,7 @@ impl Sandbox {
             rng: thread_rng(),
             update_counter: 1,
             background,
-            noise_queue,
+            noise_queue_receiver,
         }
     }
 
@@ -182,7 +176,7 @@ impl Sandbox {
     pub fn render(&mut self, frame: &mut [u8]) {
         frame.copy_from_slice(&*self.background);
 
-        let noise = self.noise_queue.pop().ok();
+        let noise = self.noise_queue_receiver.recv().ok();
 
         let mut frame_index = 0;
         let mut noise_index = 0;

@@ -11,7 +11,7 @@ pixels = "0.0"
 winit = "0.22"
 rand = "0.7"
 simdnoise = "3.1"
-crossbeam-queue = "0.2"
+flume = "0.7"
 
 gstreamer = { version = "0.16", optional = true }
 gstreamer-app = { version = "0.16", optional = true }
