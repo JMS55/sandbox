@@ -69,7 +69,7 @@ impl GlowPostProcess {
                         ty: BindingType::StorageTexture {
                             dimension: TextureViewDimension::D2,
                             component_type: TextureComponentType::Float,
-                            format: TextureFormat::Rgba8Unorm,
+                            format: TextureFormat::Rgba16Float,
                             readonly: true,
                         },
                     },
@@ -79,7 +79,7 @@ impl GlowPostProcess {
                         ty: BindingType::StorageTexture {
                             dimension: TextureViewDimension::D2,
                             component_type: TextureComponentType::Float,
-                            format: TextureFormat::Rgba8Unorm,
+                            format: TextureFormat::Rgba16Float,
                             readonly: false,
                         },
                     },
@@ -134,7 +134,7 @@ impl GlowPostProcess {
             }),
             primitive_topology: PrimitiveTopology::TriangleList,
             color_states: &[ColorStateDescriptor {
-                format: TextureFormat::Rgba8Unorm,
+                format: TextureFormat::Rgba16Float,
                 color_blend: BlendDescriptor::REPLACE,
                 alpha_blend: BlendDescriptor::REPLACE,
                 write_mask: ColorWrite::ALL,
@@ -347,7 +347,7 @@ fn create_textures(device: &Device, texture_width: u32, texture_height: u32) -> 
         mip_level_count: 1,
         sample_count: 1,
         dimension: TextureDimension::D2,
-        format: TextureFormat::Rgba8Unorm,
+        format: TextureFormat::Rgba16Float,
         usage: TextureUsage::STORAGE | TextureUsage::SAMPLED | TextureUsage::OUTPUT_ATTACHMENT,
     };
     let texture_descriptor_2_3 = TextureDescriptor {
@@ -361,7 +361,7 @@ fn create_textures(device: &Device, texture_width: u32, texture_height: u32) -> 
         mip_level_count: 1,
         sample_count: 1,
         dimension: TextureDimension::D2,
-        format: TextureFormat::Rgba8Unorm,
+        format: TextureFormat::Rgba16Float,
         usage: TextureUsage::STORAGE,
     };
     let texture1 = device

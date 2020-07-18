@@ -1,7 +1,8 @@
 ## Immediate Todo
-1. Fix background
-2. Apply glow to initial texture, upscale to fit screen
-3. Make the video recorder record the glow effect (capture the screen)
+1. Make the video recorder record the glow effect (capture the screen)
+2. Cleanup pixels and open pr
+    * Implement getter for source_texture
+    * Consolidate render and render_custom
 
 1. Visualize axis lock controls, particle placement, paused gameplay, video recording start/finish, etc
 2. FPS display
@@ -14,7 +15,7 @@
 2. Fix Electricity getting stuck with 1 particle of water in mid-air
 3. Make Fire not spread so fast when starting from the top/left
 
-4. Remove Cargo.toml hacks from flatpak build when the rust sdk extension updates
+4. Update to flatpak to 20.08 and remove Cargo.toml hacks
 5. Add back support for wayland when less buggy (missing virtual keycodes, slow input events infinitely triggering, buggy fullscreen toggling on gnome, buggy decorations)
 6. Replace heap_array.rs with 'placement new' when it gets added to rust
 7. WASM
