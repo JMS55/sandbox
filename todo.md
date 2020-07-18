@@ -1,6 +1,6 @@
 ## Immediate Todo
-1. Fix glow shader not being applied
-2. Fix background
+1. Fix background
+2. Apply glow to initial texture, upscale to fit screen
 3. Make the video recorder record the glow effect (capture the screen)
 
 1. Visualize axis lock controls, particle placement, paused gameplay, video recording start/finish, etc

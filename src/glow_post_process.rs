@@ -1,8 +1,10 @@
-use crate::sandbox::{SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use pixels::include_spv;
 use pixels::wgpu::{self, *};
 
 pub struct GlowPostProcess {
+    texture_width: u32,
+    texture_height: u32,
+
     copy_to_texture1_pass: (RenderPipeline, BindGroup),
     copy_glowing_pass: (ComputePipeline, BindGroup),
     vertical_blur_pass: (ComputePipeline, BindGroup),
@@ -210,6 +212,9 @@ impl GlowPostProcess {
             });
 
         Self {
+            texture_width,
+            texture_height,
+
             copy_to_texture1_pass: (copy_to_texture1_pipeline, copy_to_texture1_bind_group),
             copy_glowing_pass: (copy_glowing_pipeline, copy_glowing_bind_group),
             vertical_blur_pass: (vertical_blur_pipeline, vertical_blur_bind_group),
@@ -244,6 +249,9 @@ impl GlowPostProcess {
                 &self.compute_bind_group_layout,
             );
 
+        self.texture_width = texture_width;
+        self.texture_height = texture_height;
+
         self.textures = [texture1, texture2, texture3];
         self.copy_to_texture1_pass.1 = copy_to_texture1_bind_group;
         self.copy_glowing_pass.1 = copy_glowing_bind_group;
@@ -274,8 +282,8 @@ impl GlowPostProcess {
             pass.set_pipeline(&self.copy_glowing_pass.0);
             pass.set_bind_group(0, &self.copy_glowing_pass.1, &[]);
             pass.dispatch(
-                (SANDBOX_WIDTH as u32 / 7) + 8,
-                (SANDBOX_HEIGHT as u32 / 7) + 8,
+                (self.texture_width as u32 / 7) + 8,
+                (self.texture_height as u32 / 7) + 8,
                 1,
             );
         }
@@ -284,8 +292,8 @@ impl GlowPostProcess {
             pass.set_pipeline(&self.vertical_blur_pass.0);
             pass.set_bind_group(0, &self.vertical_blur_pass.1, &[]);
             pass.dispatch(
-                (SANDBOX_WIDTH as u32 / 7) + 8,
-                (SANDBOX_HEIGHT as u32 / 7) + 8,
+                (self.texture_width as u32 / 7) + 8,
+                (self.texture_height as u32 / 7) + 8,
                 1,
             );
         }
@@ -294,8 +302,8 @@ impl GlowPostProcess {
             pass.set_pipeline(&self.horizontal_blur_pass.0);
             pass.set_bind_group(0, &self.horizontal_blur_pass.1, &[]);
             pass.dispatch(
-                (SANDBOX_WIDTH as u32 / 7) + 8,
-                (SANDBOX_HEIGHT as u32 / 7) + 8,
+                (self.texture_width as u32 / 7) + 8,
+                (self.texture_height as u32 / 7) + 8,
                 1,
             );
         }
@@ -304,8 +312,8 @@ impl GlowPostProcess {
             pass.set_pipeline(&self.add_glow_pass.0);
             pass.set_bind_group(0, &self.add_glow_pass.1, &[]);
             pass.dispatch(
-                (SANDBOX_WIDTH as u32 / 7) + 8,
-                (SANDBOX_HEIGHT as u32 / 7) + 8,
+                (self.texture_width as u32 / 7) + 8,
+                (self.texture_height as u32 / 7) + 8,
                 1,
             );
         }
