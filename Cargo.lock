@@ -1245,10 +1245,9 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 [[package]]
 name = "pixels"
 version = "0.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4c1c899ed35abf585d87e6292f0c208fff6edc6eb761d203eef91bad0c3275f"
+source = "git+https://github.com/JMS55/pixels#70014e1fc5898d10ffcea84f348af6f05e047e02"
 dependencies = [
- "futures-executor",
+ "pollster",
  "thiserror",
  "ultraviolet",
  "wgpu",
@@ -1259,6 +1258,12 @@ name = "pkg-config"
 version = "0.3.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d36492546b6af1463394d46f0c834346f31548646f6ba10849802c9c9a27ac33"
+
+[[package]]
+name = "pollster"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9824e18e85003f0b5a38fa1932ae8be8c2aac9447c2f28ab6f9704dbe0a1ab58"
 
 [[package]]
 name = "ppv-lite86"

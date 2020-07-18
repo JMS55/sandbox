@@ -1,7 +1,7 @@
 ## Immediate Todo
-1. Fix background
-    * Also fix how it dosen't leave black bars and makes weird placing issues
-2. Make the video recorder record the glow effect (capture the screen)
+1. Fix glow shader not being applied
+2. Fix background
+3. Make the video recorder record the glow effect (capture the screen)
 
 1. Visualize axis lock controls, particle placement, paused gameplay, video recording start/finish, etc
 2. FPS display
