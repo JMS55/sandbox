@@ -30,6 +30,7 @@ pub enum ParticleType {
     Smoke,
     Fire,
     Mirror,
+    Steam,
 }
 
 impl Particle {
@@ -53,6 +54,7 @@ impl Particle {
                 ParticleType::Fire => 130,
                 ParticleType::Smoke => 0,
                 ParticleType::Mirror => 0,
+                ParticleType::Steam => 100,
             },
             extra_data1: match ptype {
                 ParticleType::Sand => 0,
@@ -71,6 +73,7 @@ impl Particle {
                 ParticleType::Smoke => 90 + thread_rng().gen_range(-20, 20),
                 ParticleType::Fire => thread_rng().gen_range(0, 60),
                 ParticleType::Mirror => 0,
+                ParticleType::Steam => 0,
             },
             extra_data2: match ptype {
                 ParticleType::Sand => 0,
@@ -89,6 +92,7 @@ impl Particle {
                 ParticleType::Smoke => 90,
                 ParticleType::Fire => 0,
                 ParticleType::Mirror => 0,
+                ParticleType::Steam => 0,
             },
             color_offset: thread_rng().gen_range(-10, 11),
             last_update: 0,
@@ -130,6 +134,7 @@ impl Particle {
             ParticleType::Smoke => new_position = move_gas(sandbox, x, y),
             ParticleType::Fire => new_position = move_fire(sandbox, x, y),
             ParticleType::Mirror => {}
+            ParticleType::Steam => new_position = move_gas(sandbox, x, y),
         }
         new_position
     }
@@ -152,6 +157,7 @@ impl Particle {
             ParticleType::Smoke => update_smoke(sandbox, x, y),
             ParticleType::Fire => update_fire(sandbox, x, y),
             ParticleType::Mirror => update_mirror(sandbox, x, y),
+            ParticleType::Steam => update_steam(sandbox, x, y),
         }
     }
 
@@ -174,6 +180,7 @@ impl Particle {
             ParticleType::Smoke => 6,
             ParticleType::Fire => 2,
             ParticleType::Mirror => 7,
+            ParticleType::Steam => 6,
         };
         assert!(tc > 1);
         tc
@@ -244,6 +251,7 @@ impl Particle {
                 let g = (1.0 - t) * g1 + t * g2;
                 ((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
             }
+            ParticleType::Steam => (40, 140, 140),
         }
     }
 
@@ -277,6 +285,7 @@ impl Particle {
             ParticleType::Smoke => 10,
             ParticleType::Fire => 50,
             ParticleType::Mirror => 20,
+            ParticleType::Steam => 10,
         }
     }
 
@@ -298,6 +307,7 @@ impl Particle {
             ParticleType::Smoke => false,
             ParticleType::Fire => true,
             ParticleType::Mirror => false,
+            ParticleType::Steam => false,
         }
     }
 
@@ -319,6 +329,7 @@ impl Particle {
             ParticleType::Smoke => false,
             ParticleType::Fire => true,
             ParticleType::Mirror => false,
+            ParticleType::Steam => true,
         }
     }
 
@@ -340,6 +351,7 @@ impl Particle {
             ParticleType::Smoke => false,
             ParticleType::Fire => true,
             ParticleType::Mirror => true,
+            ParticleType::Steam => true,
         }
     }
 
@@ -361,6 +373,7 @@ impl Particle {
             ParticleType::Smoke => false,
             ParticleType::Fire => false,
             ParticleType::Mirror => true,
+            ParticleType::Steam => true,
         }
     }
 
@@ -382,6 +395,7 @@ impl Particle {
             ParticleType::Smoke => false,
             ParticleType::Fire => false,
             ParticleType::Mirror => false,
+            ParticleType::Steam => false,
         }
     }
 }

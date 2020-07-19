@@ -1,7 +1,5 @@
 ## Immediate Todo
-1. Switch to pixels 0.1 when it's released
-2. Revendor flatpak depdencies
-3. Make the video recorder record the glow effect (capture the screen)
+1. Make the video recorder record the glow effect (capture the screen)
 
 1. Visualize axis lock controls, particle placement, paused gameplay, video recording start/finish, etc
 2. FPS display
