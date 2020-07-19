@@ -335,21 +335,26 @@ pub fn update_sand(sandbox: &mut Sandbox, x: usize, y: usize) {
 
 pub fn update_water(sandbox: &mut Sandbox, x: usize, y: usize) {
     if sandbox[x][y].unwrap().tempature >= 100 {
-        sandbox[x][y] = None;
-        return;
+        let t = sandbox[x][y].unwrap().tempature as f64 / 150.0;
+        let chance = (1.0 - t) * 0.3 + t * 0.7;
+        if sandbox.rng.gen_bool(chance) {
+            sandbox[x][y].as_mut().unwrap().ptype = ParticleType::Steam;
+            return;
+        }
     }
 
+    // Find the first dry Sand below, delete this particle, and turn the Sand wet.
     let mut y2 = y + 1;
     while y2 < SANDBOX_HEIGHT {
         match &sandbox[x][y2] {
-            Some(particle) => {
-                if particle.ptype == ParticleType::Sand && particle.extra_data1 == 0 {
+            Some(particle) if particle.ptype == ParticleType::Sand => {
+                if particle.extra_data1 == 0 {
                     sandbox[x][y] = None;
                     sandbox[x][y2].as_mut().unwrap().extra_data1 = 1;
                     return;
                 }
             }
-            None => return,
+            _ => return,
         }
         y2 += 1;
     }
@@ -733,14 +738,18 @@ pub fn update_mirror(sandbox: &mut Sandbox, x: usize, y: usize) {
                     if sandbox[x][new_y].is_none() {
                         sandbox[x][new_y] = sandbox[x][y - 1].take();
                         return;
-                    } else {
-                        if sandbox[x][new_y].unwrap().ptype != ParticleType::Mirror {
-                            return;
-                        }
+                    } else if sandbox[x][new_y].unwrap().ptype != ParticleType::Mirror {
+                        return;
                     }
                     new_y += 1;
                 }
             }
         }
+    }
+}
+
+pub fn update_steam(sandbox: &mut Sandbox, x: usize, y: usize) {
+    if sandbox[x][y].unwrap().tempature < 100 {
+        sandbox[x][y].as_mut().unwrap().ptype = ParticleType::Water;
     }
 }

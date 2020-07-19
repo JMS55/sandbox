@@ -229,6 +229,7 @@ impl Sandbox {
                     frame[frame_index] = color.0;
                     frame[frame_index + 1] = color.1;
                     frame[frame_index + 2] = color.2;
+                    frame[frame_index + 3] = if particle.is_glowing() { 0 } else { 255 };
                 }
 
                 frame_index += 4;

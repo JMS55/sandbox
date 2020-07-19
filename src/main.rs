@@ -1,12 +1,14 @@
 mod behavior;
+mod glow_post_process;
 mod heap_array;
 mod particle;
 mod sandbox;
 #[cfg(feature = "video-recording")]
 mod video_recorder;
 
+use glow_post_process::GlowPostProcess;
 use particle::{Particle, ParticleType};
-use pixels::wgpu::{PowerPreference, RequestAdapterOptions, Surface};
+use pixels::wgpu::*;
 use pixels::{PixelsBuilder, SurfaceTexture};
 use sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use std::time::{Duration, Instant};
@@ -21,7 +23,7 @@ fn main() {
     #[cfg(target_os = "linux")]
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
 
-    // Setup winit
+    // Setup windowing
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_title("Sandbox")
@@ -30,9 +32,9 @@ fn main() {
             (SANDBOX_HEIGHT * 3) as f64,
         ))
         .build(&event_loop)
-        .unwrap();
+        .expect("Failed to create a window");
 
-    // Setup pixels
+    // Setup rendering
     let surface_size = window.inner_size();
     let surface = Surface::create(&window);
     let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, surface);
@@ -43,7 +45,31 @@ fn main() {
                 compatible_surface: None,
             })
             .build()
-            .unwrap();
+            .expect("Failed to setup rendering");
+    let mut texture_descriptor = TextureDescriptor {
+        label: None,
+        size: Extent3d {
+            width: surface_size.width,
+            height: surface_size.height,
+            depth: 1,
+        },
+        array_layer_count: 1,
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: TextureDimension::D2,
+        format: TextureFormat::Bgra8UnormSrgb,
+        usage: TextureUsage::SAMPLED | TextureUsage::OUTPUT_ATTACHMENT,
+    };
+    let mut scaling_renderer_texture = pixels
+        .device()
+        .create_texture(&texture_descriptor)
+        .create_default_view();
+    let mut glow_post_process = GlowPostProcess::new(
+        pixels.device(),
+        &scaling_renderer_texture,
+        surface_size.width,
+        surface_size.height,
+    );
 
     // Setup the video recorder
     #[cfg(feature = "video-recording")]
@@ -85,6 +111,21 @@ fn main() {
                 WindowEvent::Resized(new_size) => {
                     last_resize = Some(Instant::now());
                     pixels.resize(new_size.width, new_size.height);
+                    texture_descriptor.size = Extent3d {
+                        width: new_size.width,
+                        height: new_size.height,
+                        depth: 1,
+                    };
+                    scaling_renderer_texture = pixels
+                        .device()
+                        .create_texture(&texture_descriptor)
+                        .create_default_view();
+                    glow_post_process.resize(
+                        pixels.device(),
+                        &scaling_renderer_texture,
+                        new_size.width,
+                        new_size.height,
+                    );
                 }
 
                 // Mouse events
@@ -334,7 +375,10 @@ fn main() {
                 }
 
                 // Render frame to window
-                let _ = pixels.render();
+                let _ = pixels.render_with(|encoder, render_texture, scaling_renderer| {
+                    scaling_renderer.render(encoder, &scaling_renderer_texture);
+                    glow_post_process.render(encoder, render_texture);
+                });
             }
 
             _ => {}

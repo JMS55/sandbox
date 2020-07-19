@@ -7,7 +7,7 @@ edition = "2018"
 video-recording = ["gstreamer", "gstreamer-app", "gstreamer-video", "dirs-next", "humantime", "anyhow"]
 
 [dependencies]
-pixels = "0.0"
+pixels = "0.1"
 winit = "0.22"
 rand = "0.7"
 simdnoise = "3.1"
