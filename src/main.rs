@@ -32,7 +32,7 @@ fn main() {
             (SANDBOX_HEIGHT * 3) as f64,
         ))
         .build(&event_loop)
-        .unwrap();
+        .expect("Failed to create a window");
 
     // Setup rendering
     let surface_size = window.inner_size();
@@ -45,7 +45,7 @@ fn main() {
                 compatible_surface: None,
             })
             .build()
-            .unwrap();
+            .expect("Failed to setup rendering");
     let mut texture_descriptor = TextureDescriptor {
         label: None,
         size: Extent3d {
@@ -375,7 +375,7 @@ fn main() {
                 }
 
                 // Render frame to window
-                let _ = pixels.render_custom(|encoder, render_texture, scaling_renderer| {
+                let _ = pixels.render_with(|encoder, render_texture, scaling_renderer| {
                     scaling_renderer.render(encoder, &scaling_renderer_texture);
                     glow_post_process.render(encoder, render_texture);
                 });

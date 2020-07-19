@@ -1,12 +1,11 @@
 ## Immediate Todo
-1. Make the video recorder record the glow effect (capture the screen)
-2. Cleanup pixels and open pr
-    * Implement getter for source_texture
-    * Consolidate render and render_custom
+1. Switch to pixels 0.1 when it's released
+2. Revendor flatpak depdencies
+3. Make the video recorder record the glow effect (capture the screen)
 
 1. Visualize axis lock controls, particle placement, paused gameplay, video recording start/finish, etc
 2. FPS display
-3. GUI
+3. GUI (Radial menu to select particles?)
 4. Save/Load simulations with files
 5. MISX package
 

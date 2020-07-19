@@ -339,17 +339,18 @@ pub fn update_water(sandbox: &mut Sandbox, x: usize, y: usize) {
         return;
     }
 
+    // Find the first dry Sand below, delete this particle, and turn the Sand wet.
     let mut y2 = y + 1;
     while y2 < SANDBOX_HEIGHT {
         match &sandbox[x][y2] {
-            Some(particle) => {
-                if particle.ptype == ParticleType::Sand && particle.extra_data1 == 0 {
+            Some(particle) if particle.ptype == ParticleType::Sand => {
+                if particle.extra_data1 == 0 {
                     sandbox[x][y] = None;
                     sandbox[x][y2].as_mut().unwrap().extra_data1 = 1;
                     return;
                 }
             }
-            None => return,
+            _ => return,
         }
         y2 += 1;
     }
@@ -733,10 +734,8 @@ pub fn update_mirror(sandbox: &mut Sandbox, x: usize, y: usize) {
                     if sandbox[x][new_y].is_none() {
                         sandbox[x][new_y] = sandbox[x][y - 1].take();
                         return;
-                    } else {
-                        if sandbox[x][new_y].unwrap().ptype != ParticleType::Mirror {
-                            return;
-                        }
+                    } else if sandbox[x][new_y].unwrap().ptype != ParticleType::Mirror {
+                        return;
                     }
                     new_y += 1;
                 }
