@@ -1,5 +1,6 @@
 use crate::behavior::*;
 use crate::sandbox::Sandbox;
+use rand::distributions::{Distribution, Standard};
 use rand::{thread_rng, Rng};
 
 #[derive(Copy, Clone)]
@@ -31,6 +32,33 @@ pub enum ParticleType {
     Fire,
     Mirror,
     Steam,
+    Glitch,
+}
+
+impl Distribution<ParticleType> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> ParticleType {
+        match rng.gen_range(0, 18) {
+            0 => ParticleType::Sand,
+            1 => ParticleType::Water,
+            2 => ParticleType::Acid,
+            3 => ParticleType::Iridium,
+            4 => ParticleType::Replicator,
+            5 => ParticleType::Plant,
+            6 => ParticleType::Cryotheum,
+            7 => ParticleType::Unstable,
+            8 => ParticleType::Electricity,
+            9 => ParticleType::Glass,
+            10 => ParticleType::Life,
+            11 => ParticleType::SuperLife,
+            12 => ParticleType::Blood,
+            13 => ParticleType::Smoke,
+            14 => ParticleType::Fire,
+            15 => ParticleType::Mirror,
+            16 => ParticleType::Steam,
+            17 => ParticleType::Glitch,
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl Particle {
@@ -55,6 +83,7 @@ impl Particle {
                 ParticleType::Smoke => 0,
                 ParticleType::Mirror => 0,
                 ParticleType::Steam => 100,
+                ParticleType::Glitch => 0,
             },
             extra_data1: match ptype {
                 ParticleType::Sand => 0,
@@ -74,6 +103,7 @@ impl Particle {
                 ParticleType::Fire => thread_rng().gen_range(0, 60),
                 ParticleType::Mirror => 0,
                 ParticleType::Steam => 0,
+                ParticleType::Glitch => 0,
             },
             extra_data2: match ptype {
                 ParticleType::Sand => 0,
@@ -93,6 +123,7 @@ impl Particle {
                 ParticleType::Fire => 0,
                 ParticleType::Mirror => 0,
                 ParticleType::Steam => 0,
+                ParticleType::Glitch => 0,
             },
             color_offset: thread_rng().gen_range(-10, 11),
             last_update: 0,
@@ -109,7 +140,13 @@ impl Particle {
                     new_position = move_solid(sandbox, x, y);
                 }
             }
-            ParticleType::Water => new_position = move_liquid(sandbox, x, y),
+            ParticleType::Water => {
+                if self.tempature > -80 {
+                    new_position = move_liquid(sandbox, x, y);
+                } else {
+                    new_position = move_solid(sandbox, x, y);
+                }
+            }
             ParticleType::Acid => new_position = move_liquid(sandbox, x, y),
             ParticleType::Iridium => {}
             ParticleType::Replicator => {}
@@ -135,6 +172,7 @@ impl Particle {
             ParticleType::Fire => new_position = move_fire(sandbox, x, y),
             ParticleType::Mirror => {}
             ParticleType::Steam => new_position = move_gas(sandbox, x, y),
+            ParticleType::Glitch => new_position = move_liquid(sandbox, x, y),
         }
         new_position
     }
@@ -158,6 +196,7 @@ impl Particle {
             ParticleType::Fire => update_fire(sandbox, x, y),
             ParticleType::Mirror => update_mirror(sandbox, x, y),
             ParticleType::Steam => update_steam(sandbox, x, y),
+            ParticleType::Glitch => update_glitch(sandbox, x, y),
         }
     }
 
@@ -181,6 +220,7 @@ impl Particle {
             ParticleType::Fire => 2,
             ParticleType::Mirror => 7,
             ParticleType::Steam => 6,
+            ParticleType::Glitch => 2,
         };
         assert!(tc > 1);
         tc
@@ -252,6 +292,13 @@ impl Particle {
                 ((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
             }
             ParticleType::Steam => (40, 140, 140),
+            ParticleType::Glitch => {
+                if thread_rng().gen_bool(0.95) {
+                    (81, 80, 66)
+                } else {
+                    (218, 101, 126)
+                }
+            }
         }
     }
 
@@ -286,6 +333,7 @@ impl Particle {
             ParticleType::Fire => 50,
             ParticleType::Mirror => 20,
             ParticleType::Steam => 10,
+            ParticleType::Glitch => 30,
         }
     }
 
@@ -308,6 +356,7 @@ impl Particle {
             ParticleType::Fire => true,
             ParticleType::Mirror => false,
             ParticleType::Steam => false,
+            ParticleType::Glitch => true,
         }
     }
 
@@ -330,6 +379,7 @@ impl Particle {
             ParticleType::Fire => true,
             ParticleType::Mirror => false,
             ParticleType::Steam => true,
+            ParticleType::Glitch => true,
         }
     }
 
@@ -352,6 +402,7 @@ impl Particle {
             ParticleType::Fire => true,
             ParticleType::Mirror => true,
             ParticleType::Steam => true,
+            ParticleType::Glitch => true,
         }
     }
 
@@ -374,6 +425,7 @@ impl Particle {
             ParticleType::Fire => false,
             ParticleType::Mirror => true,
             ParticleType::Steam => true,
+            ParticleType::Glitch => true,
         }
     }
 
@@ -396,6 +448,7 @@ impl Particle {
             ParticleType::Fire => false,
             ParticleType::Mirror => false,
             ParticleType::Steam => false,
+            ParticleType::Glitch => true,
         }
     }
 }

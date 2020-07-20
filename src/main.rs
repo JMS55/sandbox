@@ -232,7 +232,9 @@ fn main() {
                             Some(VirtualKeyCode::M) => {
                                 selected_particle = Some(ParticleType::Mirror);
                             }
-
+                            Some(VirtualKeyCode::G) => {
+                                selected_particle = Some(ParticleType::Glitch);
+                            }
                             _ => {}
                         }
                     }

@@ -753,3 +753,47 @@ pub fn update_steam(sandbox: &mut Sandbox, x: usize, y: usize) {
         sandbox[x][y].as_mut().unwrap().ptype = ParticleType::Water;
     }
 }
+
+pub fn update_glitch(sandbox: &mut Sandbox, x: usize, y: usize) {
+    // Convert adjacent other particle types to a random type
+    if y != SANDBOX_HEIGHT - 1 {
+        if sandbox[x][y + 1].is_some() {
+            if sandbox[x][y + 1].unwrap().ptype != ParticleType::Glitch
+                && sandbox[x][y + 1].unwrap().ptype != ParticleType::Replicator
+            {
+                sandbox[x][y] = None;
+                sandbox[x][y + 1] = Some(Particle::new(sandbox.rng.gen()));
+            }
+        }
+    }
+    if x != SANDBOX_WIDTH - 1 {
+        if sandbox[x + 1][y].is_some() {
+            if sandbox[x + 1][y].unwrap().ptype != ParticleType::Glitch
+                && sandbox[x + 1][y].unwrap().ptype != ParticleType::Replicator
+            {
+                sandbox[x][y] = None;
+                sandbox[x + 1][y] = Some(Particle::new(sandbox.rng.gen()));
+            }
+        }
+    }
+    if y != 0 {
+        if sandbox[x][y - 1].is_some() {
+            if sandbox[x][y - 1].unwrap().ptype != ParticleType::Glitch
+                && sandbox[x][y - 1].unwrap().ptype != ParticleType::Replicator
+            {
+                sandbox[x][y] = None;
+                sandbox[x][y - 1] = Some(Particle::new(sandbox.rng.gen()));
+            }
+        }
+    }
+    if x != 0 {
+        if sandbox[x - 1][y].is_some() {
+            if sandbox[x - 1][y].unwrap().ptype != ParticleType::Glitch
+                && sandbox[x - 1][y].unwrap().ptype != ParticleType::Replicator
+            {
+                sandbox[x][y] = None;
+                sandbox[x - 1][y] = Some(Particle::new(sandbox.rng.gen()));
+            }
+        }
+    }
+}
