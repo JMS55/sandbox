@@ -1,7 +1,5 @@
 ## Immediate Todo
-1. Make the video recorder record the glow effect (capture the screen)
-
-1. Visualize axis lock controls, particle placement, paused gameplay, video recording start/finish, etc
+1. Visualize axis lock controls, particle placement, paused gameplay, etc
 2. FPS display
 3. GUI (Radial menu to select particles?)
 4. Save/Load simulations with files

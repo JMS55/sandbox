@@ -3,8 +3,6 @@ mod glow_post_process;
 mod heap_array;
 mod particle;
 mod sandbox;
-#[cfg(feature = "video-recording")]
-mod video_recorder;
 
 use glow_post_process::GlowPostProcess;
 use particle::{Particle, ParticleType};
@@ -70,16 +68,6 @@ fn main() {
         surface_size.width,
         surface_size.height,
     );
-
-    // Setup the video recorder
-    #[cfg(feature = "video-recording")]
-    let mut video_recorder = match video_recorder::VideoRecorder::new() {
-        Ok(video_recorder) => Some(video_recorder),
-        Err(error) => {
-            eprintln!("Warning: Video recording disabled: {}", error);
-            None
-        }
-    };
 
     // Simulation state
     let mut sandbox = Sandbox::new();
@@ -181,16 +169,6 @@ fn main() {
                                     brush_size -= 1
                                 }
                             }
-                            #[cfg(feature = "video-recording")]
-                            Some(VirtualKeyCode::Key1) => {
-                                if let Some(video_recorder) = video_recorder.as_mut() {
-                                    if video_recorder.is_recording {
-                                        video_recorder.stop_recording();
-                                    } else {
-                                        video_recorder.start_recording();
-                                    }
-                                }
-                            }
 
                             // Particle selection controls
                             Some(VirtualKeyCode::D) => {
@@ -238,13 +216,6 @@ fn main() {
                             _ => {}
                         }
                     }
-
-                    #[cfg(feature = "video-recording")]
-                    if let Some(video_recorder) = video_recorder.as_mut() {
-                        if video_recorder.is_recording && *control_flow == ControlFlow::Exit {
-                            video_recorder.stop_recording();
-                        }
-                    }
                 }
 
                 _ => {}
@@ -286,16 +257,12 @@ fn main() {
                 for (p1, mut p2) in particle_placement_queue.drain(..) {
                     // Adjust coordinates
                     if let Some(locked_x) = x_axis_locked {
-                        if selected_particle != Some(ParticleType::Electricity)
-                            && selected_particle != Some(ParticleType::Fire)
-                        {
+                        if selected_particle != Some(ParticleType::Electricity) {
                             p2.x = locked_x;
                         }
                     }
                     if let Some(locked_y) = y_axis_locked {
-                        if selected_particle != Some(ParticleType::Electricity)
-                            && selected_particle != Some(ParticleType::Fire)
-                        {
+                        if selected_particle != Some(ParticleType::Electricity) {
                             p2.y = locked_y;
                         }
                     }
@@ -365,18 +332,9 @@ fn main() {
                 window.request_redraw();
             }
 
+            // Render
             Event::RedrawRequested(_) => {
-                // Generate frame
-                let frame = pixels.get_frame();
-                sandbox.render(frame);
-
-                // Record frame to video
-                #[cfg(feature = "video-recording")]
-                if let Some(video_recorder) = video_recorder.as_mut() {
-                    video_recorder.upload_frame(frame);
-                }
-
-                // Render frame to window
+                sandbox.render(pixels.get_frame());
                 let _ = pixels.render_with(|encoder, render_texture, scaling_renderer| {
                     scaling_renderer.render(encoder, &scaling_renderer_texture);
                     glow_post_process.render(encoder, render_texture);

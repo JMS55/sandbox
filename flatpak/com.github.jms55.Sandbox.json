@@ -9,8 +9,7 @@
     "finish-args": [
         "--device=dri",
         "--socket=x11",
-        "--share=ipc",
-        "--filesystem=xdg-videos"
+        "--share=ipc"
     ],
     "build-options": {
         "append-path": "/usr/lib/sdk/rust-stable/bin",
@@ -20,35 +19,6 @@
     },
     "command": "sandbox",
     "modules": [
-        {
-            "name": "x264",
-            "config-opts": [
-                "--enable-shared",
-                "--system-libx264",
-                "--enable-pic"
-            ],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://download.videolan.org/pub/x264/snapshots/x264-snapshot-20191217-2245-stable.tar.bz2",
-                    "sha256": "b2495c8f2930167d470994b1ce02b0f4bfb24b3317ba36ba7f112e9809264160"
-                }
-            ]
-        },
-        {
-            "name": "gstreamer1-plugins-ugly",
-            "buildsystem": "meson",
-            "config-opts": [
-                "-D=x264=enabled"
-            ],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://gstreamer.freedesktop.org/src/gst-plugins-ugly/gst-plugins-ugly-1.16.2.tar.xz",
-                    "sha256": "5500415b865e8b62775d4742cbb9f37146a50caecfc0e7a6fc0160d3c560fbca"
-                }
-            ]
-        },
         {
             "name": "sandbox",
             "buildsystem": "simple",
