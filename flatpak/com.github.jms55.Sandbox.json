@@ -25,7 +25,7 @@
             "build-commands": [
                 "head -n -8 Cargo.toml > t && mv t Cargo.toml",
                 "cargo --offline fetch",
-                "cargo --offline build --release --features video-recording",
+                "cargo --offline build --release",
                 "install -Dm755 ./target/release/sandbox -t /app/bin/",
                 "install -Dm644 ./flatpak/com.github.jms55.Sandbox.metainfo.xml -t /app/share/metainfo/",
                 "install -Dm644 ./flatpak/com.github.jms55.Sandbox.desktop -t /app/share/applications/",
