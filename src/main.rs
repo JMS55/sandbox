@@ -1,15 +1,15 @@
 mod behavior;
-mod glow_post_process;
 mod heap_array;
 mod particle;
+mod render;
 mod sandbox;
 #[cfg(feature = "video-recording")]
 mod video_recorder;
 
-use glow_post_process::GlowPostProcess;
 use particle::{Particle, ParticleType};
 use pixels::wgpu::*;
 use pixels::{PixelsBuilder, SurfaceTexture};
+use render::Render;
 use sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use std::time::{Duration, Instant};
 use winit::dpi::{LogicalSize, PhysicalPosition};
@@ -35,7 +35,8 @@ fn main() {
         .expect("Failed to create a window");
 
     // Setup rendering
-    let surface_size = window.inner_size();
+    #[allow(unused_assignments)]
+    let mut surface_size = window.inner_size();
     let surface = Surface::create(&window);
     let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, surface);
     let mut pixels =
@@ -46,40 +47,13 @@ fn main() {
             })
             .build()
             .expect("Failed to setup rendering");
-    let mut texture_descriptor = TextureDescriptor {
-        label: None,
-        size: Extent3d {
-            width: surface_size.width,
-            height: surface_size.height,
-            depth: 1,
-        },
-        array_layer_count: 1,
-        mip_level_count: 1,
-        sample_count: 1,
-        dimension: TextureDimension::D2,
-        format: TextureFormat::Bgra8UnormSrgb,
-        usage: TextureUsage::SAMPLED | TextureUsage::OUTPUT_ATTACHMENT,
-    };
-    let mut scaling_renderer_texture = pixels
-        .device()
-        .create_texture(&texture_descriptor)
-        .create_default_view();
-    let mut glow_post_process = GlowPostProcess::new(
-        pixels.device(),
-        &scaling_renderer_texture,
-        surface_size.width,
-        surface_size.height,
-    );
+    let mut render = Render::new(&pixels.device(), surface_size.width, surface_size.height);
 
     // Setup the video recorder
     #[cfg(feature = "video-recording")]
-    let mut video_recorder = match video_recorder::VideoRecorder::new() {
-        Ok(video_recorder) => Some(video_recorder),
-        Err(error) => {
-            eprintln!("Warning: Video recording disabled: {}", error);
-            None
-        }
-    };
+    let mut video_recorder = video_recorder::VideoRecorder::new(pixels.device())
+        .map_err(|error| eprintln!("Warning: Video recording disabled: {}", error))
+        .ok();
 
     // Simulation state
     let mut sandbox = Sandbox::new();
@@ -110,22 +84,9 @@ fn main() {
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::Resized(new_size) => {
                     last_resize = Some(Instant::now());
-                    pixels.resize(new_size.width, new_size.height);
-                    texture_descriptor.size = Extent3d {
-                        width: new_size.width,
-                        height: new_size.height,
-                        depth: 1,
-                    };
-                    scaling_renderer_texture = pixels
-                        .device()
-                        .create_texture(&texture_descriptor)
-                        .create_default_view();
-                    glow_post_process.resize(
-                        pixels.device(),
-                        &scaling_renderer_texture,
-                        new_size.width,
-                        new_size.height,
-                    );
+                    surface_size = new_size;
+                    pixels.resize(surface_size.width, surface_size.height);
+                    render.resize(&pixels.device(), surface_size.width, surface_size.height);
                 }
 
                 // Mouse events
@@ -236,13 +197,6 @@ fn main() {
                                 selected_particle = Some(ParticleType::Glitch);
                             }
                             _ => {}
-                        }
-                    }
-
-                    #[cfg(feature = "video-recording")]
-                    if let Some(video_recorder) = video_recorder.as_mut() {
-                        if video_recorder.is_recording && *control_flow == ControlFlow::Exit {
-                            video_recorder.stop_recording();
                         }
                     }
                 }
@@ -366,21 +320,57 @@ fn main() {
             }
 
             Event::RedrawRequested(_) => {
-                // Generate frame
-                let frame = pixels.get_frame();
-                sandbox.render(frame);
+                sandbox.render(pixels.get_frame());
 
-                // Record frame to video
                 #[cfg(feature = "video-recording")]
-                if let Some(video_recorder) = video_recorder.as_mut() {
-                    video_recorder.upload_frame(frame);
-                }
+                let buffer = video_recorder
+                    .as_ref()
+                    .filter(|video_recorder| video_recorder.is_recording)
+                    .map(|_| {
+                        pixels.device().create_buffer(&BufferDescriptor {
+                            size: (surface_size.width * surface_size.height * 4) as u64,
+                            usage: BufferUsage::COPY_DST | BufferUsage::MAP_READ,
+                            label: None,
+                        })
+                    });
 
-                // Render frame to window
                 let _ = pixels.render_with(|encoder, render_texture, scaling_renderer| {
-                    scaling_renderer.render(encoder, &scaling_renderer_texture);
-                    glow_post_process.render(encoder, render_texture);
+                    scaling_renderer.render(encoder, &render.screen_sized_texture_view);
+                    render.glow_post_process(encoder);
+                    render.copy_screen_texture_to_swapchain(encoder, render_texture);
+
+                    #[cfg(feature = "video-recording")]
+                    if let Some(buffer) = &buffer {
+                        encoder.copy_texture_to_buffer(
+                            TextureCopyView {
+                                texture: &render.screen_sized_texture,
+                                mip_level: 0,
+                                array_layer: 0,
+                                origin: Origin3d::ZERO,
+                            },
+                            BufferCopyView {
+                                buffer: &buffer,
+                                offset: 0,
+                                bytes_per_row: (surface_size.width * 4 + 255) & !255,
+                                rows_per_image: 0,
+                            },
+                            Extent3d {
+                                width: surface_size.width,
+                                height: surface_size.height,
+                                depth: 1,
+                            },
+                        );
+                    }
                 });
+
+                #[cfg(feature = "video-recording")]
+                if let Some(buffer) = buffer {
+                    video_recorder.as_mut().unwrap().upload_buffer(
+                        buffer,
+                        surface_size.width,
+                        surface_size.height,
+                    );
+                }
             }
 
             _ => {}

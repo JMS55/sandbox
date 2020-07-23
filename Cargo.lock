@@ -1487,6 +1487,7 @@ dependencies = [
  "gstreamer-video",
  "humantime",
  "pixels",
+ "pollster",
  "rand",
  "simdnoise",
  "winit",

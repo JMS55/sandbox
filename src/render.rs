@@ -1,32 +1,43 @@
 use pixels::include_spv;
 use pixels::wgpu::{self, *};
 
-pub struct GlowPostProcess {
-    texture_width: u32,
-    texture_height: u32,
+pub struct Render {
+    screen_width: u32,
+    screen_height: u32,
 
-    copy_to_texture1_pass: (RenderPipeline, BindGroup),
-    copy_glowing_pass: (ComputePipeline, BindGroup),
-    vertical_blur_pass: (ComputePipeline, BindGroup),
-    horizontal_blur_pass: (ComputePipeline, BindGroup),
-    add_glow_pass: (ComputePipeline, BindGroup),
-    copy_to_render_texture_pass: (RenderPipeline, BindGroup),
-
-    textures: [TextureView; 3],
+    glow_texture1: TextureView,
+    glow_texture2: TextureView,
+    glow_texture3: TextureView,
+    pub screen_sized_texture: Texture,
+    pub screen_sized_texture_view: TextureView,
     sampler: Sampler,
+
     render_bind_group_layout: BindGroupLayout,
     compute_bind_group_layout: BindGroupLayout,
+
+    copy_to_texture1_bind_group: BindGroup,
+    copy_glowing_bind_group: BindGroup,
+    vertical_blur_bind_group: BindGroup,
+    horizontal_blur_bind_group: BindGroup,
+    add_glow_bind_group: BindGroup,
+    copy_to_render_texture_bind_group: BindGroup,
+
+    copy_to_texture1_pipeline: RenderPipeline,
+    copy_glowing_pipeline: ComputePipeline,
+    vertical_blur_pipeline: ComputePipeline,
+    horizontal_blur_pipeline: ComputePipeline,
+    add_glow_pipeline: ComputePipeline,
+    copy_to_render_texture_pipeline: RenderPipeline,
 }
 
-impl GlowPostProcess {
-    pub fn new(
-        device: &Device,
-        input_texture: &TextureView,
-        texture_width: u32,
-        texture_height: u32,
-    ) -> Self {
+impl Render {
+    pub fn new(device: &Device, screen_width: u32, screen_height: u32) -> Self {
         // Resources
-        let [texture1, texture2, texture3] = create_textures(device, texture_width, texture_height);
+        let (
+            [glow_texture1, glow_texture2, glow_texture3],
+            screen_sized_texture,
+            screen_sized_texture_view,
+        ) = create_textures(device, screen_width, screen_height);
         let sampler = device.create_sampler(&SamplerDescriptor {
             address_mode_u: AddressMode::ClampToEdge,
             address_mode_v: AddressMode::ClampToEdge,
@@ -39,7 +50,7 @@ impl GlowPostProcess {
             compare: CompareFunction::Never,
         });
 
-        // Bind Groups
+        // Bind Group Layouts
         let render_bind_group_layout =
             device.create_bind_group_layout(&BindGroupLayoutDescriptor {
                 bindings: &[
@@ -86,10 +97,17 @@ impl GlowPostProcess {
                 ],
                 label: None,
             });
+
+        // Bind Groups
         let [copy_to_texture1_bind_group, copy_glowing_bind_group, vertical_blur_bind_group, horizontal_blur_bind_group, add_glow_bind_group, copy_to_render_texture_bind_group] =
             create_bind_groups(
                 device,
-                [input_texture, &texture1, &texture2, &texture3],
+                [
+                    &screen_sized_texture_view,
+                    &glow_texture1,
+                    &glow_texture2,
+                    &glow_texture3,
+                ],
                 &sampler,
                 &render_bind_group_layout,
                 &compute_bind_group_layout,
@@ -212,60 +230,78 @@ impl GlowPostProcess {
             });
 
         Self {
-            texture_width,
-            texture_height,
+            screen_width,
+            screen_height,
 
-            copy_to_texture1_pass: (copy_to_texture1_pipeline, copy_to_texture1_bind_group),
-            copy_glowing_pass: (copy_glowing_pipeline, copy_glowing_bind_group),
-            vertical_blur_pass: (vertical_blur_pipeline, vertical_blur_bind_group),
-            horizontal_blur_pass: (horizontal_blur_pipeline, horizontal_blur_bind_group),
-            add_glow_pass: (add_glow_pipeline, add_glow_bind_group),
-            copy_to_render_texture_pass: (
-                copy_to_render_texture_pipeline,
-                copy_to_render_texture_bind_group,
-            ),
-
-            textures: [texture1, texture2, texture3],
+            glow_texture1,
+            glow_texture2,
+            glow_texture3,
+            screen_sized_texture,
+            screen_sized_texture_view,
             sampler,
+
             render_bind_group_layout,
             compute_bind_group_layout,
+
+            copy_to_texture1_bind_group,
+            copy_glowing_bind_group,
+            vertical_blur_bind_group,
+            horizontal_blur_bind_group,
+            add_glow_bind_group,
+            copy_to_render_texture_bind_group,
+
+            copy_to_texture1_pipeline,
+            copy_glowing_pipeline,
+            vertical_blur_pipeline,
+            horizontal_blur_pipeline,
+            add_glow_pipeline,
+            copy_to_render_texture_pipeline,
         }
     }
 
-    pub fn resize(
-        &mut self,
-        device: &Device,
-        input_texture: &TextureView,
-        texture_width: u32,
-        texture_height: u32,
-    ) {
-        let [texture1, texture2, texture3] = create_textures(device, texture_width, texture_height);
+    pub fn resize(&mut self, device: &Device, screen_width: u32, screen_height: u32) {
+        let (
+            [glow_texture1, glow_texture2, glow_texture3],
+            screen_sized_texture,
+            screen_sized_texture_view,
+        ) = create_textures(device, screen_width, screen_height);
+
         let [copy_to_texture1_bind_group, copy_glowing_bind_group, vertical_blur_bind_group, horizontal_blur_bind_group, add_glow_bind_group, copy_to_render_texture_bind_group] =
             create_bind_groups(
                 device,
-                [input_texture, &texture1, &texture2, &texture3],
+                [
+                    &screen_sized_texture_view,
+                    &glow_texture1,
+                    &glow_texture2,
+                    &glow_texture3,
+                ],
                 &self.sampler,
                 &self.render_bind_group_layout,
                 &self.compute_bind_group_layout,
             );
 
-        self.texture_width = texture_width;
-        self.texture_height = texture_height;
+        self.screen_width = screen_width;
+        self.screen_height = screen_height;
 
-        self.textures = [texture1, texture2, texture3];
-        self.copy_to_texture1_pass.1 = copy_to_texture1_bind_group;
-        self.copy_glowing_pass.1 = copy_glowing_bind_group;
-        self.vertical_blur_pass.1 = vertical_blur_bind_group;
-        self.horizontal_blur_pass.1 = horizontal_blur_bind_group;
-        self.add_glow_pass.1 = add_glow_bind_group;
-        self.copy_to_render_texture_pass.1 = copy_to_render_texture_bind_group;
+        self.glow_texture1 = glow_texture1;
+        self.glow_texture2 = glow_texture2;
+        self.glow_texture3 = glow_texture3;
+        self.screen_sized_texture = screen_sized_texture;
+        self.screen_sized_texture_view = screen_sized_texture_view;
+
+        self.copy_to_texture1_bind_group = copy_to_texture1_bind_group;
+        self.copy_glowing_bind_group = copy_glowing_bind_group;
+        self.vertical_blur_bind_group = vertical_blur_bind_group;
+        self.horizontal_blur_bind_group = horizontal_blur_bind_group;
+        self.add_glow_bind_group = add_glow_bind_group;
+        self.copy_to_render_texture_bind_group = copy_to_render_texture_bind_group;
     }
 
-    pub fn render(&self, encoder: &mut CommandEncoder, render_texture: &TextureView) {
+    pub fn glow_post_process(&self, encoder: &mut CommandEncoder) {
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
                 color_attachments: &[RenderPassColorAttachmentDescriptor {
-                    attachment: &self.textures[0],
+                    attachment: &self.glow_texture1,
                     resolve_target: None,
                     load_op: LoadOp::Clear,
                     store_op: StoreOp::Store,
@@ -273,54 +309,54 @@ impl GlowPostProcess {
                 }],
                 depth_stencil_attachment: None,
             });
-            pass.set_pipeline(&self.copy_to_texture1_pass.0);
-            pass.set_bind_group(0, &self.copy_to_texture1_pass.1, &[]);
+            pass.set_pipeline(&self.copy_to_texture1_pipeline);
+            pass.set_bind_group(0, &self.copy_to_texture1_bind_group, &[]);
             pass.draw(0..6, 0..1);
         }
         {
             let mut pass = encoder.begin_compute_pass();
-            pass.set_pipeline(&self.copy_glowing_pass.0);
-            pass.set_bind_group(0, &self.copy_glowing_pass.1, &[]);
+            pass.set_pipeline(&self.copy_glowing_pipeline);
+            pass.set_bind_group(0, &self.copy_glowing_bind_group, &[]);
             pass.dispatch(
-                (self.texture_width as u32 / 7) + 8,
-                (self.texture_height as u32 / 7) + 8,
+                (self.screen_width as u32 / 7) + 8,
+                (self.screen_height as u32 / 7) + 8,
                 1,
             );
         }
         {
             let mut pass = encoder.begin_compute_pass();
-            pass.set_pipeline(&self.vertical_blur_pass.0);
-            pass.set_bind_group(0, &self.vertical_blur_pass.1, &[]);
+            pass.set_pipeline(&self.vertical_blur_pipeline);
+            pass.set_bind_group(0, &self.vertical_blur_bind_group, &[]);
             pass.dispatch(
-                (self.texture_width as u32 / 7) + 8,
-                (self.texture_height as u32 / 7) + 8,
+                (self.screen_width as u32 / 7) + 8,
+                (self.screen_height as u32 / 7) + 8,
                 1,
             );
         }
         {
             let mut pass = encoder.begin_compute_pass();
-            pass.set_pipeline(&self.horizontal_blur_pass.0);
-            pass.set_bind_group(0, &self.horizontal_blur_pass.1, &[]);
+            pass.set_pipeline(&self.horizontal_blur_pipeline);
+            pass.set_bind_group(0, &self.horizontal_blur_bind_group, &[]);
             pass.dispatch(
-                (self.texture_width as u32 / 7) + 8,
-                (self.texture_height as u32 / 7) + 8,
+                (self.screen_width as u32 / 7) + 8,
+                (self.screen_height as u32 / 7) + 8,
                 1,
             );
         }
         {
             let mut pass = encoder.begin_compute_pass();
-            pass.set_pipeline(&self.add_glow_pass.0);
-            pass.set_bind_group(0, &self.add_glow_pass.1, &[]);
+            pass.set_pipeline(&self.add_glow_pipeline);
+            pass.set_bind_group(0, &self.add_glow_bind_group, &[]);
             pass.dispatch(
-                (self.texture_width as u32 / 7) + 8,
-                (self.texture_height as u32 / 7) + 8,
+                (self.screen_width as u32 / 7) + 8,
+                (self.screen_height as u32 / 7) + 8,
                 1,
             );
         }
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
                 color_attachments: &[RenderPassColorAttachmentDescriptor {
-                    attachment: &render_texture,
+                    attachment: &self.screen_sized_texture_view,
                     resolve_target: None,
                     load_op: LoadOp::Clear,
                     store_op: StoreOp::Store,
@@ -328,19 +364,43 @@ impl GlowPostProcess {
                 }],
                 depth_stencil_attachment: None,
             });
-            pass.set_pipeline(&self.copy_to_render_texture_pass.0);
-            pass.set_bind_group(0, &self.copy_to_render_texture_pass.1, &[]);
+            pass.set_pipeline(&self.copy_to_render_texture_pipeline);
+            pass.set_bind_group(0, &self.copy_to_render_texture_bind_group, &[]);
             pass.draw(0..6, 0..1);
         }
+    }
+
+    pub fn copy_screen_texture_to_swapchain(
+        &self,
+        encoder: &mut CommandEncoder,
+        swapchain_texture: &TextureView,
+    ) {
+        let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
+            color_attachments: &[RenderPassColorAttachmentDescriptor {
+                attachment: swapchain_texture,
+                resolve_target: None,
+                load_op: LoadOp::Clear,
+                store_op: StoreOp::Store,
+                clear_color: Color::BLACK,
+            }],
+            depth_stencil_attachment: None,
+        });
+        pass.set_pipeline(&self.copy_to_render_texture_pipeline);
+        pass.set_bind_group(0, &self.copy_to_render_texture_bind_group, &[]);
+        pass.draw(0..6, 0..1);
     }
 }
 
-fn create_textures(device: &Device, texture_width: u32, texture_height: u32) -> [TextureView; 3] {
-    let texture_descriptor_1 = TextureDescriptor {
+fn create_textures(
+    device: &Device,
+    screen_width: u32,
+    screen_height: u32,
+) -> ([TextureView; 3], Texture, TextureView) {
+    let glow_texture_descriptor_1 = TextureDescriptor {
         label: None,
         size: Extent3d {
-            width: texture_width,
-            height: texture_height,
+            width: screen_width,
+            height: screen_height,
             depth: 1,
         },
         array_layer_count: 1,
@@ -350,11 +410,11 @@ fn create_textures(device: &Device, texture_width: u32, texture_height: u32) -> 
         format: TextureFormat::Rgba16Float,
         usage: TextureUsage::STORAGE | TextureUsage::SAMPLED | TextureUsage::OUTPUT_ATTACHMENT,
     };
-    let texture_descriptor_2_3 = TextureDescriptor {
+    let glow_texture_descriptor_2_3 = TextureDescriptor {
         label: None,
         size: Extent3d {
-            width: texture_width,
-            height: texture_height,
+            width: screen_width,
+            height: screen_height,
             depth: 1,
         },
         array_layer_count: 1,
@@ -364,16 +424,38 @@ fn create_textures(device: &Device, texture_width: u32, texture_height: u32) -> 
         format: TextureFormat::Rgba16Float,
         usage: TextureUsage::STORAGE,
     };
-    let texture1 = device
-        .create_texture(&texture_descriptor_1)
+    let screen_sized_texture_descriptor = TextureDescriptor {
+        label: None,
+        size: Extent3d {
+            width: screen_width,
+            height: screen_height,
+            depth: 1,
+        },
+        array_layer_count: 1,
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: TextureDimension::D2,
+        format: TextureFormat::Bgra8UnormSrgb,
+        usage: TextureUsage::SAMPLED | TextureUsage::OUTPUT_ATTACHMENT | TextureUsage::COPY_SRC,
+    };
+
+    let glow_texture1 = device
+        .create_texture(&glow_texture_descriptor_1)
         .create_default_view();
-    let texture2 = device
-        .create_texture(&texture_descriptor_2_3)
+    let glow_texture2 = device
+        .create_texture(&glow_texture_descriptor_2_3)
         .create_default_view();
-    let texture3 = device
-        .create_texture(&texture_descriptor_2_3)
+    let glow_texture3 = device
+        .create_texture(&glow_texture_descriptor_2_3)
         .create_default_view();
-    [texture1, texture2, texture3]
+    let screen_sized_texture = device.create_texture(&screen_sized_texture_descriptor);
+    let screen_sized_texture_view = screen_sized_texture.create_default_view();
+
+    (
+        [glow_texture1, glow_texture2, glow_texture3],
+        screen_sized_texture,
+        screen_sized_texture_view,
+    )
 }
 
 fn create_bind_groups(

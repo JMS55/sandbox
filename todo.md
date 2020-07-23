@@ -1,5 +1,12 @@
-## Immediate Todo
-1. Make the video recorder record the glow effect (capture the screen)
+## Immediate Todos
+1. Video ends too soon, probably something with gstreamer?
+2. When starting to record video, sometimes the screen flashes and then the video ends up corrupted
+3. Quitting the app while recording crashes
+4. Clean up unwraps  and let _ =
+    * If thread crashes, will VideoRecorder::stop_recording() won't ever complete.
+5. Clean up naming
+6. Clean up comments
+7. Use encodebin?
 
 1. Visualize axis lock controls, particle placement, paused gameplay, video recording start/finish, etc
 2. FPS display
