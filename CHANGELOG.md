@@ -2,7 +2,7 @@
 ### Gameplay
 * Added the Steam particle
 * Added the Glitch particle
-* Water stops moving when too cold
+* Water stops flowing when too cold
 * Axis lock now works with Fire
 ### Misc
 * Acid, Fire, and Electricity now have a glowing effect
