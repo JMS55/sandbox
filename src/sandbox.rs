@@ -115,7 +115,7 @@ impl Sandbox {
             }
         }
 
-        // Transfer tempature between adjacent particles
+        // Transfer temperature between adjacent particles
         let cells_copy = self.cells.clone();
         for x in 0..SANDBOX_WIDTH {
             for y in 0..SANDBOX_HEIGHT {
@@ -124,36 +124,36 @@ impl Sandbox {
                         if let Some(particle2) = &self[x][y + 1] {
                             let tc =
                                 particle1.thermal_conductivity() + particle2.thermal_conductivity();
-                            let t = particle1.tempature / tc;
-                            self[x][y].as_mut().unwrap().tempature -= t;
-                            self[x][y + 1].as_mut().unwrap().tempature += t;
+                            let t = particle1.temperature / tc;
+                            self[x][y].as_mut().unwrap().temperature -= t;
+                            self[x][y + 1].as_mut().unwrap().temperature += t;
                         }
                     }
                     if x != SANDBOX_WIDTH - 1 {
                         if let Some(particle2) = &self[x + 1][y] {
                             let tc =
                                 particle1.thermal_conductivity() + particle2.thermal_conductivity();
-                            let t = particle1.tempature / tc;
-                            self[x][y].as_mut().unwrap().tempature -= t;
-                            self[x + 1][y].as_mut().unwrap().tempature += t;
+                            let t = particle1.temperature / tc;
+                            self[x][y].as_mut().unwrap().temperature -= t;
+                            self[x + 1][y].as_mut().unwrap().temperature += t;
                         }
                     }
                     if y != 0 {
                         if let Some(particle2) = &self[x][y - 1] {
                             let tc =
                                 particle1.thermal_conductivity() + particle2.thermal_conductivity();
-                            let t = particle1.tempature / tc;
-                            self[x][y].as_mut().unwrap().tempature -= t;
-                            self[x][y - 1].as_mut().unwrap().tempature += t;
+                            let t = particle1.temperature / tc;
+                            self[x][y].as_mut().unwrap().temperature -= t;
+                            self[x][y - 1].as_mut().unwrap().temperature += t;
                         }
                     }
                     if x != 0 {
                         if let Some(particle2) = &self[x - 1][y] {
                             let tc =
                                 particle1.thermal_conductivity() + particle2.thermal_conductivity();
-                            let t = particle1.tempature / tc;
-                            self[x][y].as_mut().unwrap().tempature -= t;
-                            self[x - 1][y].as_mut().unwrap().tempature += t;
+                            let t = particle1.temperature / tc;
+                            self[x][y].as_mut().unwrap().temperature -= t;
+                            self[x - 1][y].as_mut().unwrap().temperature += t;
                         }
                     }
                 }
@@ -186,16 +186,16 @@ impl Sandbox {
                     // Base color
                     let base_color = particle.base_color();
 
-                    // Tint blue/red based on tempature
+                    // Tint blue/red based on temperature
                     let mut r = 0;
                     let mut b = 0;
                     let mut g = 0;
                     if particle.ptype != ParticleType::Electricity {
-                        if particle.tempature < 0 {
-                            b = -particle.tempature;
-                            g = -particle.tempature / 30;
+                        if particle.temperature < 0 {
+                            b = -particle.temperature;
+                            g = -particle.temperature / 30;
                         } else {
-                            r = particle.tempature;
+                            r = particle.temperature;
                         }
                     }
 

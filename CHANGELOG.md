@@ -1,3 +1,7 @@
+# Unreleased
+### Bugfixes
+* Cryotheum coldsnap now properly triggers
+
 # 1.1.0 (2020-07-22)
 ### Gameplay
 * Added the Steam particle

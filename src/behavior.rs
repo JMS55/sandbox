@@ -322,20 +322,20 @@ pub fn move_fire(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
 }
 
 pub fn update_sand(sandbox: &mut Sandbox, x: usize, y: usize) {
-    // When wet and tempature >= 30, dry out
-    if sandbox[x][y].unwrap().extra_data1 == 1 && sandbox[x][y].unwrap().tempature >= 30 {
+    // When wet and temperature >= 30, dry out
+    if sandbox[x][y].unwrap().extra_data1 == 1 && sandbox[x][y].unwrap().temperature >= 30 {
         sandbox[x][y].as_mut().unwrap().extra_data1 = 0;
     }
 
-    // When tempature >= 120, turn into Glass
-    if sandbox[x][y].unwrap().tempature >= 120 {
+    // When temperature >= 120, turn into Glass
+    if sandbox[x][y].unwrap().temperature >= 120 {
         sandbox[x][y].as_mut().unwrap().ptype = ParticleType::Glass;
     }
 }
 
 pub fn update_water(sandbox: &mut Sandbox, x: usize, y: usize) {
-    if sandbox[x][y].unwrap().tempature >= 100 {
-        let t = sandbox[x][y].unwrap().tempature as f64 / 150.0;
+    if sandbox[x][y].unwrap().temperature >= 100 {
+        let t = sandbox[x][y].unwrap().temperature as f64 / 150.0;
         let chance = (1.0 - t) * 0.3 + t * 0.7;
         if sandbox.rng.gen_bool(chance) {
             sandbox[x][y].as_mut().unwrap().ptype = ParticleType::Steam;
@@ -452,8 +452,8 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
-    // If tempature > 100, turn into Fire
-    if sandbox[x][y].unwrap().tempature > 100 {
+    // If temperature > 100, turn into Fire
+    if sandbox[x][y].unwrap().temperature > 100 {
         sandbox[x][y].as_mut().unwrap().ptype = ParticleType::Fire;
         return;
     }
@@ -494,10 +494,10 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
     }
 }
 
-// Check if tempature >= 0, and if so, wait 1/5th of a second, and then delete itself and freeze around it
+// Check if temperature >= 0, and if so, wait 1/3rd of a second, and then delete itself and freeze around it
 pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
-    if sandbox[x][y].unwrap().tempature >= 0 {
-        sandbox[x][y].as_mut().unwrap().extra_data1 = 13;
+    if sandbox[x][y].unwrap().temperature >= 0 && sandbox[x][y].unwrap().extra_data1 == 0 {
+        sandbox[x][y].as_mut().unwrap().extra_data1 = 21;
         return;
     }
 
@@ -520,7 +520,7 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
                 {
                     if let Some(particle) = sandbox[x as usize][y as usize].as_mut() {
                         if particle.affected_by_cryotheum_coldsnap() {
-                            particle.tempature -= 100;
+                            particle.temperature -= 100;
                         }
                     }
                 }
@@ -530,17 +530,17 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
-    // Increase tempature by 10 every half a second
+    // Increase temperature by 10 every half a second
     let mut particle = sandbox[x][y].as_mut().unwrap();
     if particle.extra_data1 == 30 {
         particle.extra_data1 = 0;
-        particle.tempature += 10;
+        particle.temperature += 10;
     } else {
         particle.extra_data1 += 1;
     }
 
-    // When tempature >= 200 (10 seconds of existing), replace the surrounding area with Smoke
-    if particle.tempature >= 200 {
+    // When temperature >= 200 (10 seconds of existing), replace the surrounding area with Smoke
+    if particle.temperature >= 200 {
         for x_offset in -30..=30 {
             for y_offset in -30..=30 {
                 let x = x as isize + x_offset;
@@ -568,9 +568,9 @@ pub fn update_electricity(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
-    // When tempature less than -50, or greater than 50, this particle dies
+    // When temperature less than -50, or greater than 50, this particle dies
     let mut particle = sandbox[x][y].as_mut().unwrap();
-    if particle.tempature < -50 || particle.tempature > 50 {
+    if particle.temperature < -50 || particle.temperature > 50 {
         particle.extra_data2 = 1;
     }
 
@@ -654,8 +654,8 @@ pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_blood(sandbox: &mut Sandbox, x: usize, y: usize) {
-    // Evaporate above a certain tempature
-    if sandbox[x][y].unwrap().tempature >= 137 {
+    // Evaporate above a certain temperature
+    if sandbox[x][y].unwrap().temperature >= 137 {
         sandbox[x][y] = None;
     }
 }
@@ -673,8 +673,8 @@ pub fn update_smoke(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
-    // When this particle hasn't moved for more than 1/2 a second or tempature < 40, delete it
-    if sandbox[x][y].unwrap().extra_data2 > 30 || sandbox[x][y].unwrap().tempature < 40 {
+    // When this particle hasn't moved for more than 1/2 a second or temperature < 40, delete it
+    if sandbox[x][y].unwrap().extra_data2 > 30 || sandbox[x][y].unwrap().temperature < 40 {
         sandbox[x][y] = None;
     }
 
@@ -749,7 +749,7 @@ pub fn update_mirror(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_steam(sandbox: &mut Sandbox, x: usize, y: usize) {
-    if sandbox[x][y].unwrap().tempature < 100 {
+    if sandbox[x][y].unwrap().temperature < 100 {
         sandbox[x][y].as_mut().unwrap().ptype = ParticleType::Water;
     }
 }

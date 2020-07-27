@@ -6,7 +6,7 @@ use rand::{thread_rng, Rng};
 #[derive(Copy, Clone)]
 pub struct Particle {
     pub ptype: ParticleType,
-    pub tempature: i16,
+    pub temperature: i16,
     pub extra_data1: i8,
     pub extra_data2: i8,
     pub color_offset: i8,
@@ -65,7 +65,7 @@ impl Particle {
     pub fn new(ptype: ParticleType) -> Self {
         Self {
             ptype,
-            tempature: match ptype {
+            temperature: match ptype {
                 ParticleType::Sand => 0,
                 ParticleType::Water => -10,
                 ParticleType::Acid => 0,
@@ -141,7 +141,7 @@ impl Particle {
                 }
             }
             ParticleType::Water => {
-                if self.tempature > -80 {
+                if self.temperature > -80 {
                     new_position = move_liquid(sandbox, x, y);
                 } else {
                     new_position = move_solid(sandbox, x, y);
@@ -159,7 +159,7 @@ impl Particle {
             ParticleType::Unstable => {}
             ParticleType::Electricity => new_position = move_electricity(sandbox, x, y),
             ParticleType::Glass => {
-                if self.tempature >= 30 {
+                if self.temperature >= 30 {
                     new_position = move_liquid(sandbox, x, y);
                 } else {
                     new_position = move_solid(sandbox, x, y);
@@ -201,7 +201,7 @@ impl Particle {
     }
 
     pub fn thermal_conductivity(&self) -> i16 {
-        // Higher thermal conductivity = Slower tempature transfer
+        // Higher thermal conductivity = Slower temperature transfer
         let tc = match self.ptype {
             ParticleType::Sand => 3,
             ParticleType::Water => 5,
@@ -318,8 +318,8 @@ impl Particle {
             }
             ParticleType::Cryotheum => 10,
             ParticleType::Unstable => {
-                if self.tempature > 0 {
-                    (self.tempature as f64 / 5.0).round() as i16
+                if self.temperature > 0 {
+                    (self.temperature as f64 / 5.0).round() as i16
                 } else {
                     0
                 }
