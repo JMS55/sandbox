@@ -499,8 +499,7 @@ dependencies = [
 [[package]]
 name = "imgui-wgpu"
 version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b641250a21c77c91144566ee4f98d81c853e89c99bb718796344da87e8804345"
+source = "git+https://github.com/JMS55/imgui-wgpu-rs#eaa3d23d1cff1ee2d10224bebd127b89cf08172f"
 dependencies = [
  "imgui",
  "log",
@@ -881,7 +880,7 @@ checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
 [[package]]
 name = "pixels"
 version = "0.1.0"
-source = "git+https://github.com/JMS55/pixels?branch=wip/render-api-v2#1a2c427a7ade6d2c492682002e9caed5d310a0f3"
+source = "git+https://github.com/parasyte/pixels?branch=wip/render-api-v2#3f5f29faeae4e4e68bd7200b4db2697b37509177"
 dependencies = [
  "pollster",
  "thiserror",

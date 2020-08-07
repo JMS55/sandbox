@@ -47,9 +47,6 @@ fn main() {
             })
             .build()
             .expect("Failed to setup rendering");
-    let pixels_context = pixels.context();
-    let device = &pixels_context.device;
-    let queue = &mut pixels_context.queue;
     let mut texture_descriptor = TextureDescriptor {
         label: None,
         size: Extent3d {
@@ -64,11 +61,12 @@ fn main() {
         format: TextureFormat::Bgra8UnormSrgb,
         usage: TextureUsage::SAMPLED | TextureUsage::OUTPUT_ATTACHMENT,
     };
-    let mut scaling_renderer_texture = device
+    let mut scaling_renderer_texture = pixels
+        .device()
         .create_texture(&texture_descriptor)
         .create_default_view();
     let mut glow_post_process = GlowPostProcess::new(
-        device,
+        pixels.device(),
         &scaling_renderer_texture,
         surface_size.width,
         surface_size.height,
@@ -87,8 +85,8 @@ fn main() {
     imgui_platform.attach_window(imgui.io_mut(), &window, HiDpiMode::Default);
     let mut imgui_renderer = Renderer::new(
         &mut imgui,
-        device,
-        queue,
+        pixels.device(),
+        pixels.queue(),
         TextureFormat::Bgra8UnormSrgb,
         None,
     );
@@ -148,12 +146,12 @@ fn main() {
                         height: new_size.height,
                         depth: 1,
                     };
-                    let device = &pixels.context().device;
-                    scaling_renderer_texture = device
+                    scaling_renderer_texture = pixels
+                        .device()
                         .create_texture(&texture_descriptor)
                         .create_default_view();
                     glow_post_process.resize(
-                        &device,
+                        pixels.device(),
                         &scaling_renderer_texture,
                         new_size.width,
                         new_size.height,
