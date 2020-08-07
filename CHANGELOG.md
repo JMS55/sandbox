@@ -1,4 +1,8 @@
 # Unreleased
+### Gameplay
+* Added a UI
+### Misc
+* Performance improvements when no particles are glowing
 ### Bugfixes
 * Cryotheum coldsnap now properly triggers
 

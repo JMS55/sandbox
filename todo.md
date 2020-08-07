@@ -1,19 +1,20 @@
 ## Immediate Todo
-1. Visualize axis lock controls, particle placement, paused gameplay, etc
-2. FPS display
-3. GUI (Radial menu to select particles?)
-4. Save/Load simulations with files
-5. MISX package
+1. HDPI handling (font and ui size)
+2. Clean up main.rs - Move things into separate functions/files, add comments
 
 ## Later Todo
 1. Make particles move left/right randomly when they can do either
-2. Fix Electricity getting stuck with 1 particle of water in mid-air
+2. Fix 2 Electricity getting stuck with 1 particle of water in mid-air
 3. Make Fire not spread so fast when starting from the top/left
-
+---
 4. Update to flatpak to 20.08 and remove Cargo.toml hacks
 5. Add back support for wayland when less buggy (missing virtual keycodes, slow input events infinitely triggering, buggy fullscreen toggling on gnome, buggy decorations)
 6. Replace heap_array.rs with 'placement new' when it gets added to rust
-7. WASM
+---
+7. Save/Load simulations with files
+8. MISX package
+9. Mobile linux
+10. WASM
 
 ## Release Procedure
 1. Bump Cargo.toml version

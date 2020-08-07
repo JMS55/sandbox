@@ -173,7 +173,9 @@ impl Sandbox {
         }
     }
 
-    pub fn render(&mut self, frame: &mut [u8]) {
+    pub fn render(&mut self, frame: &mut [u8]) -> bool {
+        let mut has_glow = false;
+
         frame.copy_from_slice(&*self.background);
 
         let noise = self.noise_queue_receiver.recv().ok();
@@ -229,13 +231,20 @@ impl Sandbox {
                     frame[frame_index] = color.0;
                     frame[frame_index + 1] = color.1;
                     frame[frame_index + 2] = color.2;
-                    frame[frame_index + 3] = if particle.is_glowing() { 0 } else { 255 };
+                    frame[frame_index + 3] = if particle.is_glowing() {
+                        has_glow = true;
+                        0
+                    } else {
+                        255
+                    };
                 }
 
                 frame_index += 4;
                 noise_index += 1;
             }
         }
+
+        has_glow
     }
 }
 

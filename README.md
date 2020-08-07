@@ -11,10 +11,10 @@
 * <kbd>-</kbd> Decreases brush size
 * <kbd>Shift</kbd> Horizontal axis lock
 * <kbd>Ctrl</kbd> Vertical axis lock
-* Axis lock - When held, it creates a straight line between where you first started holding it, and the current mouse location
-    * Not enabled for Electricity
-### Particle Types
-* <kbd>D</kbd> Eraser tool
+    * Axis lock - When held, it creates a straight line between where you first started holding it, and the current mouse location (Not enabled for Electricity)
+### Particle Type Selection
+* Scroll the particle type selection buttons with a mouse wheel or touchpad
+* <kbd>D</kbd> Delete tool
 * <kbd>S</kbd> Sand
 * <kbd>W</kbd> Water
 * <kbd>A</kbd> Acid
@@ -32,6 +32,8 @@
 ### Misc
 * <kbd>Esc</kbd> Quits the game
 * <kbd>Enter</kbd> Toggles fullscreen
-* <kbd>Backspace</kbd> Clears the sandbox
+* <kbd>Backspace</kbd> Empty the sandbox
 * <kbd>Space</kbd> Toggles pause
 * <kbd>.</kbd> Advances one frame when paused
+* <kbd>1</kbd> Toggle UI on/off
+* <kbd>2</kbd> Toggle FPS display on/off
