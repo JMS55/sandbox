@@ -541,7 +541,7 @@ fn main() {
                                 particle_selector_button(
                                     im_str!("Cryotheum"),
                                     Some(ParticleType::Cryotheum),
-                                    [12.0 / 255.0, 193.0 / 255.0, 255.0 / 255.0],
+                                    [12.0 / 255.0, 193.0 / 255.0, 1.0],
                                     false,
                                 );
                                 particle_selector_button(
@@ -553,7 +553,7 @@ fn main() {
                                 particle_selector_button(
                                     im_str!("Electricity"),
                                     Some(ParticleType::Electricity),
-                                    [255.0 / 255.0, 244.0 / 255.0, 49.0 / 255.0],
+                                    [1.0, 244.0 / 255.0, 49.0 / 255.0],
                                     false,
                                 );
                                 particle_selector_button(
@@ -565,7 +565,7 @@ fn main() {
                                 particle_selector_button(
                                     im_str!("Fire"),
                                     Some(ParticleType::Fire),
-                                    [255.0 / 255.0, 151.0 / 255.0, 20.0 / 255.0],
+                                    [1.0, 151.0 / 255.0, 20.0 / 255.0],
                                     false,
                                 );
                                 particle_selector_button(
