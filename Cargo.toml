@@ -6,7 +6,7 @@ edition = "2018"
 [dependencies]
 pixels = { git = "https://github.com/parasyte/pixels", branch = "wip/render-api-v2" }
 imgui = "0.4"
-imgui-wgpu = { git = "https://github.com/JMS55/imgui-wgpu-rs" }
+imgui-wgpu = { git = "https://github.com/Yatekii/imgui-wgpu-rs" }
 imgui-winit-support = "0.4"
 winit = "0.22"
 rand = "0.7"

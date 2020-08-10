@@ -74,15 +74,15 @@ fn main() {
 
     // Setup UI
     let mut imgui = Context::create();
-    imgui.io_mut().font_global_scale = 1.0;
+    let mut imgui_platform = WinitPlatform::init(&mut imgui);
+    imgui_platform.attach_window(imgui.io_mut(), &window, HiDpiMode::Default);
+    imgui.io_mut().font_global_scale = (1.0 / imgui_platform.hidpi_factor()) as f32;
     imgui.fonts().add_font(&[FontSource::TtfData {
         data: include_bytes!("../Inter-Medium.otf"),
-        size_pixels: 16.0,
+        size_pixels: (16.0 * imgui_platform.hidpi_factor()) as f32,
         config: None,
     }]);
     imgui.set_ini_filename(None);
-    let mut imgui_platform = WinitPlatform::init(&mut imgui);
-    imgui_platform.attach_window(imgui.io_mut(), &window, HiDpiMode::Default);
     let mut imgui_renderer = Renderer::new(
         &mut imgui,
         pixels.device(),
@@ -156,6 +156,15 @@ fn main() {
                         new_size.width,
                         new_size.height,
                     );
+                }
+                WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                    imgui.io_mut().font_global_scale = (1.0 / scale_factor) as f32;
+                    imgui.fonts().clear();
+                    imgui.fonts().add_font(&[FontSource::TtfData {
+                        data: include_bytes!("../Inter-Medium.otf"),
+                        size_pixels: (16.0 * scale_factor) as f32,
+                        config: None,
+                    }]);
                 }
 
                 // Mouse events

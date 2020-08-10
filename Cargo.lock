@@ -499,7 +499,7 @@ dependencies = [
 [[package]]
 name = "imgui-wgpu"
 version = "0.7.0"
-source = "git+https://github.com/JMS55/imgui-wgpu-rs#eaa3d23d1cff1ee2d10224bebd127b89cf08172f"
+source = "git+https://github.com/Yatekii/imgui-wgpu-rs#dda2a7e3c2c066f104cd10dac3b5ace5cac4b20a"
 dependencies = [
  "imgui",
  "log",
