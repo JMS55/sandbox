@@ -159,7 +159,7 @@ fn main() {
                 }
                 WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                     imgui.io_mut().font_global_scale = (1.0 / scale_factor) as f32;
-                    imgui.fonts().clear();
+                    imgui.fonts().clear_input_data();
                     imgui.fonts().add_font(&[FontSource::TtfData {
                         data: include_bytes!("../Inter-Medium.otf"),
                         size_pixels: (16.0 * scale_factor) as f32,
@@ -494,7 +494,8 @@ fn main() {
                                 style2.pop(&ui);
                             };
 
-                        let window_width = window.inner_size().width as f32;
+                        let window_width =
+                            window.inner_size().width as f32 / window.scale_factor() as f32;
                         Window::new(im_str!("particle_selection_window"))
                             .position([107.0, 10.0], Condition::Always)
                             .size([window_width - 170.0, 55.0], Condition::Always)
@@ -635,7 +636,9 @@ fn main() {
                     }
 
                     if should_display_fps {
-                        let y = window.inner_size().height as f32 - 26.0;
+                        let height =
+                            window.inner_size().height as f32 / window.scale_factor() as f32;
+                        let y = height - 26.0;
                         let fps =
                             recent_frames.len() as f64 / recent_frames[0].elapsed().as_secs_f64();
                         Window::new(im_str!("fps_window"))
