@@ -679,43 +679,35 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
     }
 
     // Replace adjacent flammable particles with fire
-    if y != SANDBOX_HEIGHT - 1 && sandbox.rng.gen_bool(0.5) {
+    if y != SANDBOX_HEIGHT - 1 {
         if let Some(particle) = &sandbox[x][y + 1] {
-            if particle.is_flammable() {
+            if particle.is_flammable() && sandbox.rng.gen_bool(0.35) {
                 sandbox[x][y] = None;
-                if sandbox.rng.gen_bool(0.70) {
-                    sandbox[x][y + 1] = Some(Particle::new(ParticleType::Fire));
-                }
+                sandbox[x][y + 1] = Some(Particle::new(ParticleType::Fire));
             }
         }
     }
     if x != SANDBOX_WIDTH - 1 {
         if let Some(particle) = &sandbox[x + 1][y] {
-            if particle.is_flammable() {
+            if particle.is_flammable() && sandbox.rng.gen_bool(0.35) {
                 sandbox[x][y] = None;
-                if sandbox.rng.gen_bool(0.70) {
-                    sandbox[x + 1][y] = Some(Particle::new(ParticleType::Fire));
-                }
+                sandbox[x + 1][y] = Some(Particle::new(ParticleType::Fire));
             }
         }
     }
-    if y != 0 && sandbox.rng.gen_bool(0.5) {
+    if y != 0 {
         if let Some(particle) = &sandbox[x][y - 1] {
-            if particle.is_flammable() {
+            if particle.is_flammable() && sandbox.rng.gen_bool(0.35) {
                 sandbox[x][y] = None;
-                if sandbox.rng.gen_bool(0.70) {
-                    sandbox[x][y - 1] = Some(Particle::new(ParticleType::Fire));
-                }
+                sandbox[x][y - 1] = Some(Particle::new(ParticleType::Fire));
             }
         }
     }
     if x != 0 {
         if let Some(particle) = &sandbox[x - 1][y] {
-            if particle.is_flammable() {
+            if particle.is_flammable() && sandbox.rng.gen_bool(0.35) {
                 sandbox[x][y] = None;
-                if sandbox.rng.gen_bool(0.70) {
-                    sandbox[x - 1][y] = Some(Particle::new(ParticleType::Fire));
-                }
+                sandbox[x - 1][y] = Some(Particle::new(ParticleType::Fire));
             }
         }
     }

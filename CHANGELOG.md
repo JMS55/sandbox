@@ -1,6 +1,7 @@
 # Unreleased
 ### Gameplay
 * Added a UI
+* Tweaked Fire spread
 ### Misc
 * Performance improvements when no particles are glowing
 ### Bugfixes
