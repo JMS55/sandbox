@@ -510,11 +510,10 @@ fn main() {
                                 style2.pop(&ui);
                             };
 
-                        let window_width =
-                            window.inner_size().width as f32 / window.scale_factor() as f32;
                         Window::new(im_str!("particle_selection_window"))
+                            .always_auto_resize(true)
                             .position([107.0, 10.0], Condition::Always)
-                            .size([window_width - 170.0, 67.0], Condition::Always)
+                            .size([0.0, 67.0], Condition::Always)
                             .title_bar(false)
                             .draw_background(false)
                             .movable(false)
@@ -617,7 +616,7 @@ fn main() {
                             .build(&ui, || {
                                 ui.set_cursor_pos([0.0, 3.0]);
                                 ui.checkbox(im_str!("Paused"), &mut paused);
-                                ui.set_cursor_pos([97.0, 0.0]);
+                                ui.set_cursor_pos([83.0, 0.0]);
                                 if ui.button(im_str!("Empty Sandbox"), [125.0, 27.0]) {
                                     was_paused = paused;
                                     paused = true;
@@ -646,7 +645,7 @@ fn main() {
                                     StyleVar::WindowPadding([0.0, 0.0]),
                                     StyleVar::WindowMinSize([1.0, 1.0]),
                                 ]));
-                                ui.set_cursor_pos([232.0, 3.0]);
+                                ui.set_cursor_pos([218.0, 3.0]);
                                 Slider::new(im_str!("Brush Size"), 1..=10)
                                     .build(&ui, &mut brush_size);
                             });
