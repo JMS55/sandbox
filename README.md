@@ -13,7 +13,6 @@
 * <kbd>Ctrl</kbd> Vertical axis lock
     * Axis lock - When held, it creates a straight line between where you first started holding it, and the current mouse location (Not enabled for Electricity)
 ### Particle Type Selection
-* Scroll the particle type selection buttons with a mouse wheel or touchpad
 * <kbd>D</kbd> Delete tool
 * <kbd>S</kbd> Sand
 * <kbd>W</kbd> Water
@@ -30,10 +29,10 @@
 * <kbd>G</kbd> Glitch
 * There are some particles that can't be directly placed, and aren't listed here. Play around, and figure out how to create them!
 ### Misc
-* <kbd>Esc</kbd> Quits the game
-* <kbd>Enter</kbd> Toggles fullscreen
-* <kbd>Backspace</kbd> Empty the sandbox
 * <kbd>Space</kbd> Toggles pause
-* <kbd>.</kbd> Advances one frame when paused
+* <kbd>Enter</kbd> Toggles fullscreen
+* <kbd>Esc</kbd> Quits the game
+* <kbd>Backspace</kbd> Empty the sandbox
 * <kbd>1</kbd> Toggle UI on/off
 * <kbd>2</kbd> Toggle FPS display on/off
+* <kbd>.</kbd> Advances one frame when paused

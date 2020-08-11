@@ -406,28 +406,44 @@ fn main() {
                     }
 
                     let ui = imgui.frame();
-                    let foreground_color = [
-                        (143.0 / 255.0f32).powf(2.2),
-                        (240.0 / 255.0f32).powf(2.2),
-                        (164.0 / 255.0f32).powf(2.2),
-                        0.9,
+                    let foreground_color1 = [
+                        (230.0 / 255.0f32).powf(2.2),
+                        (230.0 / 255.0f32).powf(2.2),
+                        (230.0 / 255.0f32).powf(2.2),
+                        0.95,
                     ];
-                    let background_color = [
-                        (86.0 / 255.0f32).powf(2.2),
-                        (58.0 / 255.0f32).powf(2.2),
-                        (32.0 / 255.0f32).powf(2.2),
-                        0.9,
+                    let background_color1 = [
+                        (92.0 / 255.0f32).powf(2.2),
+                        (64.0 / 255.0f32).powf(2.2),
+                        (38.0 / 255.0f32).powf(2.2),
+                        0.95,
+                    ];
+                    let foreground_color2 = [
+                        (80.0 / 255.0f32).powf(2.2),
+                        (80.0 / 255.0f32).powf(2.2),
+                        (80.0 / 255.0f32).powf(2.2),
+                        0.95,
+                    ];
+                    let background_color2 = [
+                        (60.0 / 255.0f32).powf(2.2),
+                        (60.0 / 255.0f32).powf(2.2),
+                        (60.0 / 255.0f32).powf(2.2),
+                        0.95,
                     ];
                     let style1 = ui.push_style_colors(&[
-                        (StyleColor::CheckMark, foreground_color),
-                        (StyleColor::SliderGrab, foreground_color),
-                        (StyleColor::SliderGrabActive, foreground_color),
-                        (StyleColor::FrameBg, background_color),
-                        (StyleColor::FrameBgHovered, background_color),
-                        (StyleColor::FrameBgActive, background_color),
-                        (StyleColor::Button, background_color),
-                        (StyleColor::ButtonHovered, background_color),
-                        (StyleColor::ButtonActive, background_color),
+                        (StyleColor::Button, background_color1),
+                        (StyleColor::ButtonActive, background_color1),
+                        (StyleColor::ButtonHovered, background_color1),
+                        (StyleColor::CheckMark, foreground_color1),
+                        (StyleColor::FrameBg, background_color1),
+                        (StyleColor::FrameBgActive, background_color1),
+                        (StyleColor::FrameBgHovered, background_color1),
+                        (StyleColor::ScrollbarBg, background_color2),
+                        (StyleColor::ScrollbarGrab, foreground_color2),
+                        (StyleColor::ScrollbarGrabActive, foreground_color2),
+                        (StyleColor::ScrollbarGrabHovered, foreground_color2),
+                        (StyleColor::SliderGrab, foreground_color1),
+                        (StyleColor::SliderGrabActive, foreground_color1),
                     ]);
                     let mut style2 = Some(ui.push_style_vars(&[
                         StyleVar::FrameRounding(4.0),
@@ -457,16 +473,16 @@ fn main() {
                                     if ptype == selected_particle { 0.0 } else { 8.0 },
                                 ]);
                                 widget_x += if ptype == selected_particle {
-                                    110.0
+                                    107.0
                                 } else {
-                                    95.0
+                                    92.0
                                 };
 
                                 let button_color = [
                                     color[0].powf(2.2),
                                     color[1].powf(2.2),
                                     color[2].powf(2.2),
-                                    0.9,
+                                    0.95,
                                 ];
                                 let style1 = ui.push_style_colors(&[
                                     (StyleColor::Button, button_color),
@@ -498,11 +514,12 @@ fn main() {
                             window.inner_size().width as f32 / window.scale_factor() as f32;
                         Window::new(im_str!("particle_selection_window"))
                             .position([107.0, 10.0], Condition::Always)
-                            .size([window_width - 170.0, 55.0], Condition::Always)
+                            .size([window_width - 170.0, 67.0], Condition::Always)
                             .title_bar(false)
                             .draw_background(false)
                             .movable(false)
                             .resizable(false)
+                            .horizontal_scrollbar(true)
                             .build(&ui, || {
                                 particle_selector_button(
                                     im_str!("Delete Tool"),
@@ -592,7 +609,7 @@ fn main() {
 
                         Window::new(im_str!("second_row_window"))
                             .always_auto_resize(true)
-                            .position([10.0, 81.0], Condition::Always)
+                            .position([10.0, 88.0], Condition::Always)
                             .title_bar(false)
                             .draw_background(false)
                             .movable(false)
@@ -600,7 +617,7 @@ fn main() {
                             .build(&ui, || {
                                 ui.set_cursor_pos([0.0, 3.0]);
                                 ui.checkbox(im_str!("Paused"), &mut paused);
-                                ui.set_cursor_pos([83.0, 0.0]);
+                                ui.set_cursor_pos([97.0, 0.0]);
                                 if ui.button(im_str!("Empty Sandbox"), [125.0, 27.0]) {
                                     was_paused = paused;
                                     paused = true;
@@ -629,7 +646,7 @@ fn main() {
                                     StyleVar::WindowPadding([0.0, 0.0]),
                                     StyleVar::WindowMinSize([1.0, 1.0]),
                                 ]));
-                                ui.set_cursor_pos([218.0, 3.0]);
+                                ui.set_cursor_pos([232.0, 3.0]);
                                 Slider::new(im_str!("Brush Size"), 1..=10)
                                     .build(&ui, &mut brush_size);
                             });

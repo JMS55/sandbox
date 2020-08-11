@@ -1,7 +1,6 @@
 ## Immediate Todo
-1. Add scrollbar, and investigate weird scrolling behavior (shift alters motion?)
-    * Clicking a button scrolls to it
-2. Clean up main.rs - Move things into separate functions/files, add comments
+1. Fix window sizes and spacing when scrollbar hidden
+3. Clean up main.rs - Move things into separate functions/files, add comments
 
 ## Later Todo
 1. Make particles move left/right randomly when they can do either
