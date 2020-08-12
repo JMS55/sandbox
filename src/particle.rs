@@ -352,7 +352,7 @@ impl Particle {
             ParticleType::Life => false,
             ParticleType::SuperLife => false,
             ParticleType::Blood => false,
-            ParticleType::Smoke => false,
+            ParticleType::Smoke => true,
             ParticleType::Fire => true,
             ParticleType::Mirror => false,
             ParticleType::Steam => false,

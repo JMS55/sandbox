@@ -4,6 +4,7 @@
 * Tweaked Fire spread
 ### Misc
 * Performance improvements when no particles are glowing
+* Smoke now looks smokier
 ### Bugfixes
 * Cryotheum coldsnap now properly triggers
 
