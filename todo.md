@@ -1,5 +1,7 @@
 ## Immediate Todo
-1. Clean up main.rs - Move things into separate functions/files, add comments
+1. Redo layout
+    * Fix scrollbar being weird
+2. Clean up main.rs - Move things into separate functions/files, add comments
 
 ## Later Todo
 1. Make particles move left/right randomly when they can do either

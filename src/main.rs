@@ -78,7 +78,7 @@ fn main() {
     imgui_platform.attach_window(imgui.io_mut(), &window, HiDpiMode::Default);
     imgui.io_mut().font_global_scale = (1.0 / imgui_platform.hidpi_factor()) as f32;
     imgui.fonts().add_font(&[FontSource::TtfData {
-        data: include_bytes!("../Inter-Medium.otf"),
+        data: include_bytes!("../Inter-SemiBold.otf"),
         size_pixels: (16.0 * imgui_platform.hidpi_factor()) as f32,
         config: None,
     }]);
@@ -161,7 +161,7 @@ fn main() {
                     imgui.io_mut().font_global_scale = (1.0 / scale_factor) as f32;
                     imgui.fonts().clear_input_data();
                     imgui.fonts().add_font(&[FontSource::TtfData {
-                        data: include_bytes!("../Inter-Medium.otf"),
+                        data: include_bytes!("../Inter-SemiBold.otf"),
                         size_pixels: (16.0 * scale_factor) as f32,
                         config: None,
                     }]);
@@ -447,8 +447,9 @@ fn main() {
                     ]);
                     let mut style2 = Some(ui.push_style_vars(&[
                         StyleVar::FrameRounding(4.0),
-                        StyleVar::WindowPadding([0.0, 0.0]),
+                        StyleVar::WindowBorderSize(0.0),
                         StyleVar::WindowMinSize([1.0, 1.0]),
+                        StyleVar::WindowPadding([0.0, 0.0]),
                     ]));
 
                     Window::new(im_str!("toggle_ui_window"))
@@ -512,8 +513,8 @@ fn main() {
 
                         Window::new(im_str!("particle_selection_window"))
                             .always_auto_resize(true)
-                            .position([107.0, 10.0], Condition::Always)
-                            .size([0.0, 67.0], Condition::Always)
+                            .content_size([1296.0 + 108.0, 55.0])
+                            .position([108.0, 10.0], Condition::Always)
                             .title_bar(false)
                             .draw_background(false)
                             .movable(false)
@@ -606,17 +607,22 @@ fn main() {
                                 );
                             });
 
+                        let y = if window.inner_size().width >= 1296 {
+                            75.0
+                        } else {
+                            87.0
+                        };
                         Window::new(im_str!("second_row_window"))
                             .always_auto_resize(true)
-                            .position([10.0, 88.0], Condition::Always)
+                            .position([10.0, y], Condition::Always)
                             .title_bar(false)
                             .draw_background(false)
                             .movable(false)
                             .resizable(false)
                             .build(&ui, || {
-                                ui.set_cursor_pos([0.0, 3.0]);
+                                ui.set_cursor_pos([0.0, 4.0]);
                                 ui.checkbox(im_str!("Paused"), &mut paused);
-                                ui.set_cursor_pos([83.0, 0.0]);
+                                ui.set_cursor_pos([84.0, 1.0]);
                                 if ui.button(im_str!("Empty Sandbox"), [125.0, 27.0]) {
                                     was_paused = paused;
                                     paused = true;
@@ -645,7 +651,7 @@ fn main() {
                                     StyleVar::WindowPadding([0.0, 0.0]),
                                     StyleVar::WindowMinSize([1.0, 1.0]),
                                 ]));
-                                ui.set_cursor_pos([218.0, 3.0]);
+                                ui.set_cursor_pos([219.0, 4.0]);
                                 Slider::new(im_str!("Brush Size"), 1..=10)
                                     .build(&ui, &mut brush_size);
                             });
