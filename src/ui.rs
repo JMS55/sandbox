@@ -104,6 +104,58 @@ impl UI {
         render_texture: &TextureView,
     ) {
         let ui = self.imgui.frame();
+
+        // Function to create particle selection buttons
+        let mut button_x = 0.0;
+        let mut particle_selector_button =
+            |text: &ImStr, ptype: Option<ParticleType>, color: [f32; 3], white_text: bool| {
+                ui.set_cursor_pos([
+                    button_x,
+                    if ptype == *selected_particle {
+                        0.0
+                    } else {
+                        8.0
+                    },
+                ]);
+                button_x += if ptype == *selected_particle {
+                    108.0
+                } else {
+                    93.0
+                };
+
+                let button_color = [
+                    color[0].powf(2.2),
+                    color[1].powf(2.2),
+                    color[2].powf(2.2),
+                    0.95,
+                ];
+                let style1 = ui.push_style_colors(&[
+                    (StyleColor::Button, button_color),
+                    (StyleColor::ButtonHovered, button_color),
+                    (StyleColor::ButtonActive, button_color),
+                    (
+                        StyleColor::Text,
+                        if white_text {
+                            [0.8, 0.8, 0.8, 1.0]
+                        } else {
+                            [0.0, 0.0, 0.0, 1.0]
+                        },
+                    ),
+                ]);
+                let style2 = ui.push_style_var(StyleVar::FrameRounding(6.0));
+                let size = if ptype == *selected_particle {
+                    [100.0, 55.0]
+                } else {
+                    [85.0, 40.0]
+                };
+                if ui.button(text, size) {
+                    *selected_particle = ptype;
+                }
+                style1.pop(&ui);
+                style2.pop(&ui);
+            };
+
+        // Setup styles
         let foreground_color1 = [
             (230.0 / 255.0f32).powf(2.2),
             (230.0 / 255.0f32).powf(2.2),
@@ -150,6 +202,7 @@ impl UI {
             StyleVar::WindowPadding([0.0, 0.0]),
         ]));
 
+        // Draw toggle UI checkbox
         let should_display_ui = &mut self.should_display_ui;
         ImWindow::new(im_str!("toggle_ui_window"))
             .position([10.0, 27.0], Condition::Always)
@@ -162,55 +215,7 @@ impl UI {
             });
 
         if self.should_display_ui {
-            let mut widget_x = 0.0;
-            let mut particle_selector_button =
-                |text: &ImStr, ptype: Option<ParticleType>, color: [f32; 3], white_text: bool| {
-                    ui.set_cursor_pos([
-                        widget_x,
-                        if ptype == *selected_particle {
-                            0.0
-                        } else {
-                            8.0
-                        },
-                    ]);
-                    widget_x += if ptype == *selected_particle {
-                        108.0
-                    } else {
-                        93.0
-                    };
-
-                    let button_color = [
-                        color[0].powf(2.2),
-                        color[1].powf(2.2),
-                        color[2].powf(2.2),
-                        0.95,
-                    ];
-                    let style1 = ui.push_style_colors(&[
-                        (StyleColor::Button, button_color),
-                        (StyleColor::ButtonHovered, button_color),
-                        (StyleColor::ButtonActive, button_color),
-                        (
-                            StyleColor::Text,
-                            if white_text {
-                                [0.8, 0.8, 0.8, 1.0]
-                            } else {
-                                [0.0, 0.0, 0.0, 1.0]
-                            },
-                        ),
-                    ]);
-                    let style2 = ui.push_style_var(StyleVar::FrameRounding(6.0));
-                    let size = if ptype == *selected_particle {
-                        [100.0, 55.0]
-                    } else {
-                        [85.0, 40.0]
-                    };
-                    if ui.button(text, size) {
-                        *selected_particle = ptype;
-                    }
-                    style1.pop(&ui);
-                    style2.pop(&ui);
-                };
-
+            // Draw particle selection buttons
             ImWindow::new(im_str!("particle_selection_window"))
                 .always_auto_resize(true)
                 .content_size([1416.0, 55.0])
@@ -316,14 +321,17 @@ impl UI {
                 .movable(false)
                 .resizable(false)
                 .build(&ui, || {
+                    // Draw the pause game checkbox
                     ui.set_cursor_pos([0.0, 4.0]);
                     ui.checkbox(im_str!("Paused"), game_paused);
+                    // Draw the emoty sandbox button
                     ui.set_cursor_pos([84.0, 1.0]);
                     if ui.button(im_str!("Empty Sandbox"), [125.0, 27.0]) {
                         *was_paused_before_popup = *game_paused;
                         *game_paused = true;
                         ui.open_popup(im_str!("empty_sandbox_popup"));
                     }
+                    // Draw the empty sandbox popup
                     style2.take().unwrap().pop(&ui);
                     ui.popup_modal(im_str!("empty_sandbox_popup"))
                         .title_bar(false)
@@ -347,11 +355,13 @@ impl UI {
                         StyleVar::WindowPadding([0.0, 0.0]),
                         StyleVar::WindowMinSize([1.0, 1.0]),
                     ]));
+                    // Draw the brush size slider
                     ui.set_cursor_pos([219.0, 4.0]);
                     Slider::new(im_str!("Brush Size"), 1..=10).build(&ui, brush_size);
                 });
         }
 
+        // Draw the FPS counter
         if self.should_display_fps {
             let height = window.inner_size().height as f32 / window.scale_factor() as f32;
             let y = height - 26.0;
@@ -371,6 +381,7 @@ impl UI {
         style1.pop(&ui);
         style2.unwrap().pop(&ui);
 
+        // Render
         self.imgui_platform.prepare_render(&ui, window);
         self.imgui_renderer
             .render(ui.render(), device, encoder, render_texture)
