@@ -474,9 +474,9 @@ fn main() {
                                     if ptype == selected_particle { 0.0 } else { 8.0 },
                                 ]);
                                 widget_x += if ptype == selected_particle {
-                                    107.0
+                                    108.0
                                 } else {
-                                    92.0
+                                    93.0
                                 };
 
                                 let button_color = [
@@ -513,7 +513,7 @@ fn main() {
 
                         Window::new(im_str!("particle_selection_window"))
                             .always_auto_resize(true)
-                            .content_size([1296.0 + 108.0, 55.0])
+                            .content_size([1416.0, 55.0])
                             .position([108.0, 10.0], Condition::Always)
                             .title_bar(false)
                             .draw_background(false)
@@ -607,10 +607,10 @@ fn main() {
                                 );
                             });
 
-                        let y = if window.inner_size().width >= 1296 {
-                            75.0
-                        } else {
+                        let y = if window.inner_size().width < 1416 {
                             87.0
+                        } else {
+                            75.0
                         };
                         Window::new(im_str!("second_row_window"))
                             .always_auto_resize(true)
