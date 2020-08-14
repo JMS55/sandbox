@@ -46,30 +46,8 @@ fn main() {
             })
             .build()
             .expect("Failed to setup rendering");
-    let mut texture_descriptor = TextureDescriptor {
-        label: None,
-        size: Extent3d {
-            width: surface_size.width,
-            height: surface_size.height,
-            depth: 1,
-        },
-        array_layer_count: 1,
-        mip_level_count: 1,
-        sample_count: 1,
-        dimension: TextureDimension::D2,
-        format: TextureFormat::Bgra8UnormSrgb,
-        usage: TextureUsage::SAMPLED | TextureUsage::OUTPUT_ATTACHMENT,
-    };
-    let mut scaling_renderer_texture = pixels
-        .device()
-        .create_texture(&texture_descriptor)
-        .create_default_view();
-    let mut glow_post_process = GlowPostProcess::new(
-        pixels.device(),
-        &scaling_renderer_texture,
-        surface_size.width,
-        surface_size.height,
-    );
+    let mut glow_post_process =
+        GlowPostProcess::new(pixels.device(), surface_size.width, surface_size.height);
     let mut ui = UI::new(&window, pixels.device(), pixels.queue());
 
     // Simulation state
@@ -102,23 +80,9 @@ fn main() {
                 // Window events
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::Resized(new_size) => {
-                    last_resize = Some(Instant::now());
                     pixels.resize(new_size.width, new_size.height);
-                    texture_descriptor.size = Extent3d {
-                        width: new_size.width,
-                        height: new_size.height,
-                        depth: 1,
-                    };
-                    scaling_renderer_texture = pixels
-                        .device()
-                        .create_texture(&texture_descriptor)
-                        .create_default_view();
-                    glow_post_process.resize(
-                        pixels.device(),
-                        &scaling_renderer_texture,
-                        new_size.width,
-                        new_size.height,
-                    );
+                    glow_post_process.resize(pixels.device(), new_size.width, new_size.height);
+                    last_resize = Some(Instant::now());
                 }
                 WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                     ui.set_scale_factor(*scale_factor);
@@ -354,7 +318,7 @@ fn main() {
                 let _ = pixels.render_with(|encoder, render_texture, context| {
                     let scaling_renderer = &context.scaling_renderer;
                     if has_glow {
-                        scaling_renderer.render(encoder, &scaling_renderer_texture);
+                        scaling_renderer.render(encoder, &glow_post_process.texture1);
                         glow_post_process.render(encoder, render_texture);
                     } else {
                         scaling_renderer.render(encoder, render_texture);
