@@ -122,8 +122,8 @@ impl GlowPostProcess {
             &bind_group_layout3,
         );
 
-        let rectangle_shader =
-            device.create_shader_module(include_spv!("../shaders/rectangle.spv"));
+        let fullscreen_shader =
+            device.create_shader_module(include_spv!("../shaders/fullscreen.spv"));
         let copy_glowing_shader =
             device.create_shader_module(include_spv!("../shaders/copy_glowing.spv"));
         let vertical_blur_shader =
@@ -144,7 +144,7 @@ impl GlowPostProcess {
         let copy_glowing_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             layout: &pipeline_layout1,
             vertex_stage: ProgrammableStageDescriptor {
-                module: &rectangle_shader,
+                module: &fullscreen_shader,
                 entry_point: "main",
             },
             fragment_stage: Some(ProgrammableStageDescriptor {
@@ -177,7 +177,7 @@ impl GlowPostProcess {
         let vertical_blur_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             layout: &pipeline_layout2,
             vertex_stage: ProgrammableStageDescriptor {
-                module: &rectangle_shader,
+                module: &fullscreen_shader,
                 entry_point: "main",
             },
             fragment_stage: Some(ProgrammableStageDescriptor {
@@ -210,7 +210,7 @@ impl GlowPostProcess {
         let horizontal_blur_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             layout: &pipeline_layout2,
             vertex_stage: ProgrammableStageDescriptor {
-                module: &rectangle_shader,
+                module: &fullscreen_shader,
                 entry_point: "main",
             },
             fragment_stage: Some(ProgrammableStageDescriptor {
@@ -243,7 +243,7 @@ impl GlowPostProcess {
         let combine_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             layout: &pipeline_layout3,
             vertex_stage: ProgrammableStageDescriptor {
-                module: &rectangle_shader,
+                module: &fullscreen_shader,
                 entry_point: "main",
             },
             fragment_stage: Some(ProgrammableStageDescriptor {
