@@ -1,5 +1,7 @@
 use pixels::include_spv;
 use pixels::wgpu::{self, *};
+use std::mem::size_of;
+use std::slice;
 
 pub struct GlowPostProcess {
     pub texture1: TextureView,
@@ -419,19 +421,15 @@ fn create_resources(
     let texture3 = device
         .create_texture(&texture_descriptor)
         .create_default_view();
-    let first_half = texture_width.to_ne_bytes();
-    let second_half = texture_height.to_ne_bytes();
     let texture_size_buffer = device.create_buffer_with_data(
-        &[
-            first_half[0],
-            first_half[1],
-            first_half[2],
-            first_half[3],
-            second_half[0],
-            second_half[1],
-            second_half[2],
-            second_half[3],
-        ],
+        unsafe {
+            slice::from_raw_parts(
+                [texture_width as f32, texture_height as f32]
+                    .as_ptr()
+                    .cast(),
+                size_of::<f32>() * 2,
+            )
+        },
         wgpu::BufferUsage::UNIFORM,
     );
 

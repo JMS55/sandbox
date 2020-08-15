@@ -3,7 +3,7 @@
 * Added a UI
 * Tweaked Fire spread
 ### Misc
-* Performance improvements when no particles are glowing
+* Performance improvements for rendering
 * Smoke now looks smokier
 ### Bugfixes
 * Cryotheum coldsnap now properly triggers
