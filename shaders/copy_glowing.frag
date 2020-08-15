@@ -7,7 +7,5 @@ layout(location = 0) out vec4 color;
 
 void main() {
     color = texture(sampler2D(input_texture, texture_sampler), texture_coordinates);
-    if (color.a != 0.0) {
-        color = vec4(0.0, 0.0, 0.0, 1.0);
-    }
+    color = mix(vec4(0.0, 0.0, 0.0, 1.0), color, step(color.a, 0.0));
 }

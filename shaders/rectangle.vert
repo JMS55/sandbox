@@ -2,27 +2,8 @@
 
 layout(location = 0) out vec2 texture_coordinates;
 
-const vec2 positions[6] = vec2[6](
-    vec2(-1.0, -1.0),
-    vec2(1.0, -1.0),
-    vec2(-1.0, 1.0),
-
-    vec2(-1.0, 1.0),
-    vec2(1.0, -1.0),
-    vec2(1.0, 1.0)
-);
-
-const vec2 texture_coordinates_list[6] = vec2[6](
-    vec2(0.0, 1.0),
-    vec2(1.0, 1.0),
-    vec2(0.0, 0.0),
-
-    vec2(0.0, 0.0),
-    vec2(1.0, 1.0),
-    vec2(1.0, 0.0)
-);
-
 void main() {
-    texture_coordinates = texture_coordinates_list[gl_VertexIndex];
-    gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
+    texture_coordinates.x = (gl_VertexIndex == 2) ? 2.0 : 0.0;
+    texture_coordinates.y = (gl_VertexIndex == 1) ? 2.0 : 0.0;
+    gl_Position = vec4(texture_coordinates * vec2(2.0, -2.0) + vec2(-1.0, 1.0), 1.0, 1.0);
 }
