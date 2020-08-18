@@ -1,9 +1,12 @@
 use crate::particle::{Particle, ParticleType};
 use crate::sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
+use puffin::profile_function;
 use rand::Rng;
 use std::ptr;
 
 pub fn move_solid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
+    profile_function!();
+
     // Move 1 down if able
     if y != SANDBOX_HEIGHT - 1 {
         if sandbox[x][y + 1].is_none() {
@@ -15,6 +18,8 @@ pub fn move_solid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
 }
 
 pub fn move_powder(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
+    profile_function!();
+
     if y != SANDBOX_HEIGHT - 1 {
         // Move 1 down if able
         if sandbox[x][y + 1].is_none() {
@@ -40,6 +45,8 @@ pub fn move_powder(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
 }
 
 pub fn move_liquid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
+    profile_function!();
+
     if y != SANDBOX_HEIGHT - 1 {
         // Move 1 down if able
         if sandbox[x][y + 1].is_none() {
@@ -79,6 +86,8 @@ pub fn move_liquid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
 }
 
 pub fn move_gas(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
+    profile_function!();
+
     if y != 0 && sandbox.rng.gen_bool(0.5) {
         // Move 1 up if able
         if sandbox[x][y - 1].is_none() {
@@ -118,6 +127,8 @@ pub fn move_gas(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
 }
 
 pub fn move_electricity(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
+    profile_function!();
+
     // Try switching with an adjacent water particle in the last direction moved
     if sandbox[x][y].unwrap().extra_data2 != 0 {
         sandbox[x][y].as_mut().unwrap().extra_data2 -= 1;
@@ -198,6 +209,8 @@ pub fn move_electricity(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, us
 }
 
 pub fn move_life(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
+    profile_function!();
+
     // Fall down if able
     if y != SANDBOX_HEIGHT - 1 {
         if sandbox[x][y + 1].is_none() {
@@ -259,6 +272,8 @@ pub fn move_life(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
 }
 
 pub fn move_super_life(sandbox: &mut Sandbox, mut x: usize, mut y: usize) -> (usize, usize) {
+    profile_function!();
+
     // Switch with an adjacent Life particle
     let mut swapped = false;
     if !swapped && y != SANDBOX_HEIGHT - 1 {
@@ -308,6 +323,8 @@ pub fn move_super_life(sandbox: &mut Sandbox, mut x: usize, mut y: usize) -> (us
 }
 
 pub fn move_fire(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
+    profile_function!();
+
     let new_position = move_gas(sandbox, x, y);
     let extra_data2 = &mut sandbox[new_position.0][new_position.1]
         .as_mut()
@@ -322,6 +339,8 @@ pub fn move_fire(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
 }
 
 pub fn update_sand(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     // When wet and temperature >= 30, dry out
     if sandbox[x][y].unwrap().extra_data1 == 1 && sandbox[x][y].unwrap().temperature >= 30 {
         sandbox[x][y].as_mut().unwrap().extra_data1 = 0;
@@ -334,6 +353,8 @@ pub fn update_sand(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_water(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     if sandbox[x][y].unwrap().temperature >= 100 {
         let t = sandbox[x][y].unwrap().temperature as f64 / 150.0;
         let chance = (1.0 - t) * 0.3 + t * 0.7;
@@ -361,6 +382,8 @@ pub fn update_water(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     if y != SANDBOX_HEIGHT - 1 {
         if let Some(particle) = &sandbox[x][y + 1] {
             if particle.dissolved_by_acid() {
@@ -400,6 +423,8 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     sandbox[x][y].as_mut().unwrap().extra_data1 = 0;
     if y < SANDBOX_HEIGHT - 2 {
         if let Some(particle) = sandbox[x][y + 1] {
@@ -452,6 +477,8 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     // If temperature > 100, turn into Fire
     if sandbox[x][y].unwrap().temperature > 100 {
         sandbox[x][y].as_mut().unwrap().ptype = ParticleType::Fire;
@@ -496,6 +523,8 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
 
 // Check if temperature >= 0, and if so, wait 1/3rd of a second, and then delete itself and freeze around it
 pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     if sandbox[x][y].unwrap().temperature >= 0 && sandbox[x][y].unwrap().extra_data1 == 0 {
         sandbox[x][y].as_mut().unwrap().extra_data1 = 21;
         return;
@@ -530,6 +559,8 @@ pub fn update_cryotheum(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     // Increase temperature by 10 every half a second
     let mut particle = sandbox[x][y].as_mut().unwrap();
     if particle.extra_data1 == 30 {
@@ -561,6 +592,8 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_electricity(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     // If this particle was unable able to move, delete it
     if sandbox[x][y].unwrap().extra_data2 == -1 {
         sandbox[x][y] = None;
@@ -568,6 +601,8 @@ pub fn update_electricity(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     // When temperature less than -50, or greater than 50, this particle dies
     let mut particle = sandbox[x][y].as_mut().unwrap();
     if particle.temperature < -50 || particle.temperature > 50 {
@@ -654,6 +689,8 @@ pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_blood(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     // Evaporate above a certain temperature
     if sandbox[x][y].unwrap().temperature >= 137 {
         sandbox[x][y] = None;
@@ -661,6 +698,8 @@ pub fn update_blood(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_smoke(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     let mut particle = sandbox[x][y].as_mut().unwrap();
     if particle.extra_data1 == 0 {
         particle.extra_data2 -= 1;
@@ -673,6 +712,8 @@ pub fn update_smoke(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     // When this particle hasn't moved for more than 1/2 a second or temperature < 40, delete it
     if sandbox[x][y].unwrap().extra_data2 > 30 || sandbox[x][y].unwrap().temperature < 40 {
         sandbox[x][y] = None;
@@ -714,6 +755,8 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_mirror(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     // Update the frame counter
     let extra_data1 = &mut sandbox[x][y].as_mut().unwrap().extra_data1;
     *extra_data1 += 1;
@@ -741,12 +784,16 @@ pub fn update_mirror(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_steam(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     if sandbox[x][y].unwrap().temperature < 100 {
         sandbox[x][y].as_mut().unwrap().ptype = ParticleType::Water;
     }
 }
 
 pub fn update_glitch(sandbox: &mut Sandbox, x: usize, y: usize) {
+    profile_function!();
+
     // Convert adjacent other particle types to a random type
     if y != SANDBOX_HEIGHT - 1 {
         if sandbox[x][y + 1].is_some() {

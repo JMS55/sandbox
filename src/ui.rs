@@ -6,6 +6,7 @@ use imgui::{
 use imgui_wgpu::Renderer;
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use pixels::wgpu::{CommandEncoder, Device, Queue, TextureFormat, TextureView};
+use puffin_imgui::ProfilerUi;
 use std::time::Instant;
 use winit::event::Event;
 use winit::window::Window;
@@ -14,10 +15,14 @@ pub struct UI {
     imgui: Context,
     imgui_platform: WinitPlatform,
     imgui_renderer: Renderer,
+
     should_display_ui: bool,
     should_display_fps: bool,
+    should_display_profiler: bool,
+
     was_paused_before_popup: bool,
     recent_frames: [Instant; 10],
+    profiler_ui: ProfilerUi,
 }
 
 impl UI {
@@ -44,10 +49,14 @@ impl UI {
             imgui,
             imgui_platform,
             imgui_renderer,
+
             should_display_ui: true,
             should_display_fps: cfg!(debug_assertions),
+            should_display_profiler: false,
+
             was_paused_before_popup: false,
             recent_frames: [Instant::now(); 10],
+            profiler_ui: ProfilerUi::default(),
         }
     }
 
@@ -67,6 +76,11 @@ impl UI {
 
     pub fn toggle_display_fps(&mut self) {
         self.should_display_fps = !self.should_display_fps;
+    }
+
+    pub fn toggle_display_profiler(&mut self) {
+        self.should_display_profiler = !self.should_display_profiler;
+        puffin::set_scopes_on(self.should_display_profiler);
     }
 
     pub fn start_of_frame(&mut self) {
@@ -380,6 +394,11 @@ impl UI {
 
         style1.pop(&ui);
         style2.unwrap().pop(&ui);
+
+        // Draw the profiler
+        if self.should_display_profiler {
+            self.profiler_ui.window(&ui);
+        }
 
         // Render
         self.imgui_platform.prepare_render(&ui, window);

@@ -9,6 +9,7 @@ use glow_post_process::GlowPostProcess;
 use particle::{Particle, ParticleType};
 use pixels::wgpu::*;
 use pixels::{PixelsBuilder, SurfaceTexture};
+use puffin::{profile_scope, GlobalProfiler};
 use sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use std::time::{Duration, Instant};
 use ui::UI;
@@ -20,10 +21,9 @@ use winit::window::{Fullscreen, WindowBuilder};
 const TARGET_TIME_PER_UPDATE: Duration = Duration::from_nanos(16666670);
 
 fn main() {
+    // Setup windowing
     #[cfg(target_os = "linux")]
     std::env::set_var("WINIT_UNIX_BACKEND", "x11");
-
-    // Setup windowing
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_title("Sandbox")
@@ -74,7 +74,10 @@ fn main() {
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match &event {
-            Event::NewEvents(_) => ui.start_of_frame(),
+            Event::NewEvents(_) => {
+                GlobalProfiler::lock().new_frame();
+                ui.start_of_frame();
+            }
 
             Event::WindowEvent { event, .. } => match event {
                 // Window events
@@ -147,6 +150,7 @@ fn main() {
                             }
                             Some(VirtualKeyCode::Key1) => ui.toggle_display_ui(),
                             Some(VirtualKeyCode::Key2) => ui.toggle_display_fps(),
+                            Some(VirtualKeyCode::Key3) => ui.toggle_display_profiler(),
 
                             // Particle selection controls
                             Some(VirtualKeyCode::D) => {
@@ -313,8 +317,11 @@ fn main() {
 
             // Render
             Event::RedrawRequested(_) => {
+                profile_scope!("render");
+
                 let has_glow = sandbox.render(pixels.get_frame());
 
+                profile_scope!("render_gpu");
                 let _ = pixels.render_with(|encoder, render_texture, context| {
                     let scaling_renderer = &context.scaling_renderer;
                     if has_glow {

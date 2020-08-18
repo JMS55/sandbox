@@ -5,6 +5,7 @@
 ### Misc
 * Performance improvements for rendering
 * Smoke now looks smokier
+* Added a profiling tool
 ### Bugfixes
 * Cryotheum coldsnap now properly triggers
 

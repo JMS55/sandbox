@@ -35,4 +35,5 @@
 * <kbd>Backspace</kbd> Empty the sandbox
 * <kbd>1</kbd> Toggle UI on/off
 * <kbd>2</kbd> Toggle FPS display on/off
+* <kbd>3</kbd> Toggle profiling display on/off
 * <kbd>.</kbd> Advances one frame when paused

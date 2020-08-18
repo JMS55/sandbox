@@ -6,12 +6,14 @@ edition = "2018"
 [dependencies]
 pixels = { git = "https://github.com/parasyte/pixels", branch = "wip/render-api-v2" }
 imgui = "0.4"
-imgui-wgpu = { git = "https://github.com/Yatekii/imgui-wgpu-rs" }
+imgui-wgpu = "0.8"
 imgui-winit-support = "0.4"
 winit = "0.22"
 rand = "0.7"
 simdnoise = "3.1"
 flume = { version = "0.7", default-features = false }
+puffin = "0.2"
+puffin-imgui = "0.2"
 
 [profile.dev.package."*"]
 opt-level = 3
