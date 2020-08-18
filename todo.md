@@ -1,6 +1,5 @@
 ## Immediate Todo
-1. Fix performance issues (game loop wrong?)
-2. Fix UI bounding box extending a bit too far to the right
+1. Fix UI bounding box extending a bit too far to the right
 
 ## Later Todo
 1. Make particles move left/right randomly when they can do either
