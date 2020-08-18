@@ -43,6 +43,8 @@ impl UI {
             queue,
             TextureFormat::Bgra8UnormSrgb,
             None,
+            None,
+            1,
         );
 
         Self {
@@ -60,7 +62,7 @@ impl UI {
         }
     }
 
-    pub fn set_scale_factor(&mut self, scale_factor: f64) {
+    pub fn set_scale_factor(&mut self, scale_factor: f64, device: &Device, queue: &Queue) {
         self.imgui.io_mut().font_global_scale = (1.0 / scale_factor) as f32;
         self.imgui.fonts().clear_input_data();
         self.imgui.fonts().add_font(&[FontSource::TtfData {
@@ -68,6 +70,8 @@ impl UI {
             size_pixels: (16.0 * scale_factor) as f32,
             config: None,
         }]);
+        self.imgui_renderer
+            .reload_font_texture(&mut self.imgui, device, queue);
     }
 
     pub fn toggle_display_ui(&mut self) {
@@ -114,6 +118,7 @@ impl UI {
 
         window: &Window,
         device: &Device,
+        queue: &Queue,
         encoder: &mut CommandEncoder,
         render_texture: &TextureView,
     ) {
@@ -403,7 +408,7 @@ impl UI {
         // Render
         self.imgui_platform.prepare_render(&ui, window);
         self.imgui_renderer
-            .render(ui.render(), device, encoder, render_texture)
+            .render(ui.render(), device, queue, encoder, render_texture)
             .expect("Failed to render UI");
     }
 

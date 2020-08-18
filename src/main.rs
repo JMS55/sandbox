@@ -36,8 +36,7 @@ fn main() {
 
     // Setup rendering
     let surface_size = window.inner_size();
-    let surface = Surface::create(&window);
-    let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, surface);
+    let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, &window);
     let mut pixels =
         PixelsBuilder::new(SANDBOX_WIDTH as u32, SANDBOX_HEIGHT as u32, surface_texture)
             .request_adapter_options(RequestAdapterOptions {
@@ -88,7 +87,7 @@ fn main() {
                     last_resize = Some(Instant::now());
                 }
                 WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
-                    ui.set_scale_factor(*scale_factor);
+                    ui.set_scale_factor(*scale_factor, pixels.device(), pixels.queue());
                 }
 
                 // Mouse events
@@ -338,6 +337,7 @@ fn main() {
                         &mut paused,
                         &window,
                         &context.device,
+                        &context.queue,
                         encoder,
                         render_texture,
                     );
