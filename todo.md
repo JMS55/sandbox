@@ -14,6 +14,7 @@
 8. MISX package
 9. Mobile linux
 10. WASM
+11. Sound effects
 
 ## Release Procedure
 1. Bump Cargo.toml version

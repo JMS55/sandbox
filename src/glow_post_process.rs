@@ -1,7 +1,5 @@
 use pixels::wgpu::util::{BufferInitDescriptor, DeviceExt};
 use pixels::wgpu::*;
-use std::mem::size_of;
-use std::slice;
 
 pub struct GlowPostProcess {
     pub texture1: TextureView,
@@ -455,14 +453,7 @@ fn create_resources(
         .create_view(&TextureViewDescriptor::default());
     let texture_size_buffer = device.create_buffer_init(&BufferInitDescriptor {
         label: Some("glow_post_process_texture_size_buffer"),
-        contents: unsafe {
-            slice::from_raw_parts(
-                [texture_width as f32, texture_height as f32]
-                    .as_ptr()
-                    .cast(),
-                size_of::<f32>() * 2,
-            )
-        },
+        contents: bytemuck::cast_slice(&[texture_width as f32, texture_height as f32]),
         usage: BufferUsage::UNIFORM,
     });
 

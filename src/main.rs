@@ -72,7 +72,6 @@ fn main() {
     let mut curr_cursor_position = PhysicalPosition::<f64>::new(0.0, 0.0);
 
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
         match &event {
             Event::NewEvents(_) => {
                 GlobalProfiler::lock().new_frame();

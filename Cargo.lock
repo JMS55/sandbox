@@ -99,9 +99,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.58"
+version = "1.0.59"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9a06fb2e53271d7c279ec1efea6ab691c35a2ae67ec0d91d7acec0caf13b518"
+checksum = "66120af515773fb005778dc07c261bd201ec8ce50bd6e7144c927753fe013381"
 
 [[package]]
 name = "cfg-if"
@@ -234,9 +234,9 @@ dependencies = [
 
 [[package]]
 name = "d3d12"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1324bc4eae34f03b0ced586da5ae2b1ab46acfdae68b5b26d2e23dadae376a2"
+checksum = "d0a60cceb22c7c53035f8980524fdc7f17cf49681a3c154e6757d30afbec6ec4"
 dependencies = [
  "bitflags",
  "libloading",
@@ -463,9 +463,9 @@ dependencies = [
 
 [[package]]
 name = "gfx-backend-dx12"
-version = "0.6.0"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "815ea94b924aa3a98e52ba3f090564c2186c7ef33fc0afa2f6b72314935c8798"
+checksum = "c392af02ae88bc127abf94e1b88c817b7274d8d977aae986d5f2829392a30b0b"
 dependencies = [
  "bitflags",
  "d3d12",
@@ -610,11 +610,13 @@ dependencies = [
 
 [[package]]
 name = "imgui-wgpu"
-version = "0.7.0"
-source = "git+https://github.com/Aeledfyr/imgui-wgpu-rs#0b39bc6f95aa1c60d264169d10c1a67fd01b1eca"
+version = "0.8.0"
+source = "git+https://github.com/cwfitzgerald/imgui-wgpu-rs?branch=wgpu-update#6a9d7e315ada6fa9738b2e6f6cb69e0e3e4a9e4b"
 dependencies = [
+ "bytemuck",
  "imgui",
  "log",
+ "smallvec",
  "wgpu",
 ]
 
@@ -688,9 +690,9 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "libc"
-version = "0.2.74"
+version = "0.2.76"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2f02823cf78b754822df5f7f268fb59822e7296276d3e069d8e8cb26a14bd10"
+checksum = "755456fae044e6fa1ebbbd1b3e902ae19e73097ed4ed87bb79934a867c007bc3"
 
 [[package]]
 name = "libloading"
@@ -1062,23 +1064,14 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "pixels"
-version = "0.1.0"
-source = "git+https://github.com/parasyte/pixels?branch=wip/render-api-v2#121793c16f20a92d865d27707a99c51c5c903e17"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd1cc9703dcfee8549997d4b60a5c767f759c5f83844b302ca90959e4b2bdad8"
 dependencies = [
- "pixels-dragons",
  "pollster",
  "raw-window-handle",
  "thiserror",
  "ultraviolet",
- "wgpu",
-]
-
-[[package]]
-name = "pixels-dragons"
-version = "0.1.0"
-source = "git+https://github.com/parasyte/pixels?branch=wip/render-api-v2#121793c16f20a92d865d27707a99c51c5c903e17"
-dependencies = [
- "raw-window-handle",
  "wgpu",
 ]
 
@@ -1096,9 +1089,9 @@ checksum = "9824e18e85003f0b5a38fa1932ae8be8c2aac9447c2f28ab6f9704dbe0a1ab58"
 
 [[package]]
 name = "ppv-lite86"
-version = "0.2.8"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "237a5ed80e274dbc66f86bd59c1e25edc039660be53194b5fe0a482e0f2612ea"
+checksum = "c36fa947111f5c62a733b652544dd0016a43ce89619538a8ef92724a6f501a20"
 
 [[package]]
 name = "proc-macro-crate"
@@ -1275,6 +1268,7 @@ dependencies = [
 name = "sandbox"
 version = "1.1.0"
 dependencies = [
+ "bytemuck",
  "flume",
  "imgui",
  "imgui-wgpu",
@@ -1652,8 +1646,9 @@ dependencies = [
 
 [[package]]
 name = "wgpu"
-version = "0.5.0"
-source = "git+https://github.com/gfx-rs/wgpu-rs#02c1fa563f709bfa7b4781b938781bed57069ad1"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "549160f188eef412ac978499ddf0ceadad4c9159bb1160f9e6b9d4cc8ee977dc"
 dependencies = [
  "arrayvec",
  "futures",
@@ -1674,8 +1669,9 @@ dependencies = [
 
 [[package]]
 name = "wgpu-core"
-version = "0.5.0"
-source = "git+https://github.com/gfx-rs/wgpu?rev=096c57008f2907c07ddaa7d0ff02fae21a5e676b#096c57008f2907c07ddaa7d0ff02fae21a5e676b"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a5558a9607100816a033b0d06a2d6d06e8bf6fb294803d1dea871e9a479eec0"
 dependencies = [
  "arrayvec",
  "bitflags",
@@ -1700,8 +1696,9 @@ dependencies = [
 
 [[package]]
 name = "wgpu-types"
-version = "0.5.0"
-source = "git+https://github.com/gfx-rs/wgpu?rev=096c57008f2907c07ddaa7d0ff02fae21a5e676b#096c57008f2907c07ddaa7d0ff02fae21a5e676b"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fb82203cfaa5165e6eb9f1daca5b0ba8a2b8d632f6c9a7f9b10463b145deb2b"
 dependencies = [
  "bitflags",
 ]

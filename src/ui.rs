@@ -5,7 +5,7 @@ use imgui::{
 };
 use imgui_wgpu::Renderer;
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
-use pixels::wgpu::{CommandEncoder, Device, Queue, TextureFormat, TextureView};
+use pixels::wgpu::*;
 use puffin_imgui::ProfilerUi;
 use std::time::Instant;
 use winit::event::Event;
@@ -37,15 +37,8 @@ impl UI {
             config: None,
         }]);
         imgui.set_ini_filename(None);
-        let imgui_renderer = Renderer::new(
-            &mut imgui,
-            device,
-            queue,
-            TextureFormat::Bgra8UnormSrgb,
-            None,
-            None,
-            1,
-        );
+        let imgui_renderer =
+            Renderer::new(&mut imgui, device, queue, TextureFormat::Bgra8UnormSrgb);
 
         Self {
             imgui,
@@ -407,8 +400,19 @@ impl UI {
 
         // Render
         self.imgui_platform.prepare_render(&ui, window);
+        let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
+            color_attachments: &[RenderPassColorAttachmentDescriptor {
+                attachment: render_texture,
+                resolve_target: None,
+                ops: Operations {
+                    load: LoadOp::Load,
+                    store: true,
+                },
+            }],
+            depth_stencil_attachment: None,
+        });
         self.imgui_renderer
-            .render(ui.render(), device, queue, encoder, render_texture)
+            .render(ui.render(), queue, device, &mut pass)
             .expect("Failed to render UI");
     }
 
