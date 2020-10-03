@@ -8,6 +8,9 @@
   <project_license>AGPL-3.0-only</project_license>
 
   <releases>
+    <release version="1.2.0" date="2020-10-03">
+      <url>https://github.com/JMS55/sandbox/blob/master/CHANGELOG.md#120</url>
+    </release>
     <release version="1.1.0" date="2020-07-22">
       <url>https://github.com/JMS55/sandbox/blob/master/CHANGELOG.md#110</url>
     </release>

@@ -47,8 +47,6 @@ fn main() {
     let mut curr_cursor_position = PhysicalPosition::<f64>::new(0.0, 0.0);
 
     // Setup windowing
-    #[cfg(target_os = "linux")]
-    std::env::set_var("WINIT_UNIX_BACKEND", "x11");
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_title("Sandbox")
