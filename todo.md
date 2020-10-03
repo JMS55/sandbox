@@ -1,7 +1,6 @@
 ## Immediate Todo
-1. Fix UI bounding box extending a bit too far to the right
-2. Update winit:
-    * Update imgui-winit-support
+1. Update imgui-winit-support, imgui-wgpu, and puffin-imgui when they release on crates.io
+2. Fix UI bounding box extending a bit too far to the right
 3. Update ui.rs to use ptype_ui color functions
 
 ## Later Todo

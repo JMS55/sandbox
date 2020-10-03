@@ -4,6 +4,7 @@
 * Tweaked Fire spread
 ### Misc
 * Big performance improvements
+* Wayland support
 * Smoke now looks smokier
 * Added a profiling tool
 ### Bugfixes

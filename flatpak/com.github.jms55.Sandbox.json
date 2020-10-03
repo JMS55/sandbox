@@ -8,7 +8,8 @@
     ],
     "finish-args": [
         "--device=dri",
-        "--socket=x11",
+        "--socket=wayland",
+        "--socket=fallback-x11",
         "--share=ipc"
     ],
     "build-options": {

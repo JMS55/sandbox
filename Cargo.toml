@@ -5,15 +5,15 @@ edition = "2018"
 
 [dependencies]
 pixels = "0.2"
-imgui = "0.4"
-imgui-wgpu = "0.9"
-imgui-winit-support = "0.4"
-winit = "0.22"
+imgui = "0.5"
+imgui-wgpu = { git = "https://github.com/Backman/imgui-wgpu-rs", branch = "feature/update-imgui-rs-0.5.0" }
+imgui-winit-support = { git = "https://github.com/JMS55/imgui-rs" }
+winit = "0.23"
 rand = "0.7"
 simdnoise = "3.1"
 flume = { version = "0.9", default-features = false }
-puffin = "0.3"
-puffin-imgui = "0.3"
+puffin = { git = "https://github.com/EmbarkStudios/puffin", branch = "main" }
+puffin-imgui = { git = "https://github.com/EmbarkStudios/puffin", branch = "main" }
 bytemuck = "1.4"
 
 [profile.dev]

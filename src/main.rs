@@ -4,51 +4,26 @@ mod heap_array;
 mod particle;
 mod sandbox;
 mod ui;
+mod wayland_csd;
 
-use glow_post_process::GlowPostProcess;
-use particle::{Particle, ParticleType};
+use crate::glow_post_process::GlowPostProcess;
+use crate::particle::{Particle, ParticleType};
+use crate::sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
+use crate::ui::UI;
+use crate::wayland_csd::WaylandCSDTheme;
 use pixels::wgpu::*;
 use pixels::{PixelsBuilder, SurfaceTexture};
-use puffin::{profile_scope, GlobalProfiler};
-use sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
+use puffin::profile_scope;
 use std::time::{Duration, Instant};
-use ui::UI;
 use winit::dpi::{LogicalSize, PhysicalPosition};
 use winit::event::{ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
+use winit::platform::unix::WindowExtUnix;
 use winit::window::{Fullscreen, WindowBuilder};
 
 const TARGET_TIME_PER_UPDATE: Duration = Duration::from_nanos(16666670);
 
 fn main() {
-    // Setup windowing
-    #[cfg(target_os = "linux")]
-    std::env::set_var("WINIT_UNIX_BACKEND", "x11");
-    let event_loop = EventLoop::new();
-    let window = WindowBuilder::new()
-        .with_title("Sandbox")
-        .with_inner_size(LogicalSize::new(
-            (SANDBOX_WIDTH * 3) as f64,
-            (SANDBOX_HEIGHT * 3) as f64,
-        ))
-        .build(&event_loop)
-        .expect("Failed to create a window");
-
-    // Setup rendering
-    let surface_size = window.inner_size();
-    let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, &window);
-    let mut pixels =
-        PixelsBuilder::new(SANDBOX_WIDTH as u32, SANDBOX_HEIGHT as u32, surface_texture)
-            .request_adapter_options(RequestAdapterOptions {
-                power_preference: PowerPreference::HighPerformance,
-                compatible_surface: None,
-            })
-            .build()
-            .expect("Failed to setup rendering");
-    let mut glow_post_process =
-        GlowPostProcess::new(pixels.device(), surface_size.width, surface_size.height);
-    let mut ui = UI::new(&window, pixels.device(), pixels.queue());
-
     // Simulation state
     let mut sandbox = Sandbox::new();
     let mut last_update = Instant::now();
@@ -71,12 +46,38 @@ fn main() {
     let mut prev_cursor_position = PhysicalPosition::<f64>::new(0.0, 0.0);
     let mut curr_cursor_position = PhysicalPosition::<f64>::new(0.0, 0.0);
 
+    // Setup windowing
+    #[cfg(target_os = "linux")]
+    std::env::set_var("WINIT_UNIX_BACKEND", "x11");
+    let event_loop = EventLoop::new();
+    let window = WindowBuilder::new()
+        .with_title("Sandbox")
+        .with_inner_size(LogicalSize::new(
+            (SANDBOX_WIDTH * 3) as f64,
+            (SANDBOX_HEIGHT * 3) as f64,
+        ))
+        .build(&event_loop)
+        .expect("Failed to create a window");
+    window.set_wayland_theme(WaylandCSDTheme { selected_particle });
+
+    // Setup rendering
+    let surface_size = window.inner_size();
+    let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, &window);
+    let mut pixels =
+        PixelsBuilder::new(SANDBOX_WIDTH as u32, SANDBOX_HEIGHT as u32, surface_texture)
+            .request_adapter_options(RequestAdapterOptions {
+                power_preference: PowerPreference::HighPerformance,
+                compatible_surface: None,
+            })
+            .build()
+            .expect("Failed to setup rendering");
+    let mut glow_post_process =
+        GlowPostProcess::new(pixels.device(), surface_size.width, surface_size.height);
+    let mut ui = UI::new(&window, pixels.device(), pixels.queue());
+
     event_loop.run(move |event, _, control_flow| {
         match &event {
-            Event::NewEvents(_) => {
-                GlobalProfiler::lock().new_frame();
-                ui.start_of_frame();
-            }
+            Event::NewEvents(_) => ui.start_of_frame(),
 
             Event::WindowEvent { event, .. } => match event {
                 // Window events
@@ -142,7 +143,7 @@ fn main() {
                                     brush_size += 1
                                 }
                             }
-                            Some(VirtualKeyCode::Minus) | Some(VirtualKeyCode::Subtract) => {
+                            Some(VirtualKeyCode::Minus) => {
                                 if brush_size > 1 {
                                     brush_size -= 1
                                 }
@@ -196,6 +197,8 @@ fn main() {
                             }
                             _ => {}
                         }
+
+                        window.set_wayland_theme(WaylandCSDTheme { selected_particle });
                     }
                 }
 

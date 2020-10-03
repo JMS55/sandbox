@@ -6,6 +6,7 @@ use imgui::{
 use imgui_wgpu::Renderer;
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use pixels::wgpu::*;
+use puffin::GlobalProfiler;
 use puffin_imgui::ProfilerUi;
 use std::time::Instant;
 use winit::event::Event;
@@ -81,7 +82,13 @@ impl UI {
     }
 
     pub fn start_of_frame(&mut self) {
-        let now = self.imgui.io_mut().update_delta_time(self.recent_frames[9]);
+        if self.should_display_profiler {
+            GlobalProfiler::lock().new_frame();
+        }
+
+        self.imgui
+            .io_mut()
+            .update_delta_time(self.recent_frames[9].elapsed());
         self.recent_frames = [
             self.recent_frames[1],
             self.recent_frames[2],
@@ -92,7 +99,7 @@ impl UI {
             self.recent_frames[7],
             self.recent_frames[8],
             self.recent_frames[9],
-            now,
+            Instant::now(),
         ];
     }
 
@@ -369,7 +376,9 @@ impl UI {
                     ]));
                     // Draw the brush size slider
                     ui.set_cursor_pos([219.0, 4.0]);
-                    Slider::new(im_str!("Brush Size"), 1..=10).build(&ui, brush_size);
+                    Slider::new(im_str!("Brush Size"))
+                        .range(1..=10)
+                        .build(&ui, brush_size);
                 });
         }
 
@@ -423,5 +432,58 @@ impl UI {
 
     pub fn ui_wants_mouse_input(&self) -> bool {
         self.imgui.io().want_capture_mouse
+    }
+}
+
+pub fn ptype_ui_color(ptype: Option<ParticleType>) -> [u8; 3] {
+    match ptype {
+        None => [26, 26, 26],
+        Some(ParticleType::Sand) => [196, 192, 135],
+        Some(ParticleType::Water) => [26, 91, 165],
+        Some(ParticleType::Acid) => [148, 219, 10],
+        Some(ParticleType::Iridium) => [100, 100, 100],
+        Some(ParticleType::Replicator) => [78, 21, 77],
+        Some(ParticleType::Plant) => [6, 89, 9],
+        Some(ParticleType::Cryotheum) => [12, 193, 255],
+        Some(ParticleType::Unstable) => [94, 78, 55],
+        Some(ParticleType::Electricity) => [255, 244, 49],
+        Some(ParticleType::Glass) => unreachable!(),
+        Some(ParticleType::Life) => [135, 12, 211],
+        Some(ParticleType::SuperLife) => unreachable!(),
+        Some(ParticleType::Blood) => unreachable!(),
+        Some(ParticleType::Smoke) => unreachable!(),
+        Some(ParticleType::Fire) => [255, 151, 20],
+        Some(ParticleType::Mirror) => [78, 216, 131],
+        Some(ParticleType::Steam) => unreachable!(),
+        Some(ParticleType::Glitch) => [120, 119, 100],
+    }
+}
+
+pub fn ptype_ui_text_color(ptype: Option<ParticleType>) -> [u8; 3] {
+    let light = match ptype {
+        None => true,
+        Some(ParticleType::Sand) => false,
+        Some(ParticleType::Water) => true,
+        Some(ParticleType::Acid) => false,
+        Some(ParticleType::Iridium) => true,
+        Some(ParticleType::Replicator) => true,
+        Some(ParticleType::Plant) => true,
+        Some(ParticleType::Cryotheum) => false,
+        Some(ParticleType::Unstable) => true,
+        Some(ParticleType::Electricity) => false,
+        Some(ParticleType::Glass) => unreachable!(),
+        Some(ParticleType::Life) => true,
+        Some(ParticleType::SuperLife) => unreachable!(),
+        Some(ParticleType::Blood) => unreachable!(),
+        Some(ParticleType::Smoke) => unreachable!(),
+        Some(ParticleType::Fire) => false,
+        Some(ParticleType::Mirror) => false,
+        Some(ParticleType::Steam) => unreachable!(),
+        Some(ParticleType::Glitch) => false,
+    };
+    if light {
+        [204, 204, 204]
+    } else {
+        [0, 0, 0]
     }
 }
