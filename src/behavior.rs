@@ -483,7 +483,7 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
                     && (0..(SANDBOX_HEIGHT as isize)).contains(&y)
                 {
                     if sandbox[x as usize][y as usize].is_none() {
-                        let mut particle = Particle::new(ParticleType::Plant);
+                        let mut particle = Particle::new(ParticleType::Plant, &mut sandbox.rng);
                         particle.extra_data1 = extra_data1 - 1;
                         particle.extra_data2 = 1;
                         sandbox[x as usize][y as usize] = Some(particle);
@@ -551,7 +551,7 @@ pub fn update_unstable(sandbox: &mut Sandbox, x: usize, y: usize) {
                     if let Some(particle) = sandbox[x as usize][y as usize] {
                         if particle.can_be_vaporized_by_unstable() {
                             sandbox[x as usize][y as usize] =
-                                Some(Particle::new(ParticleType::Smoke));
+                                Some(Particle::new(ParticleType::Smoke, &mut sandbox.rng));
                         }
                     }
                 }
@@ -580,7 +580,7 @@ pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
         if y != SANDBOX_HEIGHT - 1 {
             if let Some(particle) = sandbox[x][y + 1] {
                 if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.2) {
-                    sandbox[x][y + 1] = Some(Particle::new(ParticleType::Life));
+                    sandbox[x][y + 1] = Some(Particle::new(ParticleType::Life, &mut sandbox.rng));
                     return;
                 }
                 if particle.ptype == ParticleType::Blood
@@ -595,7 +595,7 @@ pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
         if x != SANDBOX_WIDTH - 1 {
             if let Some(particle) = sandbox[x + 1][y] {
                 if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.2) {
-                    sandbox[x + 1][y] = Some(Particle::new(ParticleType::Life));
+                    sandbox[x + 1][y] = Some(Particle::new(ParticleType::Life, &mut sandbox.rng));
                     return;
                 }
                 if particle.ptype == ParticleType::Blood
@@ -610,7 +610,7 @@ pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
         if y != 0 {
             if let Some(particle) = sandbox[x][y - 1] {
                 if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.2) {
-                    sandbox[x][y - 1] = Some(Particle::new(ParticleType::Life));
+                    sandbox[x][y - 1] = Some(Particle::new(ParticleType::Life, &mut sandbox.rng));
                     return;
                 }
                 if particle.ptype == ParticleType::Blood
@@ -625,7 +625,7 @@ pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
         if x != 0 {
             if let Some(particle) = sandbox[x - 1][y] {
                 if particle.ptype == ParticleType::Plant && sandbox.rng.gen_bool(0.2) {
-                    sandbox[x - 1][y] = Some(Particle::new(ParticleType::Life));
+                    sandbox[x - 1][y] = Some(Particle::new(ParticleType::Life, &mut sandbox.rng));
                     return;
                 }
                 if particle.ptype == ParticleType::Blood
@@ -648,7 +648,7 @@ pub fn update_life(sandbox: &mut Sandbox, x: usize, y: usize) {
         }
         count -= 1;
         if count > 30 && sandbox.rng.gen_bool(0.1) {
-            sandbox[x][y] = Some(Particle::new(ParticleType::Blood));
+            sandbox[x][y] = Some(Particle::new(ParticleType::Blood, &mut sandbox.rng));
         }
     }
 }
@@ -683,7 +683,7 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
         if let Some(particle) = &sandbox[x][y + 1] {
             if particle.is_flammable() && sandbox.rng.gen_bool(0.35) {
                 sandbox[x][y] = None;
-                sandbox[x][y + 1] = Some(Particle::new(ParticleType::Fire));
+                sandbox[x][y + 1] = Some(Particle::new(ParticleType::Fire, &mut sandbox.rng));
             }
         }
     }
@@ -691,7 +691,7 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
         if let Some(particle) = &sandbox[x + 1][y] {
             if particle.is_flammable() && sandbox.rng.gen_bool(0.35) {
                 sandbox[x][y] = None;
-                sandbox[x + 1][y] = Some(Particle::new(ParticleType::Fire));
+                sandbox[x + 1][y] = Some(Particle::new(ParticleType::Fire, &mut sandbox.rng));
             }
         }
     }
@@ -699,7 +699,7 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
         if let Some(particle) = &sandbox[x][y - 1] {
             if particle.is_flammable() && sandbox.rng.gen_bool(0.35) {
                 sandbox[x][y] = None;
-                sandbox[x][y - 1] = Some(Particle::new(ParticleType::Fire));
+                sandbox[x][y - 1] = Some(Particle::new(ParticleType::Fire, &mut sandbox.rng));
             }
         }
     }
@@ -707,7 +707,7 @@ pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
         if let Some(particle) = &sandbox[x - 1][y] {
             if particle.is_flammable() && sandbox.rng.gen_bool(0.35) {
                 sandbox[x][y] = None;
-                sandbox[x - 1][y] = Some(Particle::new(ParticleType::Fire));
+                sandbox[x - 1][y] = Some(Particle::new(ParticleType::Fire, &mut sandbox.rng));
             }
         }
     }
@@ -754,7 +754,7 @@ pub fn update_glitch(sandbox: &mut Sandbox, x: usize, y: usize) {
                 && sandbox[x][y + 1].unwrap().ptype != ParticleType::Replicator
             {
                 sandbox[x][y] = None;
-                sandbox[x][y + 1] = Some(Particle::new(sandbox.rng.gen()));
+                sandbox[x][y + 1] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
             }
         }
     }
@@ -764,7 +764,7 @@ pub fn update_glitch(sandbox: &mut Sandbox, x: usize, y: usize) {
                 && sandbox[x + 1][y].unwrap().ptype != ParticleType::Replicator
             {
                 sandbox[x][y] = None;
-                sandbox[x + 1][y] = Some(Particle::new(sandbox.rng.gen()));
+                sandbox[x + 1][y] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
             }
         }
     }
@@ -774,7 +774,7 @@ pub fn update_glitch(sandbox: &mut Sandbox, x: usize, y: usize) {
                 && sandbox[x][y - 1].unwrap().ptype != ParticleType::Replicator
             {
                 sandbox[x][y] = None;
-                sandbox[x][y - 1] = Some(Particle::new(sandbox.rng.gen()));
+                sandbox[x][y - 1] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
             }
         }
     }
@@ -784,7 +784,7 @@ pub fn update_glitch(sandbox: &mut Sandbox, x: usize, y: usize) {
                 && sandbox[x - 1][y].unwrap().ptype != ParticleType::Replicator
             {
                 sandbox[x][y] = None;
-                sandbox[x - 1][y] = Some(Particle::new(sandbox.rng.gen()));
+                sandbox[x - 1][y] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
             }
         }
     }

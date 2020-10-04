@@ -1,7 +1,8 @@
 use crate::behavior::*;
 use crate::sandbox::Sandbox;
 use rand::distributions::{Distribution, Standard};
-use rand::{thread_rng, Rng};
+use rand::Rng;
+use rand_pcg::Pcg64;
 
 #[derive(Copy, Clone)]
 pub struct Particle {
@@ -62,7 +63,7 @@ impl Distribution<ParticleType> for Standard {
 }
 
 impl Particle {
-    pub fn new(ptype: ParticleType) -> Self {
+    pub fn new(ptype: ParticleType, rng: &mut Pcg64) -> Self {
         Self {
             ptype,
             temperature: match ptype {
@@ -91,7 +92,7 @@ impl Particle {
                 ParticleType::Acid => 0,
                 ParticleType::Iridium => 0,
                 ParticleType::Replicator => 0,
-                ParticleType::Plant => thread_rng().gen_range(1, 18),
+                ParticleType::Plant => rng.gen_range(1, 18),
                 ParticleType::Cryotheum => 0,
                 ParticleType::Unstable => 0,
                 ParticleType::Electricity => 0,
@@ -99,8 +100,8 @@ impl Particle {
                 ParticleType::Life => 0,
                 ParticleType::SuperLife => 0,
                 ParticleType::Blood => 0,
-                ParticleType::Smoke => 90 + thread_rng().gen_range(-20, 20),
-                ParticleType::Fire => thread_rng().gen_range(0, 60),
+                ParticleType::Smoke => 90 + rng.gen_range(-20, 20),
+                ParticleType::Fire => rng.gen_range(0, 60),
                 ParticleType::Mirror => 0,
                 ParticleType::Steam => 0,
                 ParticleType::Glitch => 0,
@@ -125,7 +126,7 @@ impl Particle {
                 ParticleType::Steam => 0,
                 ParticleType::Glitch => 0,
             },
-            color_offset: thread_rng().gen_range(-10, 11),
+            color_offset: rng.gen_range(-10, 11),
             last_update: 0,
         }
     }
@@ -226,7 +227,7 @@ impl Particle {
         tc
     }
 
-    pub fn base_color(&self) -> (u8, u8, u8) {
+    pub fn base_color(&self, rng: &mut Pcg64) -> (u8, u8, u8) {
         match self.ptype {
             ParticleType::Sand => {
                 if self.extra_data1 == 0 {
@@ -293,7 +294,7 @@ impl Particle {
             }
             ParticleType::Steam => (40, 140, 140),
             ParticleType::Glitch => {
-                if thread_rng().gen_bool(0.95) {
+                if rng.gen_bool(0.95) {
                     (81, 80, 66)
                 } else {
                     (218, 101, 126)

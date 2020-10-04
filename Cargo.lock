@@ -502,10 +502,11 @@ dependencies = [
 
 [[package]]
 name = "gfx-backend-dx12"
-version = "0.6.4"
+version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5e65f9a9371e27271ecc80db1fb01d823e785fa38573ad7f158a9c253ddbc3a"
+checksum = "64349ffe31e5336e8eb13ebe41da0eeee65e4d43a5f97de7168427f5b38370a2"
 dependencies = [
+ "arrayvec",
  "bitflags",
  "d3d12",
  "gfx-auxil",
@@ -656,7 +657,7 @@ dependencies = [
 [[package]]
 name = "imgui-wgpu"
 version = "0.10.0"
-source = "git+https://github.com/Backman/imgui-wgpu-rs?branch=feature/update-imgui-rs-0.5.0#4aaa9b0a3836c1ea6f12e3c14c803b133763873b"
+source = "git+https://github.com/Yatekii/imgui-wgpu-rs#29bd3b877b5f98bc72aeac7bcbb2b561d9675dd4"
 dependencies = [
  "bytemuck",
  "imgui",
@@ -1257,6 +1258,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rand_pcg"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16abd0c1b639e9eb4d7c50c0b8100b0d0f849be2349829c740fe8e6eb4816429"
+dependencies = [
+ "rand_core",
+]
+
+[[package]]
 name = "range-alloc"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1309,6 +1319,7 @@ dependencies = [
  "puffin",
  "puffin-imgui",
  "rand",
+ "rand_pcg",
  "simdnoise",
  "winit",
 ]

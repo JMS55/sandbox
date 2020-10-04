@@ -1,7 +1,9 @@
 ## Immediate Todo
-1. Update imgui-winit-support, imgui-wgpu, and puffin-imgui when they release on crates.io
-2. Fix UI bounding box extending a bit too far to the right
-3. Update ui.rs to use ptype_ui color functions
+1. Investigate 65 fps, and not 60 being the max (use release builds)
+2. Fix the flatpak build missing a window title
+3. Update imgui-winit-support, imgui-wgpu, and puffin-imgui when they release on crates.io
+4. Fix UI bounding box extending a bit too far to the right
+5. Update ui.rs to use ptype_ui color functions
 
 ## Later Todo
 1. Make particles move left/right randomly when they can do either

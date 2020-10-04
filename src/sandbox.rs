@@ -2,8 +2,7 @@ use crate::heap_array::{create_background_array, create_cells_array};
 use crate::particle::{Particle, ParticleType};
 use flume::{bounded as bounded_queue, Receiver};
 use puffin::profile_scope;
-use rand::rngs::ThreadRng;
-use rand::thread_rng;
+use rand_pcg::Pcg64;
 use simdnoise::NoiseBuilder;
 use std::ops::{Index, IndexMut};
 use std::thread;
@@ -14,7 +13,7 @@ pub const SANDBOX_HEIGHT: usize = 270;
 
 pub struct Sandbox {
     pub cells: Box<[[Option<Particle>; SANDBOX_HEIGHT]; SANDBOX_WIDTH]>,
-    pub rng: ThreadRng,
+    pub rng: Pcg64,
     update_counter: u8,
     background: Box<[u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 4]>,
     noise_queue_receiver: Receiver<Vec<f32>>,
@@ -83,7 +82,7 @@ impl Sandbox {
 
         Self {
             cells: create_cells_array(None),
-            rng: thread_rng(),
+            rng: Pcg64::new(0xcafef00dd15ea5e5, 0xa02bdbf7bb3c0a7ac28fa16a64abf96),
             update_counter: 1,
             background,
             noise_queue_receiver,
@@ -197,9 +196,9 @@ impl Sandbox {
         let mut noise_index = 0;
         for y in 0..SANDBOX_HEIGHT {
             for x in 0..SANDBOX_WIDTH {
-                if let Some(particle) = &self[x][y] {
+                if let Some(particle) = &self.cells[x][y] {
                     // Base color
-                    let base_color = particle.base_color();
+                    let base_color = particle.base_color(&mut self.rng);
 
                     // Tint blue/red based on temperature
                     let mut r = 0;

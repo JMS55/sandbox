@@ -279,8 +279,10 @@ fn main() {
                                     match selected_particle {
                                         Some(selected_particle) => {
                                             if sandbox[x][y].is_none() {
-                                                sandbox[x][y] =
-                                                    Some(Particle::new(selected_particle));
+                                                sandbox[x][y] = Some(Particle::new(
+                                                    selected_particle,
+                                                    &mut sandbox.rng,
+                                                ));
                                             }
                                         }
                                         None => sandbox[x][y] = None,
