@@ -310,7 +310,7 @@ fn main() {
                 frame_time += last_update.elapsed();
                 last_update = Instant::now();
                 let mut updates = 0;
-                let max_updates = if cfg!(debug_assertions) { 1 } else { 5 };
+                let max_updates = if cfg!(debug_assertions) { 1 } else { 20 };
                 while frame_time >= TARGET_TIME_PER_UPDATE && updates != max_updates {
                     if !paused || update_once {
                         update_once = false;
