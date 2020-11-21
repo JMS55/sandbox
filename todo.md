@@ -1,9 +1,8 @@
 ## Immediate Todo
 1. Investigate 65 fps, and not 60 being the max (use release builds)
 2. Fix the flatpak build missing a window title
-3. Update imgui-wgpu when a crates.io release comes out
-4. Fix UI bounding box extending a bit too far to the right
-5. Update ui.rs to use ptype_ui color functions
+3. Fix UI bounding box extending a bit too far to the right
+4. Update ui.rs to use ptype_ui color functions
 
 ## Later Todo
 1. Make particles move left/right randomly when they can do either

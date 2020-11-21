@@ -6,7 +6,7 @@ edition = "2018"
 [dependencies]
 pixels = "0.2"
 imgui = "0.6"
-imgui-wgpu = { git = "https://github.com/benmkw/imgui-wgpu-rs", branch = "update" }
+imgui-wgpu = "0.12"
 imgui-winit-support = "0.6"
 winit = "0.23"
 rand = "0.7"
