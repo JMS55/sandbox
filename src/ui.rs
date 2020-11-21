@@ -3,7 +3,7 @@ use crate::sandbox::Sandbox;
 use imgui::{
     im_str, Condition, Context, FontSource, ImStr, Slider, StyleColor, StyleVar, Window as ImWindow,
 };
-use imgui_wgpu::Renderer;
+use imgui_wgpu::{Renderer, RendererConfig};
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use pixels::wgpu::*;
 use puffin::GlobalProfiler;
@@ -38,8 +38,15 @@ impl UI {
             config: None,
         }]);
         imgui.set_ini_filename(None);
-        let imgui_renderer =
-            Renderer::new(&mut imgui, device, queue, TextureFormat::Bgra8UnormSrgb);
+        let imgui_renderer = Renderer::new(
+            &mut imgui,
+            device,
+            queue,
+            RendererConfig {
+                texture_format: TextureFormat::Bgra8UnormSrgb,
+                ..Default::default()
+            },
+        );
 
         Self {
             imgui,
@@ -142,12 +149,7 @@ impl UI {
                     93.0
                 };
 
-                let button_color = [
-                    color[0].powf(2.2),
-                    color[1].powf(2.2),
-                    color[2].powf(2.2),
-                    0.95,
-                ];
+                let button_color = [color[0], color[1], color[2], 0.95];
                 let style1 = ui.push_style_colors(&[
                     (StyleColor::Button, button_color),
                     (StyleColor::ButtonHovered, button_color),
@@ -176,27 +178,27 @@ impl UI {
 
         // Setup styles
         let foreground_color1 = [
-            (230.0 / 255.0f32).powf(2.2),
-            (230.0 / 255.0f32).powf(2.2),
-            (230.0 / 255.0f32).powf(2.2),
+            (230.0 / 255.0f32),
+            (230.0 / 255.0f32),
+            (230.0 / 255.0f32),
             0.95,
         ];
         let background_color1 = [
-            (92.0 / 255.0f32).powf(2.2),
-            (64.0 / 255.0f32).powf(2.2),
-            (38.0 / 255.0f32).powf(2.2),
+            (92.0 / 255.0f32),
+            (64.0 / 255.0f32),
+            (38.0 / 255.0f32),
             0.95,
         ];
         let foreground_color2 = [
-            (80.0 / 255.0f32).powf(2.2),
-            (80.0 / 255.0f32).powf(2.2),
-            (80.0 / 255.0f32).powf(2.2),
+            (80.0 / 255.0f32),
+            (80.0 / 255.0f32),
+            (80.0 / 255.0f32),
             0.95,
         ];
         let background_color2 = [
-            (60.0 / 255.0f32).powf(2.2),
-            (60.0 / 255.0f32).powf(2.2),
-            (60.0 / 255.0f32).powf(2.2),
+            (60.0 / 255.0f32),
+            (60.0 / 255.0f32),
+            (60.0 / 255.0f32),
             0.95,
         ];
         let style1 = ui.push_style_colors(&[
