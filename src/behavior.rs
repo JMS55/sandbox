@@ -1,5 +1,6 @@
 use crate::particle::{Particle, ParticleType};
 use crate::sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
+use rand::seq::SliceRandom;
 use rand::Rng;
 use std::ptr;
 
@@ -147,9 +148,9 @@ pub fn move_electricity(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, us
     }
 
     // Else try switching with an adjacent water particle in a random direction
-    let mut offsets = vec![(1, 0), (-1, 0), (0, 1), (0, -1)];
-    while !offsets.is_empty() {
-        let offset = offsets.remove(sandbox.rng.gen_range(0, offsets.len()));
+    let mut offsets = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+    offsets.shuffle(&mut sandbox.rng);
+    for offset in &offsets {
         let (x2, y2) = (x as isize + offset.0, y as isize + offset.1);
         if (0..(SANDBOX_WIDTH as isize)).contains(&x2)
             && (0..(SANDBOX_HEIGHT as isize)).contains(&y2)
