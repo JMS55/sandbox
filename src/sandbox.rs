@@ -123,7 +123,17 @@ impl Sandbox {
         {
             // Transfer temperature between adjacent particles
             profile_scope!("temperature_transfer");
-            let cells_copy = self.cells.clone();
+
+            // Clone causes a stack overflow on some systems, so copy directly into a new heap_array
+            let cells_copy = {
+                let mut cells = create_cells_array(None);
+                let ptr = cells[..].as_mut_ptr();
+
+                unsafe { ptr.copy_from_nonoverlapping(self.cells[..].as_ptr(), self.cells.len()) };
+
+                cells
+            };
+
             for x in 0..SANDBOX_WIDTH {
                 for y in 0..SANDBOX_HEIGHT {
                     if let Some(particle1) = &cells_copy[x][y] {
