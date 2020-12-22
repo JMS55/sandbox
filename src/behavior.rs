@@ -408,7 +408,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x][y + 2].is_none() {
                     let mut particle = particle.clone();
-                    particle.color_offset = sandbox.rng.gen_range(-10, 11);
+                    particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x][y + 2] = Some(particle);
                 }
             }
@@ -420,7 +420,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x + 2][y].is_none() {
                     let mut particle = particle.clone();
-                    particle.color_offset = sandbox.rng.gen_range(-10, 11);
+                    particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x + 2][y] = Some(particle);
                 }
             }
@@ -432,7 +432,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x][y - 2].is_none() {
                     let mut particle = particle.clone();
-                    particle.color_offset = sandbox.rng.gen_range(-10, 11);
+                    particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x][y - 2] = Some(particle);
                 }
             }
@@ -444,7 +444,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x - 2][y].is_none() {
                     let mut particle = particle.clone();
-                    particle.color_offset = sandbox.rng.gen_range(-10, 11);
+                    particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x - 2][y] = Some(particle);
                 }
             }
@@ -476,8 +476,8 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
         if sandbox[x][y].unwrap().extra_data2 == 1 {
             let extra_data1 = sandbox[x][y].unwrap().extra_data1;
             if extra_data1 > 0 {
-                let x_offset = sandbox.rng.gen_range(-1, 2);
-                let y_offset = sandbox.rng.gen_range(-2, 3);
+                let x_offset = sandbox.rng.gen_range(-1..2);
+                let y_offset = sandbox.rng.gen_range(-2..3);
                 let x = x as isize + x_offset;
                 let y = y as isize + y_offset;
                 if (0..(SANDBOX_WIDTH as isize)).contains(&x)

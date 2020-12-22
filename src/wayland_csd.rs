@@ -7,10 +7,6 @@ pub struct WaylandCSDTheme {
 }
 
 impl Theme for WaylandCSDTheme {
-    fn font(&self) -> Option<(String, f32)> {
-        Some(("sans-serif".to_string(), 17.0))
-    }
-
     fn element_color(&self, element: Element, window_active: bool) -> ARGBColor {
         let [mut r, mut g, mut b] = match element {
             Element::Bar => ptype_ui_color(self.selected_particle),

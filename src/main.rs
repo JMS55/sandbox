@@ -4,12 +4,14 @@ mod heap_array;
 mod particle;
 mod sandbox;
 mod ui;
+#[cfg(target_os = "linux")]
 mod wayland_csd;
 
 use crate::glow_post_process::GlowPostProcess;
 use crate::particle::{Particle, ParticleType};
 use crate::sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use crate::ui::UI;
+#[cfg(target_os = "linux")]
 use crate::wayland_csd::WaylandCSDTheme;
 use pixels::wgpu::*;
 use pixels::{PixelsBuilder, SurfaceTexture};
@@ -56,6 +58,7 @@ fn main() {
         ))
         .build(&event_loop)
         .expect("Failed to create a window");
+    #[cfg(target_os = "linux")]
     window.set_wayland_theme(WaylandCSDTheme { selected_particle });
 
     // Setup rendering
@@ -196,6 +199,7 @@ fn main() {
                             _ => {}
                         }
 
+                        #[cfg(target_os = "linux")]
                         window.set_wayland_theme(WaylandCSDTheme { selected_particle });
                     }
                 }
@@ -309,12 +313,9 @@ fn main() {
                 // Update the simulation
                 frame_time += last_update.elapsed();
                 last_update = Instant::now();
-                let mut updates = 0;
-                let max_updates = if cfg!(debug_assertions) { 1 } else { 20 };
-                while frame_time >= TARGET_TIME_PER_UPDATE && updates != max_updates {
+                while frame_time >= TARGET_TIME_PER_UPDATE {
                     if !paused || update_once {
                         update_once = false;
-                        updates += 1;
                         sandbox.update();
                     }
                     frame_time -= TARGET_TIME_PER_UPDATE;

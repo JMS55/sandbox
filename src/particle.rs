@@ -38,7 +38,7 @@ pub enum ParticleType {
 
 impl Distribution<ParticleType> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> ParticleType {
-        match rng.gen_range(0, 18) {
+        match rng.gen_range(0..18) {
             0 => ParticleType::Sand,
             1 => ParticleType::Water,
             2 => ParticleType::Acid,
@@ -92,7 +92,7 @@ impl Particle {
                 ParticleType::Acid => 0,
                 ParticleType::Iridium => 0,
                 ParticleType::Replicator => 0,
-                ParticleType::Plant => rng.gen_range(1, 18),
+                ParticleType::Plant => rng.gen_range(1..18),
                 ParticleType::Cryotheum => 0,
                 ParticleType::Unstable => 0,
                 ParticleType::Electricity => 0,
@@ -100,8 +100,8 @@ impl Particle {
                 ParticleType::Life => 0,
                 ParticleType::SuperLife => 0,
                 ParticleType::Blood => 0,
-                ParticleType::Smoke => 90 + rng.gen_range(-20, 20),
-                ParticleType::Fire => rng.gen_range(0, 60),
+                ParticleType::Smoke => 90 + rng.gen_range(-20..20),
+                ParticleType::Fire => rng.gen_range(0..60),
                 ParticleType::Mirror => 0,
                 ParticleType::Steam => 0,
                 ParticleType::Glitch => 0,
@@ -126,7 +126,7 @@ impl Particle {
                 ParticleType::Steam => 0,
                 ParticleType::Glitch => 0,
             },
-            color_offset: rng.gen_range(-10, 11),
+            color_offset: rng.gen_range(-10..11),
             last_update: 0,
         }
     }

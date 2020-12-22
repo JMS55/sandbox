@@ -95,19 +95,9 @@ impl UI {
 
         self.imgui
             .io_mut()
-            .update_delta_time(self.recent_frames[9].elapsed());
-        self.recent_frames = [
-            self.recent_frames[1],
-            self.recent_frames[2],
-            self.recent_frames[3],
-            self.recent_frames[4],
-            self.recent_frames[5],
-            self.recent_frames[6],
-            self.recent_frames[7],
-            self.recent_frames[8],
-            self.recent_frames[9],
-            Instant::now(),
-        ];
+            .update_delta_time(self.recent_frames[self.recent_frames.len() - 1].elapsed());
+        self.recent_frames.rotate_left(1);
+        self.recent_frames[self.recent_frames.len() - 1] = Instant::now();
     }
 
     pub fn prepare_render(&mut self, window: &Window) {
