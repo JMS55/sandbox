@@ -20,6 +20,7 @@ use std::time::{Duration, Instant};
 use winit::dpi::{LogicalSize, PhysicalPosition};
 use winit::event::{ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
+#[cfg(target_os = "linux")]
 use winit::platform::unix::WindowExtUnix;
 use winit::window::{Fullscreen, WindowBuilder};
 
