@@ -13,6 +13,7 @@ pub const SANDBOX_HEIGHT: usize = 270;
 
 pub struct Sandbox {
     pub cells: Box<[[Option<Particle>; SANDBOX_HEIGHT]; SANDBOX_WIDTH]>,
+    last_cells: Box<[[Option<Particle>; SANDBOX_HEIGHT]; SANDBOX_WIDTH]>,
     pub rng: Pcg64,
     update_counter: u8,
     background: Box<[u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 4]>,
@@ -82,6 +83,7 @@ impl Sandbox {
 
         Self {
             cells: create_cells_array(None),
+            last_cells: create_cells_array(None),
             rng: Pcg64::new(0xcafef00dd15ea5e5, 0xa02bdbf7bb3c0a7ac28fa16a64abf96),
             update_counter: 1,
             background,
@@ -123,52 +125,40 @@ impl Sandbox {
         {
             // Transfer temperature between adjacent particles
             profile_scope!("temperature_transfer");
-
-            // Clone causes a stack overflow on some systems, so copy directly into a new heap_array
-            let cells_copy = {
-                let mut cells = create_cells_array(None);
-                let ptr = cells[..].as_mut_ptr();
-
-                unsafe { ptr.copy_from_nonoverlapping(self.cells[..].as_ptr(), self.cells.len()) };
-
-                cells
-            };
-
+            self.last_cells.copy_from_slice(&self.cells[..]);
             for x in 0..SANDBOX_WIDTH {
                 for y in 0..SANDBOX_HEIGHT {
-                    if let Some(particle1) = &cells_copy[x][y] {
+                    if let Some(particle1) = &self.last_cells[x][y] {
+                        let thermal_conductivity = particle1.thermal_conductivity();
+                        let temperature = particle1.temperature;
                         if y != SANDBOX_HEIGHT - 1 {
                             if let Some(particle2) = &self[x][y + 1] {
-                                let tc = particle1.thermal_conductivity()
-                                    + particle2.thermal_conductivity();
-                                let t = particle1.temperature / tc;
+                                let tc = thermal_conductivity + particle2.thermal_conductivity();
+                                let t = temperature / tc;
                                 self[x][y].as_mut().unwrap().temperature -= t;
                                 self[x][y + 1].as_mut().unwrap().temperature += t;
                             }
                         }
                         if x != SANDBOX_WIDTH - 1 {
                             if let Some(particle2) = &self[x + 1][y] {
-                                let tc = particle1.thermal_conductivity()
-                                    + particle2.thermal_conductivity();
-                                let t = particle1.temperature / tc;
+                                let tc = thermal_conductivity + particle2.thermal_conductivity();
+                                let t = temperature / tc;
                                 self[x][y].as_mut().unwrap().temperature -= t;
                                 self[x + 1][y].as_mut().unwrap().temperature += t;
                             }
                         }
                         if y != 0 {
                             if let Some(particle2) = &self[x][y - 1] {
-                                let tc = particle1.thermal_conductivity()
-                                    + particle2.thermal_conductivity();
-                                let t = particle1.temperature / tc;
+                                let tc = thermal_conductivity + particle2.thermal_conductivity();
+                                let t = temperature / tc;
                                 self[x][y].as_mut().unwrap().temperature -= t;
                                 self[x][y - 1].as_mut().unwrap().temperature += t;
                             }
                         }
                         if x != 0 {
                             if let Some(particle2) = &self[x - 1][y] {
-                                let tc = particle1.thermal_conductivity()
-                                    + particle2.thermal_conductivity();
-                                let t = particle1.temperature / tc;
+                                let tc = thermal_conductivity + particle2.thermal_conductivity();
+                                let t = temperature / tc;
                                 self[x][y].as_mut().unwrap().temperature -= t;
                                 self[x - 1][y].as_mut().unwrap().temperature += t;
                             }
