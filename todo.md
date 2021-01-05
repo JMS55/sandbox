@@ -7,19 +7,22 @@
 
 ## Todo
 * UI code should use ptype_ui_color() functions
-* Acid eating Water should generate heat
 * Use Rayon for tempature changes
 
 * Replace simdnoise and flume with a shader
 * Switch to iced for UI
+    * Tooltips on buttons for hotkeys
 * Save/Load simulations as images
     * Scale image to sandbox size, quantitize, match to particles
+
 * Physics?
     * It's been suggested to group all connected particles together
     * Inside the group, each particle performs celluar automata movement
     * Physics are run with each group acting was one body
+* Convection through empty cells?
 * MISX package
 * WASM build
+* Replace heap_array.rs when placement new is stabilized
 
 ## Release Procedure
 1. Bump Cargo.toml version

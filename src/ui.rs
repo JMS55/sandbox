@@ -376,7 +376,7 @@ impl UI {
 
         // Draw the FPS counter
         if self.should_display_fps {
-            let height = window.inner_size().height as f32 / window.scale_factor() as f32;
+            let height: f32 = window.inner_size().to_logical(window.scale_factor()).height;
             let y = height - 26.0;
             let fps =
                 self.recent_frames.len() as f64 / self.recent_frames[0].elapsed().as_secs_f64();

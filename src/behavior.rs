@@ -336,7 +336,9 @@ pub fn update_sand(sandbox: &mut Sandbox, x: usize, y: usize) {
 
 pub fn update_water(sandbox: &mut Sandbox, x: usize, y: usize) {
     if sandbox[x][y].unwrap().temperature >= 100 {
-        let t = sandbox[x][y].unwrap().temperature as f64 / 150.0;
+        let t = (sandbox[x][y].unwrap().temperature as f64 / 150.0)
+            .min(1.0)
+            .max(0.0);
         let chance = (1.0 - t) * 0.3 + t * 0.7;
         if sandbox.rng.gen_bool(chance) {
             sandbox[x][y].as_mut().unwrap().ptype = ParticleType::Steam;
@@ -365,6 +367,24 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
     if y != SANDBOX_HEIGHT - 1 {
         if let Some(particle) = &sandbox[x][y + 1] {
             if particle.dissolved_by_acid() {
+                // Heat nearby particles when dissolving water
+                if particle.ptype == ParticleType::Water {
+                    for x_offset in -3..=3 {
+                        for y_offset in -3..=3 {
+                            let x = x as isize + x_offset;
+                            let y = y as isize + y_offset;
+                            if !(x_offset == 0 && y_offset == 0)
+                                && (0..(SANDBOX_WIDTH as isize)).contains(&x)
+                                && (0..(SANDBOX_HEIGHT as isize)).contains(&y)
+                            {
+                                if let Some(particle) = sandbox[x as usize][y as usize].as_mut() {
+                                    particle.temperature += 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                // Delete both this particle and the adjacent one
                 sandbox[x][y] = None;
                 sandbox[x][y + 1] = None;
                 return;
@@ -374,6 +394,24 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
     if x != SANDBOX_WIDTH - 1 {
         if let Some(particle) = &sandbox[x + 1][y] {
             if particle.dissolved_by_acid() {
+                // Heat nearby particles when dissolving water
+                if particle.ptype == ParticleType::Water {
+                    for x_offset in -3..=3 {
+                        for y_offset in -3..=3 {
+                            let x = x as isize + x_offset;
+                            let y = y as isize + y_offset;
+                            if !(x_offset == 0 && y_offset == 0)
+                                && (0..(SANDBOX_WIDTH as isize)).contains(&x)
+                                && (0..(SANDBOX_HEIGHT as isize)).contains(&y)
+                            {
+                                if let Some(particle) = sandbox[x as usize][y as usize].as_mut() {
+                                    particle.temperature += 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                // Delete both this particle and the adjacent one
                 sandbox[x][y] = None;
                 sandbox[x + 1][y] = None;
                 return;
@@ -383,6 +421,24 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
     if y != 0 {
         if let Some(particle) = &sandbox[x][y - 1] {
             if particle.dissolved_by_acid() {
+                // Heat nearby particles when dissolving water
+                if particle.ptype == ParticleType::Water {
+                    for x_offset in -3..=3 {
+                        for y_offset in -3..=3 {
+                            let x = x as isize + x_offset;
+                            let y = y as isize + y_offset;
+                            if !(x_offset == 0 && y_offset == 0)
+                                && (0..(SANDBOX_WIDTH as isize)).contains(&x)
+                                && (0..(SANDBOX_HEIGHT as isize)).contains(&y)
+                            {
+                                if let Some(particle) = sandbox[x as usize][y as usize].as_mut() {
+                                    particle.temperature += 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                // Delete both this particle and the adjacent one
                 sandbox[x][y] = None;
                 sandbox[x][y - 1] = None;
                 return;
@@ -392,6 +448,24 @@ pub fn update_acid(sandbox: &mut Sandbox, x: usize, y: usize) {
     if x != 0 {
         if let Some(particle) = &sandbox[x - 1][y] {
             if particle.dissolved_by_acid() {
+                // Heat nearby particles when dissolving water
+                if particle.ptype == ParticleType::Water {
+                    for x_offset in -3..=3 {
+                        for y_offset in -3..=3 {
+                            let x = x as isize + x_offset;
+                            let y = y as isize + y_offset;
+                            if !(x_offset == 0 && y_offset == 0)
+                                && (0..(SANDBOX_WIDTH as isize)).contains(&x)
+                                && (0..(SANDBOX_HEIGHT as isize)).contains(&y)
+                            {
+                                if let Some(particle) = sandbox[x as usize][y as usize].as_mut() {
+                                    particle.temperature += 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                // Delete both this particle and the adjacent one
                 sandbox[x][y] = None;
                 sandbox[x - 1][y] = None;
                 return;

@@ -1,3 +1,10 @@
+# 1.3.0 (Unreleased)
+### Gameplay
+* Acid now generates heat when added to Water
+### Bugfixes
+* Fixed crashing when Water got too hot
+* Fixed crashes on Windows
+
 # 1.2.0 (2020-10-03)
 ### Gameplay
 * Added a UI
