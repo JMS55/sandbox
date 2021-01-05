@@ -1,26 +1,25 @@
-## Immediate Todo
-0. Investigate windows builds:
-    1. Make sure it builds, and that WaylandCSDTheme dosen't prevent that
-    2. Stack overflow on cloning particle array?
-1. Investigate 65 fps, and not 60 being the max (use release builds)
-    * Probably should clamp fps to refresh rate
-2. Fix the flatpak build missing a window title
-3. UI cleanup
-    1. Fix UI bounding box extending a bit too far to the right
-    2. Update ui.rs to use ptype_ui color functions
-    3. Split up render() into multiple functions
-4. Save/Load simulations with files
-5. MISX package
+## Known Bugs
+* FPS is displayed as slightly higher than it should be (e.g. 65 fps)
+* Flatpak builds are missing window title text
+* The UI bounding box extends a bit too far to the right
+* Electricity gets stuck with 1 particle of water in mid-air
+* Particles should move left/right randomly when they can do either
 
-## Later Todo
-1. Make particles move left/right randomly when they can do either
-2. Replace simdnoise and flume with a shader
-3. Fix 2 Electricity getting stuck with 1 particle of water in mid-air
-4. WASM
----
-5. Replace heap_array.rs with 'placement new' when it gets added to rust
-6. Mobile linux
-7. Sound effects
+## Todo
+* UI code should use ptype_ui_color() functions
+* Acid eating Water should generate heat
+* Use Rayon for tempature changes
+
+* Replace simdnoise and flume with a shader
+* Switch to iced for UI
+* Save/Load simulations as images
+    * Scale image to sandbox size, quantitize, match to particles
+* Physics?
+    * It's been suggested to group all connected particles together
+    * Inside the group, each particle performs celluar automata movement
+    * Physics are run with each group acting was one body
+* MISX package
+* WASM build
 
 ## Release Procedure
 1. Bump Cargo.toml version

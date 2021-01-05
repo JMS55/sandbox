@@ -1,4 +1,5 @@
 mod behavior;
+mod game;
 mod glow_post_process;
 mod heap_array;
 mod particle;
@@ -8,46 +9,26 @@ mod ui;
 mod wayland_csd;
 
 use crate::glow_post_process::GlowPostProcess;
-use crate::particle::{Particle, ParticleType};
-use crate::sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
+use crate::particle::ParticleType;
+use crate::sandbox::{SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use crate::ui::UI;
 #[cfg(target_os = "linux")]
 use crate::wayland_csd::WaylandCSDTheme;
+use game::Game;
 use pixels::wgpu::*;
 use pixels::{PixelsBuilder, SurfaceTexture};
 use puffin::profile_scope;
 use std::time::{Duration, Instant};
-use winit::dpi::{LogicalSize, PhysicalPosition};
+use winit::dpi::LogicalSize;
 use winit::event::{ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 #[cfg(target_os = "linux")]
 use winit::platform::unix::WindowExtUnix;
 use winit::window::{Fullscreen, WindowBuilder};
 
-const TARGET_TIME_PER_UPDATE: Duration = Duration::from_nanos(16666670);
-
 fn main() {
-    // Simulation state
-    let mut sandbox = Sandbox::new();
-    let mut last_update = Instant::now();
-    let mut frame_time = Duration::from_secs(0);
-    let mut paused = false;
-    let mut update_once = false;
-
-    // Brush state
-    let mut selected_particle = Some(ParticleType::Sand);
-    let mut brush_size: u8 = 3;
-    let mut x_axis_locked = None;
-    let mut y_axis_locked = None;
-
-    // Particle placement state
-    let mut should_place_particles = false;
-    let mut particle_placement_queue = Vec::new();
-
-    // Window state
-    let mut last_resize = None;
-    let mut prev_cursor_position = PhysicalPosition::<f64>::new(0.0, 0.0);
-    let mut curr_cursor_position = PhysicalPosition::<f64>::new(0.0, 0.0);
+    // Setup game
+    let mut game = Game::new();
 
     // Setup windowing
     let event_loop = EventLoop::new();
@@ -60,7 +41,7 @@ fn main() {
         .build(&event_loop)
         .expect("Failed to create a window");
     #[cfg(target_os = "linux")]
-    window.set_wayland_theme(WaylandCSDTheme { selected_particle });
+    window.set_wayland_theme(WaylandCSDTheme::new(game.selected_particle));
 
     // Setup rendering
     let surface_size = window.inner_size();
@@ -79,7 +60,10 @@ fn main() {
 
     event_loop.run(move |event, _, control_flow| {
         match &event {
-            Event::NewEvents(_) => ui.start_of_frame(),
+            Event::NewEvents(_) => {
+                game.start_of_frame();
+                ui.start_of_frame();
+            }
 
             Event::WindowEvent { event, .. } => match event {
                 // Window events
@@ -87,40 +71,33 @@ fn main() {
                 WindowEvent::Resized(new_size) => {
                     pixels.resize(new_size.width, new_size.height);
                     glow_post_process.resize(pixels.device(), new_size.width, new_size.height);
-                    last_resize = Some(Instant::now());
+                    game.last_window_resize = Some(Instant::now());
                 }
                 WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                     ui.set_scale_factor(*scale_factor, pixels.device(), pixels.queue());
                 }
 
                 // Mouse events
-                WindowEvent::CursorMoved { position, .. } => {
-                    prev_cursor_position = curr_cursor_position;
-                    curr_cursor_position = *position;
-
-                    if should_place_particles {
-                        particle_placement_queue.push((prev_cursor_position, curr_cursor_position));
-                    }
-                }
+                WindowEvent::CursorMoved { position, .. } => game.cursor_moved(*position),
                 WindowEvent::MouseInput { button, state, .. } => {
                     if *button == MouseButton::Left
                         && (!ui.ui_wants_mouse_input()
-                            || x_axis_locked.is_some()
-                            || y_axis_locked.is_some())
+                            || game.x_axis_locked.is_some()
+                            || game.y_axis_locked.is_some())
                     {
-                        should_place_particles = *state == ElementState::Pressed;
+                        game.should_place_particles = *state == ElementState::Pressed;
                     }
                 }
 
                 // Keyboard events
                 WindowEvent::ModifiersChanged(modifiers) => {
-                    x_axis_locked = if modifiers.shift() {
-                        Some(curr_cursor_position.x)
+                    game.x_axis_locked = if modifiers.shift() {
+                        Some(game.cursor_position.x)
                     } else {
                         None
                     };
-                    y_axis_locked = if modifiers.ctrl() {
-                        Some(curr_cursor_position.y)
+                    game.y_axis_locked = if modifiers.ctrl() {
+                        Some(game.cursor_position.y)
                     } else {
                         None
                     };
@@ -137,17 +114,19 @@ fn main() {
                                 };
                                 window.set_fullscreen(fullscreen);
                             }
-                            Some(VirtualKeyCode::Back) => sandbox.empty_out(),
-                            Some(VirtualKeyCode::Space) => paused = !paused,
-                            Some(VirtualKeyCode::Period) if paused => update_once = true,
+                            Some(VirtualKeyCode::Back) => game.sandbox.empty_out(),
+                            Some(VirtualKeyCode::Space) => game.is_paused = !game.is_paused,
+                            Some(VirtualKeyCode::Period) if game.is_paused => {
+                                game.should_update_once = true;
+                            }
                             Some(VirtualKeyCode::Equals) => {
-                                if brush_size < 10 {
-                                    brush_size += 1
+                                if game.brush_size < 10 {
+                                    game.brush_size += 1
                                 }
                             }
                             Some(VirtualKeyCode::Minus) => {
-                                if brush_size > 1 {
-                                    brush_size -= 1
+                                if game.brush_size > 1 {
+                                    game.brush_size -= 1
                                 }
                             }
                             Some(VirtualKeyCode::Key1) => ui.toggle_display_ui(),
@@ -156,52 +135,52 @@ fn main() {
 
                             // Particle selection controls
                             Some(VirtualKeyCode::D) => {
-                                selected_particle = None;
+                                game.selected_particle = None;
                             }
                             Some(VirtualKeyCode::S) => {
-                                selected_particle = Some(ParticleType::Sand);
+                                game.selected_particle = Some(ParticleType::Sand);
                             }
                             Some(VirtualKeyCode::W) => {
-                                selected_particle = Some(ParticleType::Water);
+                                game.selected_particle = Some(ParticleType::Water);
                             }
                             Some(VirtualKeyCode::A) => {
-                                selected_particle = Some(ParticleType::Acid);
+                                game.selected_particle = Some(ParticleType::Acid);
                             }
                             Some(VirtualKeyCode::I) => {
-                                selected_particle = Some(ParticleType::Iridium);
+                                game.selected_particle = Some(ParticleType::Iridium);
                             }
                             Some(VirtualKeyCode::R) => {
-                                selected_particle = Some(ParticleType::Replicator);
+                                game.selected_particle = Some(ParticleType::Replicator);
                             }
                             Some(VirtualKeyCode::P) => {
-                                selected_particle = Some(ParticleType::Plant);
+                                game.selected_particle = Some(ParticleType::Plant);
                             }
                             Some(VirtualKeyCode::C) => {
-                                selected_particle = Some(ParticleType::Cryotheum);
+                                game.selected_particle = Some(ParticleType::Cryotheum);
                             }
                             Some(VirtualKeyCode::U) => {
-                                selected_particle = Some(ParticleType::Unstable);
+                                game.selected_particle = Some(ParticleType::Unstable);
                             }
                             Some(VirtualKeyCode::E) => {
-                                selected_particle = Some(ParticleType::Electricity);
+                                game.selected_particle = Some(ParticleType::Electricity);
                             }
                             Some(VirtualKeyCode::L) => {
-                                selected_particle = Some(ParticleType::Life);
+                                game.selected_particle = Some(ParticleType::Life);
                             }
                             Some(VirtualKeyCode::F) => {
-                                selected_particle = Some(ParticleType::Fire);
+                                game.selected_particle = Some(ParticleType::Fire);
                             }
                             Some(VirtualKeyCode::M) => {
-                                selected_particle = Some(ParticleType::Mirror);
+                                game.selected_particle = Some(ParticleType::Mirror);
                             }
                             Some(VirtualKeyCode::G) => {
-                                selected_particle = Some(ParticleType::Glitch);
+                                game.selected_particle = Some(ParticleType::Glitch);
                             }
                             _ => {}
                         }
 
                         #[cfg(target_os = "linux")]
-                        window.set_wayland_theme(WaylandCSDTheme { selected_particle });
+                        window.set_wayland_theme(WaylandCSDTheme::new(game.selected_particle));
                     }
                 }
 
@@ -209,15 +188,16 @@ fn main() {
             },
 
             Event::MainEventsCleared => {
-                if let Some(lr) = last_resize {
+                // Resize window if scheduled
+                if let Some(last_window_resize) = game.last_window_resize {
                     // Prevent the window from becoming smaller than SIMULATION_SIZE
-                    if lr.elapsed() >= Duration::from_millis(10) {
+                    if last_window_resize.elapsed() >= Duration::from_millis(10) {
                         let mut surface_size = window.inner_size();
                         surface_size.width = surface_size.width.max(SANDBOX_WIDTH as u32);
                         surface_size.height = surface_size.height.max(SANDBOX_HEIGHT as u32);
                     }
                     // Snap the window size to multiples of SIMULATION_SIZE when less than 20% away
-                    if lr.elapsed() >= Duration::from_millis(50) {
+                    if last_window_resize.elapsed() >= Duration::from_millis(50) {
                         let mut surface_size = window.inner_size();
                         surface_size.width = surface_size.width.max(SANDBOX_WIDTH as u32);
                         surface_size.height = surface_size.height.max(SANDBOX_HEIGHT as u32);
@@ -232,96 +212,17 @@ fn main() {
                             window.set_inner_size(surface_size);
                             pixels.resize(surface_size.width, surface_size.height);
                         }
-                        last_resize = None;
+                        game.last_window_resize = None;
                     }
                 }
 
-                // Place particles in a straight line from prev_cursor_position to curr_cursor_position
-                // In addition, use data cached from WindowEvent::CursorMoved to ensure all gestures are properly captured
-                if should_place_particles {
-                    particle_placement_queue.push((prev_cursor_position, curr_cursor_position));
-                }
-                for (p1, mut p2) in particle_placement_queue.drain(..) {
-                    // Adjust coordinates
-                    if let Some(locked_x) = x_axis_locked {
-                        if selected_particle != Some(ParticleType::Electricity) {
-                            p2.x = locked_x;
-                        }
-                    }
-                    if let Some(locked_y) = y_axis_locked {
-                        if selected_particle != Some(ParticleType::Electricity) {
-                            p2.y = locked_y;
-                        }
-                    }
-                    let (p1x, p1y) = pixels
-                        .window_pos_to_pixel(p1.into())
-                        .unwrap_or_else(|p| pixels.clamp_pixel_pos(p));
-                    let (p2x, p2y) = pixels
-                        .window_pos_to_pixel(p2.into())
-                        .unwrap_or_else(|p| pixels.clamp_pixel_pos(p));
-
-                    // Don't place multiple Electricity vertically
-                    let brush_size_x = brush_size as usize;
-                    let brush_size_y = if selected_particle == Some(ParticleType::Electricity) {
-                        1
-                    } else {
-                        brush_size as usize
-                    };
-
-                    // Place particles (Bresenham's line algorithm)
-                    let (mut p1x, mut p1y) = (p1x as isize, p1y as isize);
-                    let (p2x, p2y) = (p2x as isize, p2y as isize);
-                    let dx = (p2x - p1x).abs();
-                    let sx = if p1x < p2x { 1 } else { -1 };
-                    let dy = -(p2y - p1y).abs();
-                    let sy = if p1y < p2y { 1 } else { -1 };
-                    let mut err = dx + dy;
-                    loop {
-                        let (x, y) = (p1x as usize, p1y as usize);
-                        for x in x..(x + brush_size_x) {
-                            for y in y..(y + brush_size_y) {
-                                if x < SANDBOX_WIDTH && y < SANDBOX_HEIGHT {
-                                    match selected_particle {
-                                        Some(selected_particle) => {
-                                            if sandbox[x][y].is_none() {
-                                                sandbox[x][y] = Some(Particle::new(
-                                                    selected_particle,
-                                                    &mut sandbox.rng,
-                                                ));
-                                            }
-                                        }
-                                        None => sandbox[x][y] = None,
-                                    }
-                                }
-                            }
-                        }
-
-                        if p1x == p2x && p1y == p2y {
-                            break;
-                        }
-                        let e2 = 2 * err;
-                        if e2 >= dy {
-                            err += dy;
-                            p1x += sx;
-                        }
-                        if e2 <= dx {
-                            err += dx;
-                            p1y += sy;
-                        }
-                    }
-                }
+                // Place particles
+                game.place_particles(&pixels);
 
                 // Update the simulation
-                frame_time += last_update.elapsed();
-                last_update = Instant::now();
-                while frame_time >= TARGET_TIME_PER_UPDATE {
-                    if !paused || update_once {
-                        update_once = false;
-                        sandbox.update();
-                    }
-                    frame_time -= TARGET_TIME_PER_UPDATE;
-                }
+                game.update();
 
+                // Request render
                 ui.prepare_render(&window);
                 window.request_redraw();
             }
@@ -329,7 +230,7 @@ fn main() {
             // Render
             Event::RedrawRequested(_) => {
                 profile_scope!("render");
-                let has_glow = sandbox.render(pixels.get_frame());
+                let has_glow = game.sandbox.render(pixels.get_frame());
 
                 profile_scope!("render_gpu");
                 let _ = pixels.render_with(|encoder, render_texture, context| {
@@ -342,10 +243,10 @@ fn main() {
                     }
 
                     ui.render(
-                        &mut sandbox,
-                        &mut selected_particle,
-                        &mut brush_size,
-                        &mut paused,
+                        &mut game.sandbox,
+                        &mut game.selected_particle,
+                        &mut game.brush_size,
+                        &mut game.is_paused,
                         &window,
                         &context.device,
                         &context.queue,

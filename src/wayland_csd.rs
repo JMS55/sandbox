@@ -6,6 +6,12 @@ pub struct WaylandCSDTheme {
     pub selected_particle: Option<ParticleType>,
 }
 
+impl WaylandCSDTheme {
+    pub fn new(selected_particle: Option<ParticleType>) -> Self {
+        Self { selected_particle }
+    }
+}
+
 impl Theme for WaylandCSDTheme {
     fn element_color(&self, element: Element, window_active: bool) -> ARGBColor {
         let [mut r, mut g, mut b] = match element {
