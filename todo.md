@@ -6,7 +6,6 @@
 * Particles should move left/right randomly when they can do either
 
 ## Todo
-* UI code should use ptype_ui_color() functions
 * Use Rayon for tempature changes
 
 * Replace simdnoise and flume with a shader

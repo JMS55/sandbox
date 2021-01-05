@@ -123,48 +123,53 @@ impl UI {
 
         // Function to create particle selection buttons
         let mut button_x = 0.0;
-        let mut particle_selector_button =
-            |text: &ImStr, ptype: Option<ParticleType>, color: [f32; 3], white_text: bool| {
-                ui.set_cursor_pos([
-                    button_x,
-                    if ptype == *selected_particle {
-                        0.0
-                    } else {
-                        8.0
-                    },
-                ]);
-                button_x += if ptype == *selected_particle {
-                    108.0
+        let mut particle_selector_button = |text: &ImStr, ptype: Option<ParticleType>| {
+            ui.set_cursor_pos([
+                button_x,
+                if ptype == *selected_particle {
+                    0.0
                 } else {
-                    93.0
-                };
-
-                let button_color = [color[0], color[1], color[2], 0.95];
-                let style1 = ui.push_style_colors(&[
-                    (StyleColor::Button, button_color),
-                    (StyleColor::ButtonHovered, button_color),
-                    (StyleColor::ButtonActive, button_color),
-                    (
-                        StyleColor::Text,
-                        if white_text {
-                            [0.8, 0.8, 0.8, 1.0]
-                        } else {
-                            [0.0, 0.0, 0.0, 1.0]
-                        },
-                    ),
-                ]);
-                let style2 = ui.push_style_var(StyleVar::FrameRounding(6.0));
-                let size = if ptype == *selected_particle {
-                    [100.0, 55.0]
-                } else {
-                    [85.0, 40.0]
-                };
-                if ui.button(text, size) {
-                    *selected_particle = ptype;
-                }
-                style1.pop(&ui);
-                style2.pop(&ui);
+                    8.0
+                },
+            ]);
+            button_x += if ptype == *selected_particle {
+                108.0
+            } else {
+                93.0
             };
+
+            let button_color = ptype_ui_color(ptype);
+            let button_color = [
+                button_color[0] as f32 / 255.0,
+                button_color[1] as f32 / 255.0,
+                button_color[2] as f32 / 255.0,
+                0.95,
+            ];
+            let text_color = ptype_ui_text_color(ptype);
+            let text_color = [
+                text_color[0] as f32 / 255.0,
+                text_color[1] as f32 / 255.0,
+                text_color[2] as f32 / 255.0,
+                1.0,
+            ];
+            let style1 = ui.push_style_colors(&[
+                (StyleColor::Button, button_color),
+                (StyleColor::ButtonHovered, button_color),
+                (StyleColor::ButtonActive, button_color),
+                (StyleColor::Text, text_color),
+            ]);
+            let style2 = ui.push_style_var(StyleVar::FrameRounding(6.0));
+            let size = if ptype == *selected_particle {
+                [100.0, 55.0]
+            } else {
+                [85.0, 40.0]
+            };
+            if ui.button(text, size) {
+                *selected_particle = ptype;
+            }
+            style1.pop(&ui);
+            style2.pop(&ui);
+        };
 
         // Setup styles
         let foreground_color1 = [
@@ -237,85 +242,23 @@ impl UI {
                 .resizable(false)
                 .horizontal_scrollbar(true)
                 .build(&ui, || {
-                    particle_selector_button(im_str!("Delete Tool"), None, [0.1, 0.1, 0.1], true);
-                    particle_selector_button(
-                        im_str!("Sand"),
-                        Some(ParticleType::Sand),
-                        [196.0 / 255.0, 192.0 / 255.0, 135.0 / 255.0],
-                        false,
-                    );
-                    particle_selector_button(
-                        im_str!("Water"),
-                        Some(ParticleType::Water),
-                        [26.0 / 255.0, 91.0 / 255.0, 165.0 / 255.0],
-                        true,
-                    );
-                    particle_selector_button(
-                        im_str!("Acid"),
-                        Some(ParticleType::Acid),
-                        [148.0 / 255.0, 219.0 / 255.0, 10.0 / 255.0],
-                        false,
-                    );
-                    particle_selector_button(
-                        im_str!("Iridium"),
-                        Some(ParticleType::Iridium),
-                        [100.0 / 255.0, 100.0 / 255.0, 100.0 / 255.0],
-                        true,
-                    );
-                    particle_selector_button(
-                        im_str!("Replicator"),
-                        Some(ParticleType::Replicator),
-                        [78.0 / 255.0, 21.0 / 255.0, 77.0 / 255.0],
-                        true,
-                    );
-                    particle_selector_button(
-                        im_str!("Plant"),
-                        Some(ParticleType::Plant),
-                        [6.0 / 255.0, 89.0 / 255.0, 9.0 / 255.0],
-                        true,
-                    );
-                    particle_selector_button(
-                        im_str!("Cryotheum"),
-                        Some(ParticleType::Cryotheum),
-                        [12.0 / 255.0, 193.0 / 255.0, 255.0 / 255.0],
-                        false,
-                    );
-                    particle_selector_button(
-                        im_str!("Unstable"),
-                        Some(ParticleType::Unstable),
-                        [94.0 / 255.0, 78.0 / 255.0, 55.0 / 255.0],
-                        true,
-                    );
+                    particle_selector_button(im_str!("Delete Tool"), None);
+                    particle_selector_button(im_str!("Sand"), Some(ParticleType::Sand));
+                    particle_selector_button(im_str!("Water"), Some(ParticleType::Water));
+                    particle_selector_button(im_str!("Acid"), Some(ParticleType::Acid));
+                    particle_selector_button(im_str!("Iridium"), Some(ParticleType::Iridium));
+                    particle_selector_button(im_str!("Replicator"), Some(ParticleType::Replicator));
+                    particle_selector_button(im_str!("Plant"), Some(ParticleType::Plant));
+                    particle_selector_button(im_str!("Cryotheum"), Some(ParticleType::Cryotheum));
+                    particle_selector_button(im_str!("Unstable"), Some(ParticleType::Unstable));
                     particle_selector_button(
                         im_str!("Electricity"),
                         Some(ParticleType::Electricity),
-                        [255.0 / 255.0, 244.0 / 255.0, 49.0 / 255.0],
-                        false,
                     );
-                    particle_selector_button(
-                        im_str!("Life"),
-                        Some(ParticleType::Life),
-                        [135.0 / 255.0, 12.0 / 255.0, 211.0 / 255.0],
-                        true,
-                    );
-                    particle_selector_button(
-                        im_str!("Fire"),
-                        Some(ParticleType::Fire),
-                        [255.0 / 255.0, 151.0 / 255.0, 20.0 / 255.0],
-                        false,
-                    );
-                    particle_selector_button(
-                        im_str!("Mirror"),
-                        Some(ParticleType::Mirror),
-                        [78.0 / 255.0, 216.0 / 255.0, 131.0 / 255.0],
-                        false,
-                    );
-                    particle_selector_button(
-                        im_str!("Glitch"),
-                        Some(ParticleType::Glitch),
-                        [120.0 / 255.0, 119.0 / 255.0, 100.0 / 255.0],
-                        false,
-                    );
+                    particle_selector_button(im_str!("Life"), Some(ParticleType::Life));
+                    particle_selector_button(im_str!("Fire"), Some(ParticleType::Fire));
+                    particle_selector_button(im_str!("Mirror"), Some(ParticleType::Mirror));
+                    particle_selector_button(im_str!("Glitch"), Some(ParticleType::Glitch));
                 });
 
             let y = if window.inner_size().width < 1416 {
