@@ -8,7 +8,7 @@ use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use pixels::wgpu::*;
 use puffin::GlobalProfiler;
 use puffin_imgui::ProfilerUi;
-use std::time::Instant;
+use std::time::Duration;
 use winit::event::Event;
 use winit::window::Window;
 
@@ -22,7 +22,6 @@ pub struct UI {
     should_display_profiler: bool,
 
     was_paused_before_popup: bool,
-    recent_frames: [Instant; 10],
     profiler_ui: ProfilerUi,
 }
 
@@ -58,7 +57,6 @@ impl UI {
             should_display_profiler: false,
 
             was_paused_before_popup: false,
-            recent_frames: [Instant::now(); 10],
             profiler_ui: ProfilerUi::default(),
         }
     }
@@ -88,16 +86,12 @@ impl UI {
         puffin::set_scopes_on(self.should_display_profiler);
     }
 
-    pub fn start_of_frame(&mut self) {
+    pub fn start_of_frame(&mut self, time_since_last_frame: Duration) {
         if self.should_display_profiler {
             GlobalProfiler::lock().new_frame();
         }
 
-        self.imgui
-            .io_mut()
-            .update_delta_time(self.recent_frames[self.recent_frames.len() - 1].elapsed());
-        self.recent_frames.rotate_left(1);
-        self.recent_frames[self.recent_frames.len() - 1] = Instant::now();
+        self.imgui.io_mut().update_delta_time(time_since_last_frame);
     }
 
     pub fn prepare_render(&mut self, window: &Window) {
@@ -321,8 +315,6 @@ impl UI {
         if self.should_display_fps {
             let height: f32 = window.inner_size().to_logical(window.scale_factor()).height;
             let y = height - 26.0;
-            let fps =
-                self.recent_frames.len() as f64 / self.recent_frames[0].elapsed().as_secs_f64();
             ImWindow::new(im_str!("fps_window"))
                 .always_auto_resize(true)
                 .position([10.0, y], Condition::Always)
@@ -331,7 +323,7 @@ impl UI {
                 .movable(false)
                 .resizable(false)
                 .no_inputs()
-                .build(&ui, || ui.text(format!("FPS: {:.0}", fps)));
+                .build(&ui, || ui.text(format!("FPS: {:.0}", ui.io().framerate)));
         }
 
         style1.pop(&ui);

@@ -11,7 +11,6 @@ pub struct Game {
     pub sandbox: Sandbox,
 
     // Update timing info
-    pub last_update: Instant,
     pub frame_time: Duration,
     pub is_paused: bool,
     pub should_update_once: bool,
@@ -34,7 +33,6 @@ impl Game {
         Self {
             sandbox: Sandbox::new(),
 
-            last_update: Instant::now(),
             frame_time: Duration::from_secs(0),
             is_paused: false,
             should_update_once: false,
@@ -50,11 +48,6 @@ impl Game {
 
             last_window_resize: None,
         }
-    }
-
-    pub fn start_of_frame(&mut self) {
-        self.frame_time += self.last_update.elapsed();
-        self.last_update = Instant::now();
     }
 
     pub fn update(&mut self) {

@@ -102,82 +102,91 @@ impl Sandbox {
 
     pub fn update(&mut self) {
         profile_scope!("update");
+        self.move_update();
+        self.temperature_update();
+        self.state_update();
+    }
 
-        {
-            // Move particles
-            profile_scope!("move_particles");
-            self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
-            for x in 0..SANDBOX_WIDTH {
-                for y in 0..SANDBOX_HEIGHT {
-                    if let Some(particle) = self[x][y] {
-                        if particle.last_update != self.update_counter {
-                            let new_particle_position = particle.move_particle(self, x, y);
-                            self[new_particle_position.0][new_particle_position.1]
-                                .as_mut()
-                                .unwrap()
-                                .last_update = self.update_counter
+    /// Move particles
+    fn move_update(&mut self) {
+        profile_scope!("move_particles");
+
+        self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
+
+        for x in 0..SANDBOX_WIDTH {
+            for y in 0..SANDBOX_HEIGHT {
+                if let Some(particle) = self[x][y] {
+                    if particle.last_update != self.update_counter {
+                        let new_particle_position = particle.move_particle(self, x, y);
+                        self[new_particle_position.0][new_particle_position.1]
+                            .as_mut()
+                            .unwrap()
+                            .last_update = self.update_counter
+                    }
+                }
+            }
+        }
+    }
+
+    /// Transfer temperature between adjacent particles
+    fn temperature_update(&mut self) {
+        profile_scope!("temperature_transfer");
+
+        self.last_cells.copy_from_slice(&self.cells[..]);
+
+        for x in 0..SANDBOX_WIDTH {
+            for y in 0..SANDBOX_HEIGHT {
+                if let Some(particle1) = &self.last_cells[x][y] {
+                    let thermal_conductivity = particle1.thermal_conductivity();
+                    let temperature = particle1.temperature;
+                    if y != SANDBOX_HEIGHT - 1 {
+                        if let Some(particle2) = &self[x][y + 1] {
+                            let tc = thermal_conductivity + particle2.thermal_conductivity();
+                            let t = temperature / tc;
+                            self[x][y].as_mut().unwrap().temperature -= t;
+                            self[x][y + 1].as_mut().unwrap().temperature += t;
+                        }
+                    }
+                    if x != SANDBOX_WIDTH - 1 {
+                        if let Some(particle2) = &self[x + 1][y] {
+                            let tc = thermal_conductivity + particle2.thermal_conductivity();
+                            let t = temperature / tc;
+                            self[x][y].as_mut().unwrap().temperature -= t;
+                            self[x + 1][y].as_mut().unwrap().temperature += t;
+                        }
+                    }
+                    if y != 0 {
+                        if let Some(particle2) = &self[x][y - 1] {
+                            let tc = thermal_conductivity + particle2.thermal_conductivity();
+                            let t = temperature / tc;
+                            self[x][y].as_mut().unwrap().temperature -= t;
+                            self[x][y - 1].as_mut().unwrap().temperature += t;
+                        }
+                    }
+                    if x != 0 {
+                        if let Some(particle2) = &self[x - 1][y] {
+                            let tc = thermal_conductivity + particle2.thermal_conductivity();
+                            let t = temperature / tc;
+                            self[x][y].as_mut().unwrap().temperature -= t;
+                            self[x - 1][y].as_mut().unwrap().temperature += t;
                         }
                     }
                 }
             }
         }
+    }
 
-        {
-            // Transfer temperature between adjacent particles
-            profile_scope!("temperature_transfer");
-            self.last_cells.copy_from_slice(&self.cells[..]);
-            for x in 0..SANDBOX_WIDTH {
-                for y in 0..SANDBOX_HEIGHT {
-                    if let Some(particle1) = &self.last_cells[x][y] {
-                        let thermal_conductivity = particle1.thermal_conductivity();
-                        let temperature = particle1.temperature;
-                        if y != SANDBOX_HEIGHT - 1 {
-                            if let Some(particle2) = &self[x][y + 1] {
-                                let tc = thermal_conductivity + particle2.thermal_conductivity();
-                                let t = temperature / tc;
-                                self[x][y].as_mut().unwrap().temperature -= t;
-                                self[x][y + 1].as_mut().unwrap().temperature += t;
-                            }
-                        }
-                        if x != SANDBOX_WIDTH - 1 {
-                            if let Some(particle2) = &self[x + 1][y] {
-                                let tc = thermal_conductivity + particle2.thermal_conductivity();
-                                let t = temperature / tc;
-                                self[x][y].as_mut().unwrap().temperature -= t;
-                                self[x + 1][y].as_mut().unwrap().temperature += t;
-                            }
-                        }
-                        if y != 0 {
-                            if let Some(particle2) = &self[x][y - 1] {
-                                let tc = thermal_conductivity + particle2.thermal_conductivity();
-                                let t = temperature / tc;
-                                self[x][y].as_mut().unwrap().temperature -= t;
-                                self[x][y - 1].as_mut().unwrap().temperature += t;
-                            }
-                        }
-                        if x != 0 {
-                            if let Some(particle2) = &self[x - 1][y] {
-                                let tc = thermal_conductivity + particle2.thermal_conductivity();
-                                let t = temperature / tc;
-                                self[x][y].as_mut().unwrap().temperature -= t;
-                                self[x - 1][y].as_mut().unwrap().temperature += t;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    /// Perform particle interactions and state updates
+    fn state_update(&mut self) {
+        profile_scope!("update_particles");
 
-        {
-            // Perform particle interactions and state updates
-            profile_scope!("update_particles");
-            self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
-            for x in 0..SANDBOX_WIDTH {
-                for y in 0..SANDBOX_HEIGHT {
-                    if let Some(particle) = self[x][y] {
-                        if particle.last_update != self.update_counter {
-                            particle.update(self, x, y);
-                        }
+        self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
+
+        for x in 0..SANDBOX_WIDTH {
+            for y in 0..SANDBOX_HEIGHT {
+                if let Some(particle) = self[x][y] {
+                    if particle.last_update != self.update_counter {
+                        particle.update(self, x, y);
                     }
                 }
             }

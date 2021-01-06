@@ -29,6 +29,7 @@ use winit::window::{Fullscreen, WindowBuilder};
 fn main() {
     // Setup game
     let mut game = Game::new();
+    let mut last_update = Instant::now();
 
     // Setup windowing
     let event_loop = EventLoop::new();
@@ -61,8 +62,11 @@ fn main() {
     event_loop.run(move |event, _, control_flow| {
         match &event {
             Event::NewEvents(_) => {
-                game.start_of_frame();
-                ui.start_of_frame();
+                let now = Instant::now();
+                let time_since_last_frame = last_update.elapsed();
+                game.frame_time += time_since_last_frame;
+                ui.start_of_frame(time_since_last_frame);
+                last_update = now;
             }
 
             Event::WindowEvent { event, .. } => match event {

@@ -1,12 +1,12 @@
 ## Known Bugs
-* FPS is displayed as slightly higher than it should be (e.g. 65 fps)
 * Flatpak builds are missing window title text
 * The UI bounding box extends a bit too far to the right
 * Electricity gets stuck with 1 particle of water in mid-air
 * Particles should move left/right randomly when they can do either
 
 ## Todo
-* Use Rayon for tempature changes
+* Parallelize simulation updates
+* Replace Glitch color with chromatic aberration
 
 * Replace simdnoise and flume with a shader
 * Switch to iced for UI

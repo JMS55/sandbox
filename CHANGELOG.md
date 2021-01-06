@@ -2,6 +2,7 @@
 ### Gameplay
 * Acid now generates heat when added to Water
 ### Bugfixes
+* Fixed inaccurate FPS display
 * Fixed crashing when Water got too hot
 * Fixed crashes on Windows
 
