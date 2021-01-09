@@ -1,5 +1,5 @@
 use crate::behavior::*;
-use crate::sandbox::Sandbox;
+use crate::cell_grid::Chunk;
 use rand::distributions::{Distribution, Standard};
 use rand::Rng;
 use rand_pcg::Pcg64;
@@ -131,73 +131,74 @@ impl Particle {
         }
     }
 
-    pub fn move_particle(&self, sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
+    pub fn move_particle(&self, chunk: &mut Chunk, x: usize, y: usize) -> (usize, usize) {
         let mut new_position = (x, y);
         match self.ptype {
             ParticleType::Sand => {
                 if self.extra_data1 == 0 {
-                    new_position = move_powder(sandbox, x, y);
+                    new_position = move_powder(chunk, x, y);
                 } else if self.extra_data1 == 1 {
-                    new_position = move_solid(sandbox, x, y);
+                    new_position = move_solid(chunk, x, y);
                 }
             }
             ParticleType::Water => {
                 if self.temperature > -80 {
-                    new_position = move_liquid(sandbox, x, y);
+                    new_position = move_liquid(chunk, x, y);
                 } else {
-                    new_position = move_solid(sandbox, x, y);
+                    new_position = move_solid(chunk, x, y);
                 }
             }
-            ParticleType::Acid => new_position = move_liquid(sandbox, x, y),
+            ParticleType::Acid => new_position = move_liquid(chunk, x, y),
             ParticleType::Iridium => {}
             ParticleType::Replicator => {}
             ParticleType::Plant => {
                 if self.extra_data2 == 0 {
-                    new_position = move_powder(sandbox, x, y);
+                    new_position = move_powder(chunk, x, y);
                 }
             }
-            ParticleType::Cryotheum => new_position = move_solid(sandbox, x, y),
+            ParticleType::Cryotheum => new_position = move_solid(chunk, x, y),
             ParticleType::Unstable => {}
-            ParticleType::Electricity => new_position = move_electricity(sandbox, x, y),
+            ParticleType::Electricity => new_position = move_electricity(chunk, x, y),
             ParticleType::Glass => {
                 if self.temperature >= 30 {
-                    new_position = move_liquid(sandbox, x, y);
+                    new_position = move_liquid(chunk, x, y);
                 } else {
-                    new_position = move_solid(sandbox, x, y);
+                    new_position = move_solid(chunk, x, y);
                 }
             }
-            ParticleType::Life => new_position = move_life(sandbox, x, y),
-            ParticleType::SuperLife => new_position = move_super_life(sandbox, x, y),
-            ParticleType::Blood => new_position = move_liquid(sandbox, x, y),
-            ParticleType::Smoke => new_position = move_gas(sandbox, x, y),
-            ParticleType::Fire => new_position = move_fire(sandbox, x, y),
+            ParticleType::Life => new_position = move_life(chunk, x, y),
+            ParticleType::SuperLife => new_position = move_super_life(chunk, x, y),
+            ParticleType::Blood => new_position = move_liquid(chunk, x, y),
+            ParticleType::Smoke => new_position = move_gas(chunk, x, y),
+            ParticleType::Fire => new_position = move_fire(chunk, x, y),
             ParticleType::Mirror => {}
-            ParticleType::Steam => new_position = move_gas(sandbox, x, y),
-            ParticleType::Glitch => new_position = move_liquid(sandbox, x, y),
+            ParticleType::Steam => new_position = move_gas(chunk, x, y),
+            ParticleType::Glitch => new_position = move_liquid(chunk, x, y),
         }
         new_position
     }
 
-    pub fn update(&self, sandbox: &mut Sandbox, x: usize, y: usize) {
+    pub fn update(&self, chunk: &mut Chunk, x: usize, y: usize) {
         match self.ptype {
-            ParticleType::Sand => update_sand(sandbox, x, y),
-            ParticleType::Water => update_water(sandbox, x, y),
-            ParticleType::Acid => update_acid(sandbox, x, y),
-            ParticleType::Iridium => {}
-            ParticleType::Replicator => update_replicator(sandbox, x, y),
-            ParticleType::Plant => update_plant(sandbox, x, y),
-            ParticleType::Cryotheum => update_cryotheum(sandbox, x, y),
-            ParticleType::Unstable => update_unstable(sandbox, x, y),
-            ParticleType::Electricity => update_electricity(sandbox, x, y),
-            ParticleType::Glass => {}
-            ParticleType::Life => update_life(sandbox, x, y),
-            ParticleType::SuperLife => update_life(sandbox, x, y),
-            ParticleType::Blood => update_blood(sandbox, x, y),
-            ParticleType::Smoke => update_smoke(sandbox, x, y),
-            ParticleType::Fire => update_fire(sandbox, x, y),
-            ParticleType::Mirror => update_mirror(sandbox, x, y),
-            ParticleType::Steam => update_steam(sandbox, x, y),
-            ParticleType::Glitch => update_glitch(sandbox, x, y),
+            ParticleType::Sand => update_sand(chunk, x, y),
+            ParticleType::Water => update_water(chunk, x, y),
+            // ParticleType::Acid => update_acid(chunk, x, y),
+            // ParticleType::Iridium => {}
+            // ParticleType::Replicator => update_replicator(chunk, x, y),
+            // ParticleType::Plant => update_plant(chunk, x, y),
+            // ParticleType::Cryotheum => update_cryotheum(chunk, x, y),
+            // ParticleType::Unstable => update_unstable(chunk, x, y),
+            // ParticleType::Electricity => update_electricity(chunk, x, y),
+            // ParticleType::Glass => {}
+            // ParticleType::Life => update_life(chunk, x, y),
+            // ParticleType::SuperLife => update_life(chunk, x, y),
+            // ParticleType::Blood => update_blood(chunk, x, y),
+            // ParticleType::Smoke => update_smoke(chunk, x, y),
+            // ParticleType::Fire => update_fire(chunk, x, y),
+            // ParticleType::Mirror => update_mirror(chunk, x, y),
+            // ParticleType::Steam => update_steam(chunk, x, y),
+            // ParticleType::Glitch => update_glitch(chunk, x, y),
+            _ => {}
         }
     }
 

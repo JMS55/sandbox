@@ -1,4 +1,4 @@
-use crate::heap_array::{create_background_array, create_cells_array};
+use crate::cell_grid::{CellGrid, Chunk};
 use crate::particle::{Particle, ParticleType};
 use flume::{bounded as bounded_queue, Receiver};
 use puffin::profile_scope;
@@ -11,19 +11,20 @@ use std::time::Instant;
 pub const SANDBOX_WIDTH: usize = 480;
 pub const SANDBOX_HEIGHT: usize = 270;
 
-pub struct Sandbox {
-    pub cells: Box<[[Option<Particle>; SANDBOX_HEIGHT]; SANDBOX_WIDTH]>,
-    last_cells: Box<[[Option<Particle>; SANDBOX_HEIGHT]; SANDBOX_WIDTH]>,
+pub struct Sandbox<'a> {
+    pub cells: CellGrid,
+    last_cells: CellGrid,
+    chunks: Vec<Chunk<'a>>,
     pub rng: Pcg64,
     update_counter: u8,
     background: Box<[u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 4]>,
     noise_queue_receiver: Receiver<Vec<f32>>,
 }
 
-impl Sandbox {
+impl<'a> Sandbox<'a> {
     pub fn new() -> Self {
         // Generate background
-        let mut background = create_background_array(30);
+        let mut background = CellGrid::create_background_array(30);
         let mut i = 0;
         for y in 0..SANDBOX_HEIGHT {
             for x in 0..SANDBOX_WIDTH {
@@ -82,8 +83,9 @@ impl Sandbox {
         });
 
         Self {
-            cells: create_cells_array(None),
-            last_cells: create_cells_array(None),
+            cells: CellGrid::new(),
+            last_cells: CellGrid::new(),
+            chunks: Vec::with_capacity((SANDBOX_WIDTH * SANDBOX_HEIGHT) / 4),
             rng: Pcg64::new(0xcafef00dd15ea5e5, 0xa02bdbf7bb3c0a7ac28fa16a64abf96),
             update_counter: 1,
             background,
@@ -113,19 +115,18 @@ impl Sandbox {
 
         self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
 
-        for x in 0..SANDBOX_WIDTH {
-            for y in 0..SANDBOX_HEIGHT {
-                if let Some(particle) = self[x][y] {
-                    if particle.last_update != self.update_counter {
-                        let new_particle_position = particle.move_particle(self, x, y);
-                        self[new_particle_position.0][new_particle_position.1]
-                            .as_mut()
-                            .unwrap()
-                            .last_update = self.update_counter
+        let update_counter = self.update_counter;
+        self.cells
+            .update_in_parallel(&mut self.chunks, &mut self.rng, |chunk, x, y| {
+                if let Some(particle) = &chunk.get_cell(x, y).clone() {
+                    if particle.last_update != update_counter {
+                        let new_particle_position = particle.move_particle(chunk, x, y);
+                        chunk
+                            .get_mut_particle(new_particle_position.0, new_particle_position.1)
+                            .last_update = update_counter
                     }
                 }
-            }
-        }
+            });
     }
 
     /// Transfer temperature between adjacent particles
@@ -134,8 +135,8 @@ impl Sandbox {
 
         self.last_cells.copy_from_slice(&self.cells[..]);
 
-        for x in 0..SANDBOX_WIDTH {
-            for y in 0..SANDBOX_HEIGHT {
+        for y in 0..SANDBOX_HEIGHT {
+            for x in 0..SANDBOX_WIDTH {
                 if let Some(particle1) = &self.last_cells[x][y] {
                     let thermal_conductivity = particle1.thermal_conductivity();
                     let temperature = particle1.temperature;
@@ -182,15 +183,15 @@ impl Sandbox {
 
         self.update_counter = self.update_counter.checked_add(1).unwrap_or(1);
 
-        for x in 0..SANDBOX_WIDTH {
-            for y in 0..SANDBOX_HEIGHT {
-                if let Some(particle) = self[x][y] {
-                    if particle.last_update != self.update_counter {
-                        particle.update(self, x, y);
+        let update_counter = self.update_counter;
+        self.cells
+            .update_in_parallel(&mut self.chunks, &mut self.rng, |chunk, x, y| {
+                if let Some(particle) = &chunk.get_cell(x, y).clone() {
+                    if particle.last_update != update_counter {
+                        particle.update(chunk, x, y);
                     }
                 }
-            }
-        }
+            });
     }
 
     pub fn render(&mut self, frame: &mut [u8]) -> bool {
@@ -269,7 +270,7 @@ impl Sandbox {
     }
 }
 
-impl Index<usize> for Sandbox {
+impl<'a> Index<usize> for Sandbox<'a> {
     type Output = [Option<Particle>; SANDBOX_HEIGHT];
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -277,7 +278,7 @@ impl Index<usize> for Sandbox {
     }
 }
 
-impl IndexMut<usize> for Sandbox {
+impl<'a> IndexMut<usize> for Sandbox<'a> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.cells[index]
     }

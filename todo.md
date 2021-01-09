@@ -3,17 +3,29 @@
 * The UI bounding box extends a bit too far to the right
 * Electricity gets stuck with 1 particle of water in mid-air
 * Particles should move left/right randomly when they can do either
+* Using shift/ctrl modifiers and moving the mouse really fast can leave gaps in particle placement
+* The background texture should be slightly shifted over so that it's symmetrical on all sides
+* Freezes when tabbing out and then coming back to the game as it suddenly tries to do 1000 updates at once
 
 ## Todo
 * Parallelize simulation updates
-* Replace Glitch color with chromatic aberration
+    * Reuse chunk Box allocations/allocate all in a Vec and reuse that
+    * Adapt all particle scripts
+    * Figure out how to handle RNG
+        * Maybe have Game or Sandbox hold an RNG, that's used to seed an RNG per chunk?
+    * Fix chunk boundry artifacts
+    * Empty chunk optimization?
+    * Parallel tempature updates?
+    * Lots of cleanup needed, rethink API and struct hierachy
+    * Check that axis iteration order and array layout is optimal
 
-* Replace simdnoise and flume with a shader
+* Replace Glitch color with chromatic aberration
 * Switch to iced for UI
     * Tooltips on buttons for hotkeys
 * Save/Load simulations as images
     * Scale image to sandbox size, quantitize, match to particles
 
+* Replace simdnoise and flume with a shader?
 * Physics?
     * It's been suggested to group all connected particles together
     * Inside the group, each particle performs celluar automata movement
@@ -21,7 +33,7 @@
 * Convection through empty cells?
 * MISX package
 * WASM build
-* Replace heap_array.rs when placement new is stabilized
+* Replace cell_grid.rs when placement new and const non-copy array initializers are stabilized
 
 ## Release Procedure
 1. Bump Cargo.toml version

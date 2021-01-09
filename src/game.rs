@@ -7,8 +7,8 @@ use winit::window::Window;
 
 const TARGET_TIME_PER_UPDATE: Duration = Duration::from_nanos(16666670);
 
-pub struct Game {
-    pub sandbox: Sandbox,
+pub struct Game<'a> {
+    pub sandbox: Sandbox<'a>,
 
     // Update timing info
     pub frame_time: Duration,
@@ -28,7 +28,7 @@ pub struct Game {
     pub last_window_resize: Option<Instant>,
 }
 
-impl Game {
+impl<'a> Game<'a> {
     pub fn new() -> Self {
         Self {
             sandbox: Sandbox::new(),

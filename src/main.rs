@@ -1,7 +1,7 @@
 mod behavior;
+mod cell_grid;
 mod game;
 mod glow_post_process;
-mod heap_array;
 mod particle;
 mod sandbox;
 mod ui;
