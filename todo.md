@@ -18,7 +18,7 @@
     * Inside the group, each particle performs celluar automata movement
     * Physics are run with each group acting was one body
 * Convection through empty cells?
-* MISX package
+* Windows package
 * WASM build
 * Replace heap_array.rs when placement new is stabilized
 

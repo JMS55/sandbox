@@ -236,7 +236,7 @@ impl Particle {
                     (166, 162, 105)
                 }
             }
-            ParticleType::Water => (26, 91, 165),
+            ParticleType::Water => (26, 91, 175),
             ParticleType::Acid => (138, 209, 0),
             ParticleType::Iridium => (100, 100, 100),
             ParticleType::Replicator => {

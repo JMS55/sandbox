@@ -212,7 +212,7 @@ impl Sandbox {
                     // Base color
                     let base_color = particle.base_color(&mut self.rng);
 
-                    // Tint blue/red based on temperature
+                    // Tint blue/red based on temperature, except for Electricity
                     let mut r = 0;
                     let mut b = 0;
                     let mut g = 0;
@@ -231,6 +231,15 @@ impl Sandbox {
                         r -= (particle.extra_data2 / 3) as i16;
                         g -= (particle.extra_data2 / 3) as i16;
                         b -= (particle.extra_data2 / 3) as i16;
+                    }
+
+                    // Add foam on top of Water
+                    if particle.ptype == ParticleType::Water && y != 0 {
+                        if self.cells[x][y - 1].is_none() {
+                            r += 35;
+                            g += 35;
+                            b += 35;
+                        }
                     }
 
                     // Darken/Lighten based on noise
