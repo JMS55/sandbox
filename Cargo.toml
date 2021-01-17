@@ -17,5 +17,8 @@ puffin = "0.3"
 puffin-imgui = "0.5"
 bytemuck = "1.4"
 
+[profile.dev]
+opt-level = 3
+
 [profile.release]
 lto = true
