@@ -1,14 +1,13 @@
 ## Known Bugs
 * Flatpak builds are missing window title text
-* The UI bounding box extends a bit too far to the right
-* Electricity gets stuck with 1 particle of water in mid-air
+* Freezes when tabbing out and then coming back to the game as it suddenly tries to do 1000 updates at once
+* Using shift/ctrl modifiers and moving the mouse really fast can leave gaps in particle placement
 * Particles should move left/right randomly when they can do either
+* Electricity gets stuck with 1 particle of water in mid-air
+* The UI bounding box extends a bit too far to the right
 
 ## Todo
-* Parallelize simulation updates
 * Replace Glitch color with chromatic aberration
-
-* Replace simdnoise and flume with a shader
 * Switch to iced for UI
     * Tooltips on buttons for hotkeys
 * Save/Load simulations as images
