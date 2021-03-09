@@ -4,18 +4,18 @@ version = "1.2.0"
 edition = "2018"
 
 [dependencies]
-pixels = "0.2"
-imgui = "0.6"
-imgui-wgpu = "0.12"
-imgui-winit-support = "0.6"
+pixels = { git = "https://github.com/parasyte/pixels" }
+imgui = "0.7"
+imgui-wgpu = "0.14"
+imgui-winit-support = "0.7"
 winit = "0.24"
 rand = "0.8"
 rand_pcg = "0.3"
 simdnoise = "3.1"
 flume = { version = "0.10", default-features = false }
-puffin = "0.3"
-puffin-imgui = "0.5"
-bytemuck = "1.4"
+puffin = "0.4"
+puffin-imgui = "0.7"
+bytemuck = "1.5"
 
 [profile.dev]
 opt-level = 3

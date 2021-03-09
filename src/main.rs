@@ -73,7 +73,7 @@ fn main() {
                 // Window events
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::Resized(new_size) => {
-                    pixels.resize(new_size.width, new_size.height);
+                    pixels.resize_surface(new_size.width, new_size.height);
                     glow_post_process.resize(pixels.device(), new_size.width, new_size.height);
                     game.last_window_resize = Some(Instant::now());
                 }
@@ -214,7 +214,7 @@ fn main() {
                             surface_size.height =
                                 height_ratio.round() as u32 * SANDBOX_HEIGHT as u32;
                             window.set_inner_size(surface_size);
-                            pixels.resize(surface_size.width, surface_size.height);
+                            pixels.resize_surface(surface_size.width, surface_size.height);
                         }
                         game.last_window_resize = None;
                     }

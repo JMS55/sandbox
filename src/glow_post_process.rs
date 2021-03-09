@@ -36,6 +36,7 @@ impl GlowPostProcess {
             lod_max_clamp: 100.0,
             compare: None,
             anisotropy_clamp: None,
+            border_color: None,
         });
         let bind_group_layout1 = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
             label: Some("glow_post_process_bind_group_layout1"),
@@ -43,15 +44,18 @@ impl GlowPostProcess {
                 BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::FRAGMENT,
-                    ty: BindingType::Sampler { comparison: false },
+                    ty: BindingType::Sampler {
+                        filtering: true,
+                        comparison: false,
+                    },
                     count: None,
                 },
                 BindGroupLayoutEntry {
                     binding: 1,
                     visibility: ShaderStage::FRAGMENT,
-                    ty: BindingType::SampledTexture {
-                        dimension: TextureViewDimension::D2,
-                        component_type: TextureComponentType::Float,
+                    ty: BindingType::Texture {
+                        sample_type: TextureSampleType::Float { filterable: true },
+                        view_dimension: TextureViewDimension::D2,
                         multisampled: false,
                     },
                     count: None,
@@ -64,15 +68,18 @@ impl GlowPostProcess {
                 BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::FRAGMENT,
-                    ty: BindingType::Sampler { comparison: false },
+                    ty: BindingType::Sampler {
+                        filtering: true,
+                        comparison: false,
+                    },
                     count: None,
                 },
                 BindGroupLayoutEntry {
                     binding: 1,
                     visibility: ShaderStage::FRAGMENT,
-                    ty: BindingType::SampledTexture {
-                        dimension: TextureViewDimension::D2,
-                        component_type: TextureComponentType::Float,
+                    ty: BindingType::Texture {
+                        sample_type: TextureSampleType::Float { filterable: true },
+                        view_dimension: TextureViewDimension::D2,
                         multisampled: false,
                     },
                     count: None,
@@ -80,8 +87,9 @@ impl GlowPostProcess {
                 BindGroupLayoutEntry {
                     binding: 2,
                     visibility: ShaderStage::FRAGMENT,
-                    ty: BindingType::UniformBuffer {
-                        dynamic: false,
+                    ty: BindingType::Buffer {
+                        ty: BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
                         min_binding_size: None,
                     },
                     count: None,
@@ -94,15 +102,18 @@ impl GlowPostProcess {
                 BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::FRAGMENT,
-                    ty: BindingType::Sampler { comparison: false },
+                    ty: BindingType::Sampler {
+                        filtering: true,
+                        comparison: false,
+                    },
                     count: None,
                 },
                 BindGroupLayoutEntry {
                     binding: 1,
                     visibility: ShaderStage::FRAGMENT,
-                    ty: BindingType::SampledTexture {
-                        dimension: TextureViewDimension::D2,
-                        component_type: TextureComponentType::Float,
+                    ty: BindingType::Texture {
+                        sample_type: TextureSampleType::Float { filterable: true },
+                        view_dimension: TextureViewDimension::D2,
                         multisampled: false,
                     },
                     count: None,
@@ -110,9 +121,9 @@ impl GlowPostProcess {
                 BindGroupLayoutEntry {
                     binding: 2,
                     visibility: ShaderStage::FRAGMENT,
-                    ty: BindingType::SampledTexture {
-                        dimension: TextureViewDimension::D2,
-                        component_type: TextureComponentType::Float,
+                    ty: BindingType::Texture {
+                        sample_type: TextureSampleType::Float { filterable: true },
+                        view_dimension: TextureViewDimension::D2,
                         multisampled: false,
                     },
                     count: None,
@@ -134,14 +145,14 @@ impl GlowPostProcess {
         );
 
         let fullscreen_shader =
-            device.create_shader_module(include_spirv!("../shaders/fullscreen.spv"));
+            device.create_shader_module(&include_spirv!("../shaders/fullscreen.spv"));
         let copy_glowing_shader =
-            device.create_shader_module(include_spirv!("../shaders/copy_glowing.spv"));
+            device.create_shader_module(&include_spirv!("../shaders/copy_glowing.spv"));
         let vertical_blur_shader =
-            device.create_shader_module(include_spirv!("../shaders/vertical_blur.spv"));
+            device.create_shader_module(&include_spirv!("../shaders/vertical_blur.spv"));
         let horizontal_blur_shader =
-            device.create_shader_module(include_spirv!("../shaders/horizontal_blur.spv"));
-        let combine_shader = device.create_shader_module(include_spirv!("../shaders/combine.spv"));
+            device.create_shader_module(&include_spirv!("../shaders/horizontal_blur.spv"));
+        let combine_shader = device.create_shader_module(&include_spirv!("../shaders/combine.spv"));
 
         let pipeline_layout1 = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("glow_post_process_pipeline_layout1"),
@@ -161,142 +172,90 @@ impl GlowPostProcess {
         let copy_glowing_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             label: Some("glow_post_process_copy_glowing_pipeline"),
             layout: Some(&pipeline_layout1),
-            vertex_stage: ProgrammableStageDescriptor {
+            vertex: VertexState {
                 module: &fullscreen_shader,
                 entry_point: "main",
+                buffers: &[],
             },
-            fragment_stage: Some(ProgrammableStageDescriptor {
+            primitive: PrimitiveState::default(),
+            depth_stencil: None,
+            multisample: MultisampleState::default(),
+            fragment: Some(FragmentState {
                 module: &copy_glowing_shader,
                 entry_point: "main",
+                targets: &[ColorTargetState {
+                    format: TextureFormat::Bgra8UnormSrgb,
+                    color_blend: BlendState::REPLACE,
+                    alpha_blend: BlendState::REPLACE,
+                    write_mask: ColorWrite::ALL,
+                }],
             }),
-            rasterization_state: Some(RasterizationStateDescriptor {
-                front_face: FrontFace::Ccw,
-                cull_mode: CullMode::None,
-                clamp_depth: false,
-                depth_bias: 0,
-                depth_bias_slope_scale: 0.0,
-                depth_bias_clamp: 0.0,
-            }),
-            primitive_topology: PrimitiveTopology::TriangleList,
-            color_states: &[ColorStateDescriptor {
-                format: TextureFormat::Bgra8UnormSrgb,
-                color_blend: BlendDescriptor::REPLACE,
-                alpha_blend: BlendDescriptor::REPLACE,
-                write_mask: ColorWrite::ALL,
-            }],
-            depth_stencil_state: None,
-            vertex_state: VertexStateDescriptor {
-                index_format: IndexFormat::Uint16,
-                vertex_buffers: &[],
-            },
-            sample_count: 1,
-            sample_mask: !0,
-            alpha_to_coverage_enabled: false,
         });
         let vertical_blur_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             label: Some("glow_post_process_vertical_blur_pipeline"),
             layout: Some(&pipeline_layout2),
-            vertex_stage: ProgrammableStageDescriptor {
+            vertex: VertexState {
                 module: &fullscreen_shader,
                 entry_point: "main",
+                buffers: &[],
             },
-            fragment_stage: Some(ProgrammableStageDescriptor {
+            primitive: PrimitiveState::default(),
+            depth_stencil: None,
+            multisample: MultisampleState::default(),
+            fragment: Some(FragmentState {
                 module: &vertical_blur_shader,
                 entry_point: "main",
+                targets: &[ColorTargetState {
+                    format: TextureFormat::Bgra8UnormSrgb,
+                    color_blend: BlendState::REPLACE,
+                    alpha_blend: BlendState::REPLACE,
+                    write_mask: ColorWrite::ALL,
+                }],
             }),
-            rasterization_state: Some(RasterizationStateDescriptor {
-                front_face: FrontFace::Ccw,
-                cull_mode: CullMode::None,
-                clamp_depth: false,
-                depth_bias: 0,
-                depth_bias_slope_scale: 0.0,
-                depth_bias_clamp: 0.0,
-            }),
-            primitive_topology: PrimitiveTopology::TriangleList,
-            color_states: &[ColorStateDescriptor {
-                format: TextureFormat::Bgra8UnormSrgb,
-                color_blend: BlendDescriptor::REPLACE,
-                alpha_blend: BlendDescriptor::REPLACE,
-                write_mask: ColorWrite::ALL,
-            }],
-            depth_stencil_state: None,
-            vertex_state: VertexStateDescriptor {
-                index_format: IndexFormat::Uint16,
-                vertex_buffers: &[],
-            },
-            sample_count: 1,
-            sample_mask: !0,
-            alpha_to_coverage_enabled: false,
         });
         let horizontal_blur_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             label: Some("glow_post_process_horizontal_blur_pipeline"),
             layout: Some(&pipeline_layout2),
-            vertex_stage: ProgrammableStageDescriptor {
+            vertex: VertexState {
                 module: &fullscreen_shader,
                 entry_point: "main",
+                buffers: &[],
             },
-            fragment_stage: Some(ProgrammableStageDescriptor {
+            primitive: PrimitiveState::default(),
+            depth_stencil: None,
+            multisample: MultisampleState::default(),
+            fragment: Some(FragmentState {
                 module: &horizontal_blur_shader,
                 entry_point: "main",
+                targets: &[ColorTargetState {
+                    format: TextureFormat::Bgra8UnormSrgb,
+                    color_blend: BlendState::REPLACE,
+                    alpha_blend: BlendState::REPLACE,
+                    write_mask: ColorWrite::ALL,
+                }],
             }),
-            rasterization_state: Some(RasterizationStateDescriptor {
-                front_face: FrontFace::Ccw,
-                cull_mode: CullMode::None,
-                clamp_depth: false,
-                depth_bias: 0,
-                depth_bias_slope_scale: 0.0,
-                depth_bias_clamp: 0.0,
-            }),
-            primitive_topology: PrimitiveTopology::TriangleList,
-            color_states: &[ColorStateDescriptor {
-                format: TextureFormat::Bgra8UnormSrgb,
-                color_blend: BlendDescriptor::REPLACE,
-                alpha_blend: BlendDescriptor::REPLACE,
-                write_mask: ColorWrite::ALL,
-            }],
-            depth_stencil_state: None,
-            vertex_state: VertexStateDescriptor {
-                index_format: IndexFormat::Uint16,
-                vertex_buffers: &[],
-            },
-            sample_count: 1,
-            sample_mask: !0,
-            alpha_to_coverage_enabled: false,
         });
         let combine_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             label: Some("glow_post_process_combine_pipeline"),
             layout: Some(&pipeline_layout3),
-            vertex_stage: ProgrammableStageDescriptor {
+            vertex: VertexState {
                 module: &fullscreen_shader,
                 entry_point: "main",
+                buffers: &[],
             },
-            fragment_stage: Some(ProgrammableStageDescriptor {
+            primitive: PrimitiveState::default(),
+            depth_stencil: None,
+            multisample: MultisampleState::default(),
+            fragment: Some(FragmentState {
                 module: &combine_shader,
                 entry_point: "main",
+                targets: &[ColorTargetState {
+                    format: TextureFormat::Bgra8UnormSrgb,
+                    color_blend: BlendState::REPLACE,
+                    alpha_blend: BlendState::REPLACE,
+                    write_mask: ColorWrite::ALL,
+                }],
             }),
-            rasterization_state: Some(RasterizationStateDescriptor {
-                front_face: FrontFace::Ccw,
-                cull_mode: CullMode::None,
-                clamp_depth: false,
-                depth_bias: 0,
-                depth_bias_slope_scale: 0.0,
-                depth_bias_clamp: 0.0,
-            }),
-            primitive_topology: PrimitiveTopology::TriangleList,
-            color_states: &[ColorStateDescriptor {
-                format: TextureFormat::Bgra8UnormSrgb,
-                color_blend: BlendDescriptor::REPLACE,
-                alpha_blend: BlendDescriptor::REPLACE,
-                write_mask: ColorWrite::ALL,
-            }],
-            depth_stencil_state: None,
-            vertex_state: VertexStateDescriptor {
-                index_format: IndexFormat::Uint16,
-                vertex_buffers: &[],
-            },
-            sample_count: 1,
-            sample_mask: !0,
-            alpha_to_coverage_enabled: false,
         });
 
         Self {
@@ -353,6 +312,7 @@ impl GlowPostProcess {
     pub fn render(&self, encoder: &mut CommandEncoder, render_texture: &TextureView) {
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
+                label: Some("glow_post_process_copy_glowing_render_pass"),
                 color_attachments: &[RenderPassColorAttachmentDescriptor {
                     attachment: &self.texture2,
                     resolve_target: None,
@@ -369,6 +329,7 @@ impl GlowPostProcess {
         }
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
+                label: Some("glow_post_process_vertical_blur_render_pass"),
                 color_attachments: &[RenderPassColorAttachmentDescriptor {
                     attachment: &self.texture3,
                     resolve_target: None,
@@ -385,6 +346,7 @@ impl GlowPostProcess {
         }
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
+                label: Some("glow_post_process_horizontal_blur_render_pass"),
                 color_attachments: &[RenderPassColorAttachmentDescriptor {
                     attachment: &self.texture2,
                     resolve_target: None,
@@ -401,6 +363,7 @@ impl GlowPostProcess {
         }
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
+                label: Some("glow_post_process_combine_render_pass"),
                 color_attachments: &[RenderPassColorAttachmentDescriptor {
                     attachment: render_texture,
                     resolve_target: None,
@@ -438,7 +401,7 @@ fn create_resources(
         sample_count: 1,
         dimension: TextureDimension::D2,
         format: TextureFormat::Bgra8UnormSrgb,
-        usage: TextureUsage::SAMPLED | TextureUsage::OUTPUT_ATTACHMENT,
+        usage: TextureUsage::SAMPLED | TextureUsage::RENDER_ATTACHMENT,
     };
     let texture1 = device
         .create_texture(&texture_descriptor)
@@ -485,7 +448,11 @@ fn create_resources(
             },
             BindGroupEntry {
                 binding: 2,
-                resource: BindingResource::Buffer(texture_size_buffer.slice(..)),
+                resource: BindingResource::Buffer {
+                    buffer: &texture_size_buffer,
+                    offset: 0,
+                    size: None,
+                },
             },
         ],
     });
@@ -503,7 +470,11 @@ fn create_resources(
             },
             BindGroupEntry {
                 binding: 2,
-                resource: BindingResource::Buffer(texture_size_buffer.slice(..)),
+                resource: BindingResource::Buffer {
+                    buffer: &texture_size_buffer,
+                    offset: 0,
+                    size: None,
+                },
             },
         ],
     });

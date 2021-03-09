@@ -1,5 +1,4 @@
 ## Known Bugs
-* Flatpak builds are missing window title text
 * Freezes when tabbing out and then coming back to the game as it suddenly tries to do 1000 updates at once
 * Using shift/ctrl modifiers and moving the mouse really fast can leave gaps in particle placement
 * Particles should move left/right randomly when they can do either
