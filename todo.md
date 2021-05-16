@@ -6,12 +6,11 @@
 * The UI bounding box extends a bit too far to the right
 
 ## Todo
-* Move more things out of main.rs and into game.rs
-* Rework Glitch
-    * Replace Glitch color with chromatic aberration
 * Switch to egui/iced for UI
     * Tooltips on buttons for hotkeys
 * Replace simdnoise with shaders (Sample from scrolling texture?)
+* Rework Glitch
+    * Replace Glitch color with chromatic aberration
 
 * Document particle state / replace magic numbers with constants
 * Save/Load simulations as images

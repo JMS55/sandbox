@@ -15,16 +15,16 @@ use crate::ui::UI;
 #[cfg(target_os = "linux")]
 use crate::wayland_csd::WaylandCSDTheme;
 use game::Game;
-use pixels::wgpu::*;
+use pixels::wgpu::{PowerPreference, RequestAdapterOptions};
 use pixels::{PixelsBuilder, SurfaceTexture};
 use puffin::profile_scope;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use winit::dpi::LogicalSize;
 use winit::event::{ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 #[cfg(target_os = "linux")]
 use winit::platform::unix::WindowExtUnix;
-use winit::window::{Fullscreen, WindowBuilder};
+use winit::window::{Fullscreen, Window, WindowBuilder};
 
 fn main() {
     // Setup game
@@ -59,6 +59,7 @@ fn main() {
         GlowPostProcess::new(pixels.device(), surface_size.width, surface_size.height);
     let mut ui = UI::new(&window, pixels.device(), pixels.queue());
 
+    // Handle events
     event_loop.run(move |event, _, control_flow| {
         match &event {
             Event::NewEvents(_) => {
@@ -82,7 +83,7 @@ fn main() {
                 }
 
                 // Mouse events
-                WindowEvent::CursorMoved { position, .. } => game.cursor_moved(*position),
+                WindowEvent::CursorMoved { position, .. } => game.handle_cursor_move(*position),
                 WindowEvent::MouseInput { button, state, .. } => {
                     if *button == MouseButton::Left
                         && (!ui.ui_wants_mouse_input()
@@ -108,80 +109,13 @@ fn main() {
                 }
                 WindowEvent::KeyboardInput { input, .. } => {
                     if input.state == ElementState::Pressed {
-                        match input.virtual_keycode {
-                            // Misc controls
-                            Some(VirtualKeyCode::Escape) => *control_flow = ControlFlow::Exit,
-                            Some(VirtualKeyCode::Return) => {
-                                let fullscreen = match window.fullscreen() {
-                                    Some(_) => None,
-                                    None => Some(Fullscreen::Borderless(window.current_monitor())),
-                                };
-                                window.set_fullscreen(fullscreen);
-                            }
-                            Some(VirtualKeyCode::Back) => game.sandbox.empty_out(),
-                            Some(VirtualKeyCode::Space) => game.is_paused = !game.is_paused,
-                            Some(VirtualKeyCode::Period) if game.is_paused => {
-                                game.should_update_once = true;
-                            }
-                            Some(VirtualKeyCode::Equals) => {
-                                if game.brush_size < 10 {
-                                    game.brush_size += 1
-                                }
-                            }
-                            Some(VirtualKeyCode::Minus) => {
-                                if game.brush_size > 1 {
-                                    game.brush_size -= 1
-                                }
-                            }
-                            Some(VirtualKeyCode::Key1) => ui.toggle_display_ui(),
-                            Some(VirtualKeyCode::Key2) => ui.toggle_display_fps(),
-                            Some(VirtualKeyCode::Key3) => ui.toggle_display_profiler(),
-
-                            // Particle selection controls
-                            Some(VirtualKeyCode::D) => {
-                                game.selected_particle = None;
-                            }
-                            Some(VirtualKeyCode::S) => {
-                                game.selected_particle = Some(ParticleType::Sand);
-                            }
-                            Some(VirtualKeyCode::W) => {
-                                game.selected_particle = Some(ParticleType::Water);
-                            }
-                            Some(VirtualKeyCode::A) => {
-                                game.selected_particle = Some(ParticleType::Acid);
-                            }
-                            Some(VirtualKeyCode::I) => {
-                                game.selected_particle = Some(ParticleType::Iridium);
-                            }
-                            Some(VirtualKeyCode::R) => {
-                                game.selected_particle = Some(ParticleType::Replicator);
-                            }
-                            Some(VirtualKeyCode::P) => {
-                                game.selected_particle = Some(ParticleType::Plant);
-                            }
-                            Some(VirtualKeyCode::C) => {
-                                game.selected_particle = Some(ParticleType::Cryotheum);
-                            }
-                            Some(VirtualKeyCode::U) => {
-                                game.selected_particle = Some(ParticleType::Unstable);
-                            }
-                            Some(VirtualKeyCode::E) => {
-                                game.selected_particle = Some(ParticleType::Electricity);
-                            }
-                            Some(VirtualKeyCode::L) => {
-                                game.selected_particle = Some(ParticleType::Life);
-                            }
-                            Some(VirtualKeyCode::F) => {
-                                game.selected_particle = Some(ParticleType::Fire);
-                            }
-                            Some(VirtualKeyCode::M) => {
-                                game.selected_particle = Some(ParticleType::Mirror);
-                            }
-                            Some(VirtualKeyCode::G) => {
-                                game.selected_particle = Some(ParticleType::Glitch);
-                            }
-                            _ => {}
-                        }
+                        handle_key_press(
+                            &input.virtual_keycode,
+                            &window,
+                            control_flow,
+                            &mut game,
+                            &mut ui,
+                        );
 
                         #[cfg(target_os = "linux")]
                         window.set_wayland_theme(WaylandCSDTheme::new(game.selected_particle));
@@ -192,41 +126,12 @@ fn main() {
             },
 
             Event::MainEventsCleared => {
-                // Resize window if scheduled
-                if let Some(last_window_resize) = game.last_window_resize {
-                    // Prevent the window from becoming smaller than SIMULATION_SIZE
-                    if last_window_resize.elapsed() >= Duration::from_millis(10) {
-                        let mut surface_size = window.inner_size();
-                        surface_size.width = surface_size.width.max(SANDBOX_WIDTH as u32);
-                        surface_size.height = surface_size.height.max(SANDBOX_HEIGHT as u32);
-                    }
-                    // Snap the window size to multiples of SIMULATION_SIZE when less than 20% away
-                    if last_window_resize.elapsed() >= Duration::from_millis(50) {
-                        let mut surface_size = window.inner_size();
-                        surface_size.width = surface_size.width.max(SANDBOX_WIDTH as u32);
-                        surface_size.height = surface_size.height.max(SANDBOX_HEIGHT as u32);
-                        let width_ratio = surface_size.width as f64 / SANDBOX_WIDTH as f64;
-                        let height_ratio = surface_size.height as f64 / SANDBOX_HEIGHT as f64;
-                        if (width_ratio.fract() < 0.20 || width_ratio.fract() > 0.80)
-                            && (height_ratio.fract() < 0.20 || height_ratio.fract() > 0.80)
-                        {
-                            surface_size.width = width_ratio.round() as u32 * SANDBOX_WIDTH as u32;
-                            surface_size.height =
-                                height_ratio.round() as u32 * SANDBOX_HEIGHT as u32;
-                            window.set_inner_size(surface_size);
-                            pixels.resize_surface(surface_size.width, surface_size.height);
-                        }
-                        game.last_window_resize = None;
-                    }
-                }
-
-                // Place particles
+                // Update game state
+                game.handle_window_resize(&window, &mut pixels);
                 game.place_particles(&pixels);
-
-                // Update the simulation
                 game.update();
 
-                // Request render
+                // Prepare render
                 ui.prepare_render(&window);
                 window.request_redraw();
             }
@@ -265,4 +170,87 @@ fn main() {
 
         ui.handle_event(&window, &event);
     });
+}
+
+fn handle_key_press(
+    keycode: &Option<VirtualKeyCode>,
+    window: &Window,
+    control_flow: &mut ControlFlow,
+    game: &mut Game,
+    ui: &mut UI,
+) {
+    match keycode {
+        // Misc controls
+        Some(VirtualKeyCode::Escape) => *control_flow = ControlFlow::Exit,
+        Some(VirtualKeyCode::Return) => {
+            let fullscreen = match window.fullscreen() {
+                Some(_) => None,
+                None => Some(Fullscreen::Borderless(window.current_monitor())),
+            };
+            window.set_fullscreen(fullscreen);
+        }
+        Some(VirtualKeyCode::Back) => game.sandbox.empty_out(),
+        Some(VirtualKeyCode::Space) => game.is_paused = !game.is_paused,
+        Some(VirtualKeyCode::Period) if game.is_paused => {
+            game.should_update_once = true;
+        }
+        Some(VirtualKeyCode::Equals) => {
+            if game.brush_size < 10 {
+                game.brush_size += 1
+            }
+        }
+        Some(VirtualKeyCode::Minus) => {
+            if game.brush_size > 1 {
+                game.brush_size -= 1
+            }
+        }
+        Some(VirtualKeyCode::Key1) => ui.toggle_display_ui(),
+        Some(VirtualKeyCode::Key2) => ui.toggle_display_fps(),
+        Some(VirtualKeyCode::Key3) => ui.toggle_display_profiler(),
+
+        // Particle selection controls
+        Some(VirtualKeyCode::D) => {
+            game.selected_particle = None;
+        }
+        Some(VirtualKeyCode::S) => {
+            game.selected_particle = Some(ParticleType::Sand);
+        }
+        Some(VirtualKeyCode::W) => {
+            game.selected_particle = Some(ParticleType::Water);
+        }
+        Some(VirtualKeyCode::A) => {
+            game.selected_particle = Some(ParticleType::Acid);
+        }
+        Some(VirtualKeyCode::I) => {
+            game.selected_particle = Some(ParticleType::Iridium);
+        }
+        Some(VirtualKeyCode::R) => {
+            game.selected_particle = Some(ParticleType::Replicator);
+        }
+        Some(VirtualKeyCode::P) => {
+            game.selected_particle = Some(ParticleType::Plant);
+        }
+        Some(VirtualKeyCode::C) => {
+            game.selected_particle = Some(ParticleType::Cryotheum);
+        }
+        Some(VirtualKeyCode::U) => {
+            game.selected_particle = Some(ParticleType::Unstable);
+        }
+        Some(VirtualKeyCode::E) => {
+            game.selected_particle = Some(ParticleType::Electricity);
+        }
+        Some(VirtualKeyCode::L) => {
+            game.selected_particle = Some(ParticleType::Life);
+        }
+        Some(VirtualKeyCode::F) => {
+            game.selected_particle = Some(ParticleType::Fire);
+        }
+        Some(VirtualKeyCode::M) => {
+            game.selected_particle = Some(ParticleType::Mirror);
+        }
+        Some(VirtualKeyCode::G) => {
+            game.selected_particle = Some(ParticleType::Glitch);
+        }
+        _ => {}
+    }
 }

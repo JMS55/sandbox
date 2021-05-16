@@ -3,6 +3,7 @@ use crate::sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use pixels::Pixels;
 use std::time::{Duration, Instant};
 use winit::dpi::PhysicalPosition;
+use winit::window::Window;
 
 const TARGET_TIME_PER_UPDATE: Duration = Duration::from_nanos(16666670);
 
@@ -59,7 +60,7 @@ impl Game {
         }
     }
 
-    pub fn cursor_moved(&mut self, new_cursor_position: PhysicalPosition<f64>) {
+    pub fn handle_cursor_move(&mut self, new_cursor_position: PhysicalPosition<f64>) {
         self.previous_cursor_position = self.cursor_position;
         self.cursor_position = new_cursor_position;
 
@@ -145,6 +146,37 @@ impl Game {
                     err += dx;
                     p1y += sy;
                 }
+            }
+        }
+    }
+
+    pub fn handle_window_resize(&mut self, window: &Window, pixels: &mut Pixels) {
+        // If a window resize is scheduled
+        if let Some(last_window_resize) = self.last_window_resize {
+            // Prevent the window from becoming smaller than SIMULATION_SIZE
+            if last_window_resize.elapsed() >= Duration::from_millis(10) {
+                let mut surface_size = window.inner_size();
+                surface_size.width = surface_size.width.max(SANDBOX_WIDTH as u32);
+                surface_size.height = surface_size.height.max(SANDBOX_HEIGHT as u32);
+            }
+
+            // Snap the window size to multiples of SIMULATION_SIZE when less than 20% away
+            if last_window_resize.elapsed() >= Duration::from_millis(50) {
+                let mut surface_size = window.inner_size();
+                surface_size.width = surface_size.width.max(SANDBOX_WIDTH as u32);
+                surface_size.height = surface_size.height.max(SANDBOX_HEIGHT as u32);
+                let width_ratio = surface_size.width as f64 / SANDBOX_WIDTH as f64;
+                let height_ratio = surface_size.height as f64 / SANDBOX_HEIGHT as f64;
+
+                if (width_ratio.fract() < 0.20 || width_ratio.fract() > 0.80)
+                    && (height_ratio.fract() < 0.20 || height_ratio.fract() > 0.80)
+                {
+                    surface_size.width = width_ratio.round() as u32 * SANDBOX_WIDTH as u32;
+                    surface_size.height = height_ratio.round() as u32 * SANDBOX_HEIGHT as u32;
+                    window.set_inner_size(surface_size);
+                    pixels.resize_surface(surface_size.width, surface_size.height);
+                }
+                self.last_window_resize = None;
             }
         }
     }

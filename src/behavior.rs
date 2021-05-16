@@ -336,9 +336,7 @@ pub fn update_sand(sandbox: &mut Sandbox, x: usize, y: usize) {
 
 pub fn update_water(sandbox: &mut Sandbox, x: usize, y: usize) {
     if sandbox[x][y].unwrap().temperature >= 100 {
-        let t = (sandbox[x][y].unwrap().temperature as f64 / 150.0)
-            .min(1.0)
-            .max(0.0);
+        let t = (sandbox[x][y].unwrap().temperature as f64 / 150.0).clamp(0.0, 1.0);
         let chance = (1.0 - t) * 0.3 + t * 0.7;
         if sandbox.rng.gen_bool(chance) {
             sandbox[x][y].as_mut().unwrap().ptype = ParticleType::Steam;
