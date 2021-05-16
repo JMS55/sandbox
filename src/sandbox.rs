@@ -16,7 +16,7 @@ pub struct Sandbox {
     last_cells: Box<[[Option<Particle>; SANDBOX_HEIGHT]; SANDBOX_WIDTH]>,
     pub rng: Pcg64,
     update_counter: u8,
-    background: Box<[u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 4]>,
+    background: Box<[u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 3]>,
     noise_queue_receiver: Receiver<Vec<f32>>,
 }
 
@@ -62,8 +62,7 @@ impl Sandbox {
                 background[i + 1] -= m;
                 background[i + 2] -= m;
 
-                background[i + 3] = 255;
-                i += 4;
+                i += 3;
             }
         }
 
@@ -199,13 +198,10 @@ impl Sandbox {
     pub fn render(&mut self, frame: &mut [u8]) -> bool {
         profile_scope!("render_cpu");
 
-        frame.copy_from_slice(&*self.background);
-
         let noise = self.noise_queue_receiver.recv().ok();
 
         let mut has_glow = false;
-        let mut frame_index = 0;
-        let mut noise_index = 0;
+        let mut i = 0;
         for y in 0..SANDBOX_HEIGHT {
             for x in 0..SANDBOX_WIDTH {
                 if let Some(particle) = &self.cells[x][y] {
@@ -247,13 +243,13 @@ impl Sandbox {
                     }
 
                     // Darken/Lighten based on noise
-                    let mut m = 0;
-                    if let Some(noise) = &noise {
-                        let shimmer_intensity = particle.shimmer_intensity();
-                        if shimmer_intensity != 0 {
-                            m = (noise[noise_index] * shimmer_intensity as f32) as i16;
-                        }
-                    }
+                    let m = noise
+                        .as_ref()
+                        .map(|noise| {
+                            let shimmer_intensity = particle.shimmer_intensity();
+                            (noise[i] * shimmer_intensity as f32) as i16
+                        })
+                        .unwrap_or(0);
 
                     // Combine everything together
                     let r = base_color.0 as i16 + r + m + particle.color_offset as i16;
@@ -265,19 +261,26 @@ impl Sandbox {
                         clamp(b, 0, 255) as u8,
                     );
 
-                    frame[frame_index] = color.0;
-                    frame[frame_index + 1] = color.1;
-                    frame[frame_index + 2] = color.2;
-                    frame[frame_index + 3] = if particle.is_glowing() {
+                    let frame_i = i * 4;
+                    frame[frame_i] = color.0;
+                    frame[frame_i + 1] = color.1;
+                    frame[frame_i + 2] = color.2;
+                    frame[frame_i + 3] = if particle.is_glowing() {
                         has_glow = true;
                         0
                     } else {
                         255
                     };
+                } else {
+                    let frame_i = i * 4;
+                    let background_i = i * 3;
+                    frame[frame_i] = self.background[background_i];
+                    frame[frame_i + 1] = self.background[background_i + 1];
+                    frame[frame_i + 2] = self.background[background_i + 2];
+                    frame[frame_i + 3] = 255;
                 }
 
-                frame_index += 4;
-                noise_index += 1;
+                i += 1;
             }
         }
 

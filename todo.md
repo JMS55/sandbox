@@ -6,9 +6,14 @@
 * The UI bounding box extends a bit too far to the right
 
 ## Todo
+* Replace noise with shaders
+    1. Generate a (4 * SANDBOX_WIDTH)xSANDBOX_HEIGHT noise texture and save it as an image
+    2. Sandbox::new() loads the texture
+    3. Sandbox::render() writes each particle's shimmer_intensity() to a texture
+    4. Sample the noise texture, multiply by previous texture, and add to PixelsContext::texture() before Pixels::ScalingRenderer is used
+    5. Delete simdnoise and flume
 * Switch to egui/iced for UI
     * Tooltips on buttons for hotkeys
-* Replace simdnoise with shaders (Sample from scrolling texture?)
 * Rework Glitch
     * Replace Glitch color with chromatic aberration
 

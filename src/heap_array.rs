@@ -3,6 +3,7 @@ use crate::sandbox::{SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use std::mem::ManuallyDrop;
 
 // These functions create a heap allocated array like Box::new([T; N]), but unlike Box::new() no data touches the stack.
+
 // This file should be replaced when placement new is added to Rust.
 
 // 1. Allocate a Vec of data. The Vec's buffer has the same memory representation as an equivalent array.
@@ -18,7 +19,7 @@ pub fn create_cells_array(
     }
 }
 
-pub fn create_background_array(initial_value: u8) -> Box<[u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 4]> {
-    let mut data = ManuallyDrop::new(vec![initial_value; SANDBOX_HEIGHT * SANDBOX_WIDTH * 4]);
-    unsafe { Box::from_raw(data.as_mut_ptr() as *mut [u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 4]) }
+pub fn create_background_array(initial_value: u8) -> Box<[u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 3]> {
+    let mut data = ManuallyDrop::new(vec![initial_value; SANDBOX_HEIGHT * SANDBOX_WIDTH * 3]);
+    unsafe { Box::from_raw(data.as_mut_ptr() as *mut [u8; SANDBOX_HEIGHT * SANDBOX_WIDTH * 3]) }
 }
