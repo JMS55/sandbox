@@ -338,8 +338,8 @@ impl UI {
         self.imgui_platform.prepare_render(&ui, window);
         let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
             label: Some("ui_render_pass"),
-            color_attachments: &[RenderPassColorAttachmentDescriptor {
-                attachment: render_texture,
+            color_attachments: &[RenderPassColorAttachment {
+                view: render_texture,
                 resolve_target: None,
                 ops: Operations {
                     load: LoadOp::Load,

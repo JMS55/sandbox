@@ -6,20 +6,24 @@
 * The UI bounding box extends a bit too far to the right
 
 ## Todo
-* Replace Glitch color with chromatic aberration
-* Switch to iced for UI
+* Move more things out of main.rs and into game.rs
+* Rework Glitch
+    * Replace Glitch color with chromatic aberration
+* Switch to egui/iced for UI
     * Tooltips on buttons for hotkeys
+* Replace simdnoise with shaders (Sample from scrolling texture?)
+
+* Document particle state / replace magic numbers with constants
 * Save/Load simulations as images
     * Scale image to sandbox size, quantitize, match to particles
+* WASM build
 
+* Windows package
 * Physics?
     * It's been suggested to group all connected particles together
     * Inside the group, each particle performs celluar automata movement
     * Physics are run with each group acting was one body
 * Convection through empty cells?
-* Windows package
-* WASM build
-* Replace heap_array.rs when placement new is stabilized
 
 ## Release Procedure
 1. Bump Cargo.toml version

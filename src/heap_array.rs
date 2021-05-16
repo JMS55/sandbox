@@ -3,6 +3,7 @@ use crate::sandbox::{SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use std::mem::ManuallyDrop;
 
 // These functions create a heap allocated array like Box::new([T; N]), but unlike Box::new() no data touches the stack.
+// This file should be replaced when placement new is added to Rust.
 
 // 1. Allocate a Vec of data. The Vec's buffer has the same memory representation as an equivalent array.
 // 2. Use unsafe magic to reinterpret the Vec's buffer as an array, and create a Box pointing to it. The Box now owns the memory.

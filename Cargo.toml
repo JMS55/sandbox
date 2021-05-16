@@ -6,7 +6,7 @@ edition = "2018"
 [dependencies]
 pixels = { git = "https://github.com/parasyte/pixels" }
 imgui = "0.7"
-imgui-wgpu = "0.14"
+imgui-wgpu = "0.15"
 imgui-winit-support = "0.7"
 winit = "0.24"
 rand = "0.8"

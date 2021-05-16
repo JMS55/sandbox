@@ -1,4 +1,4 @@
-use pixels::wgpu::util::{BufferInitDescriptor, DeviceExt};
+use pixels::wgpu::util::{make_spirv, BufferInitDescriptor, DeviceExt};
 use pixels::wgpu::*;
 
 pub struct GlowPostProcess {
@@ -148,10 +148,21 @@ impl GlowPostProcess {
             device.create_shader_module(&include_spirv!("../shaders/fullscreen.spv"));
         let copy_glowing_shader =
             device.create_shader_module(&include_spirv!("../shaders/copy_glowing.spv"));
-        let vertical_blur_shader =
-            device.create_shader_module(&include_spirv!("../shaders/vertical_blur.spv"));
-        let horizontal_blur_shader =
-            device.create_shader_module(&include_spirv!("../shaders/horizontal_blur.spv"));
+        let vertical_blur_shader = device.create_shader_module(&ShaderModuleDescriptor {
+            label: None,
+            source: make_spirv(include_bytes!("../shaders/vertical_blur.spv")),
+            flags: ShaderFlags::empty(),
+        });
+        let horizontal_blur_shader = device.create_shader_module(&ShaderModuleDescriptor {
+            label: None,
+            source: make_spirv(include_bytes!("../shaders/horizontal_blur.spv")),
+            flags: ShaderFlags::empty(),
+        });
+        // TODO: Use include_spriv!() macro when naga validation dosen't incorrectly error on these shaders
+        // let vertical_blur_shader =
+        //     device.create_shader_module(&include_spirv!("../shaders/vertical_blur.spv"));
+        // let horizontal_blur_shader =
+        //     device.create_shader_module(&include_spirv!("../shaders/horizontal_blur.spv"));
         let combine_shader = device.create_shader_module(&include_spirv!("../shaders/combine.spv"));
 
         let pipeline_layout1 = device.create_pipeline_layout(&PipelineLayoutDescriptor {
@@ -169,94 +180,50 @@ impl GlowPostProcess {
             bind_group_layouts: &[&bind_group_layout3],
             push_constant_ranges: &[],
         });
-        let copy_glowing_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
-            label: Some("glow_post_process_copy_glowing_pipeline"),
-            layout: Some(&pipeline_layout1),
-            vertex: VertexState {
-                module: &fullscreen_shader,
-                entry_point: "main",
-                buffers: &[],
-            },
-            primitive: PrimitiveState::default(),
-            depth_stencil: None,
-            multisample: MultisampleState::default(),
-            fragment: Some(FragmentState {
-                module: &copy_glowing_shader,
-                entry_point: "main",
-                targets: &[ColorTargetState {
-                    format: TextureFormat::Bgra8UnormSrgb,
-                    color_blend: BlendState::REPLACE,
-                    alpha_blend: BlendState::REPLACE,
-                    write_mask: ColorWrite::ALL,
-                }],
-            }),
-        });
-        let vertical_blur_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
-            label: Some("glow_post_process_vertical_blur_pipeline"),
-            layout: Some(&pipeline_layout2),
-            vertex: VertexState {
-                module: &fullscreen_shader,
-                entry_point: "main",
-                buffers: &[],
-            },
-            primitive: PrimitiveState::default(),
-            depth_stencil: None,
-            multisample: MultisampleState::default(),
-            fragment: Some(FragmentState {
-                module: &vertical_blur_shader,
-                entry_point: "main",
-                targets: &[ColorTargetState {
-                    format: TextureFormat::Bgra8UnormSrgb,
-                    color_blend: BlendState::REPLACE,
-                    alpha_blend: BlendState::REPLACE,
-                    write_mask: ColorWrite::ALL,
-                }],
-            }),
-        });
-        let horizontal_blur_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
-            label: Some("glow_post_process_horizontal_blur_pipeline"),
-            layout: Some(&pipeline_layout2),
-            vertex: VertexState {
-                module: &fullscreen_shader,
-                entry_point: "main",
-                buffers: &[],
-            },
-            primitive: PrimitiveState::default(),
-            depth_stencil: None,
-            multisample: MultisampleState::default(),
-            fragment: Some(FragmentState {
-                module: &horizontal_blur_shader,
-                entry_point: "main",
-                targets: &[ColorTargetState {
-                    format: TextureFormat::Bgra8UnormSrgb,
-                    color_blend: BlendState::REPLACE,
-                    alpha_blend: BlendState::REPLACE,
-                    write_mask: ColorWrite::ALL,
-                }],
-            }),
-        });
-        let combine_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
-            label: Some("glow_post_process_combine_pipeline"),
-            layout: Some(&pipeline_layout3),
-            vertex: VertexState {
-                module: &fullscreen_shader,
-                entry_point: "main",
-                buffers: &[],
-            },
-            primitive: PrimitiveState::default(),
-            depth_stencil: None,
-            multisample: MultisampleState::default(),
-            fragment: Some(FragmentState {
-                module: &combine_shader,
-                entry_point: "main",
-                targets: &[ColorTargetState {
-                    format: TextureFormat::Bgra8UnormSrgb,
-                    color_blend: BlendState::REPLACE,
-                    alpha_blend: BlendState::REPLACE,
-                    write_mask: ColorWrite::ALL,
-                }],
-            }),
-        });
+
+        let create_pipeline = |fragment_shader, layout, label| {
+            device.create_render_pipeline(&RenderPipelineDescriptor {
+                label: Some(label),
+                layout: Some(layout),
+                vertex: VertexState {
+                    module: &fullscreen_shader,
+                    entry_point: "main",
+                    buffers: &[],
+                },
+                primitive: PrimitiveState::default(),
+                depth_stencil: None,
+                multisample: MultisampleState::default(),
+                fragment: Some(FragmentState {
+                    module: fragment_shader,
+                    entry_point: "main",
+                    targets: &[ColorTargetState {
+                        format: TextureFormat::Bgra8UnormSrgb,
+                        blend: Some(BlendState::REPLACE),
+                        write_mask: ColorWrite::ALL,
+                    }],
+                }),
+            })
+        };
+        let copy_glowing_pipeline = create_pipeline(
+            &copy_glowing_shader,
+            &pipeline_layout1,
+            "glow_post_process_copy_glowing_pipeline",
+        );
+        let vertical_blur_pipeline = create_pipeline(
+            &vertical_blur_shader,
+            &pipeline_layout2,
+            "glow_post_process_vertical_blur_pipeline",
+        );
+        let horizontal_blur_pipeline = create_pipeline(
+            &horizontal_blur_shader,
+            &pipeline_layout2,
+            "glow_post_process_horizontal_blur_pipeline",
+        );
+        let combine_pipeline = create_pipeline(
+            &combine_shader,
+            &pipeline_layout3,
+            "glow_post_process_combine_pipeline",
+        );
 
         Self {
             texture1,
@@ -313,8 +280,8 @@ impl GlowPostProcess {
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
                 label: Some("glow_post_process_copy_glowing_render_pass"),
-                color_attachments: &[RenderPassColorAttachmentDescriptor {
-                    attachment: &self.texture2,
+                color_attachments: &[RenderPassColorAttachment {
+                    view: &self.texture2,
                     resolve_target: None,
                     ops: Operations {
                         load: LoadOp::Clear(Color::BLACK),
@@ -330,8 +297,8 @@ impl GlowPostProcess {
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
                 label: Some("glow_post_process_vertical_blur_render_pass"),
-                color_attachments: &[RenderPassColorAttachmentDescriptor {
-                    attachment: &self.texture3,
+                color_attachments: &[RenderPassColorAttachment {
+                    view: &self.texture3,
                     resolve_target: None,
                     ops: Operations {
                         load: LoadOp::Clear(Color::BLACK),
@@ -347,8 +314,8 @@ impl GlowPostProcess {
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
                 label: Some("glow_post_process_horizontal_blur_render_pass"),
-                color_attachments: &[RenderPassColorAttachmentDescriptor {
-                    attachment: &self.texture2,
+                color_attachments: &[RenderPassColorAttachment {
+                    view: &self.texture2,
                     resolve_target: None,
                     ops: Operations {
                         load: LoadOp::Clear(Color::BLACK),
@@ -364,8 +331,8 @@ impl GlowPostProcess {
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
                 label: Some("glow_post_process_combine_render_pass"),
-                color_attachments: &[RenderPassColorAttachmentDescriptor {
-                    attachment: render_texture,
+                color_attachments: &[RenderPassColorAttachment {
+                    view: render_texture,
                     resolve_target: None,
                     ops: Operations {
                         load: LoadOp::Clear(Color::BLACK),
@@ -395,7 +362,7 @@ fn create_resources(
         size: Extent3d {
             width: texture_width,
             height: texture_height,
-            depth: 1,
+            depth_or_array_layers: 1,
         },
         mip_level_count: 1,
         sample_count: 1,
@@ -448,11 +415,11 @@ fn create_resources(
             },
             BindGroupEntry {
                 binding: 2,
-                resource: BindingResource::Buffer {
+                resource: BindingResource::Buffer(BufferBinding {
                     buffer: &texture_size_buffer,
                     offset: 0,
                     size: None,
-                },
+                }),
             },
         ],
     });
@@ -470,11 +437,11 @@ fn create_resources(
             },
             BindGroupEntry {
                 binding: 2,
-                resource: BindingResource::Buffer {
+                resource: BindingResource::Buffer(BufferBinding {
                     buffer: &texture_size_buffer,
                     offset: 0,
                     size: None,
-                },
+                }),
             },
         ],
     });

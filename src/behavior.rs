@@ -545,7 +545,7 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
         }
     }
 
-    // If growable and growing_time_left (extra_data_2) > 0, create another Plant nearby with 1 less growing_time_left
+    // If growable and growing_time_left (extra_data_1) > 0, create another Plant nearby with 1 less growing_time_left
     if y != 0 {
         if sandbox[x][y].unwrap().extra_data2 == 1 {
             let extra_data1 = sandbox[x][y].unwrap().extra_data1;
