@@ -479,7 +479,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
             if particle.ptype != ParticleType::Replicator {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x][y + 2].is_none() {
-                    let mut particle = particle.clone();
+                    let mut particle = particle;
                     particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x][y + 2] = Some(particle);
                 }
@@ -491,7 +491,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
             if particle.ptype != ParticleType::Replicator {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x + 2][y].is_none() {
-                    let mut particle = particle.clone();
+                    let mut particle = particle;
                     particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x + 2][y] = Some(particle);
                 }
@@ -503,7 +503,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
             if particle.ptype != ParticleType::Replicator {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x][y - 2].is_none() {
-                    let mut particle = particle.clone();
+                    let mut particle = particle;
                     particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x][y - 2] = Some(particle);
                 }
@@ -515,7 +515,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
             if particle.ptype != ParticleType::Replicator {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x - 2][y].is_none() {
-                    let mut particle = particle.clone();
+                    let mut particle = particle;
                     particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x - 2][y] = Some(particle);
                 }

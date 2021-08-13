@@ -353,7 +353,7 @@ impl UI {
             .expect("Failed to render UI");
     }
 
-    pub fn handle_event(&mut self, window: &Window, event: &Event<()>) {
+    pub fn handle_event(&mut self, window: &Window, event: &Event<'_, ()>) {
         self.imgui_platform
             .handle_event(self.imgui.io_mut(), window, event);
     }

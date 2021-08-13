@@ -1,3 +1,13 @@
+#![deny(
+    rust_2018_compatibility,
+    rust_2018_idioms,
+    future_incompatible,
+    nonstandard_style,
+    unused,
+    clippy::all
+)]
+#![allow(clippy::collapsible_if)]
+
 mod behavior;
 mod game;
 mod glow_post_process;
