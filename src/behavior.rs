@@ -6,11 +6,9 @@ use std::ptr;
 
 pub fn move_solid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
     // Move 1 down if able
-    if y != SANDBOX_HEIGHT - 1 {
-        if sandbox[x][y + 1].is_none() {
-            sandbox[x][y + 1] = sandbox[x][y].take();
-            return (x, y + 1);
-        }
+    if y != SANDBOX_HEIGHT - 1 && sandbox[x][y + 1].is_none() {
+        sandbox[x][y + 1] = sandbox[x][y].take();
+        return (x, y + 1);
     }
     (x, y)
 }
@@ -23,18 +21,15 @@ pub fn move_powder(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
             return (x, y + 1);
         }
         // Else move 1 down and left if able
-        if x != 0 {
-            if sandbox[x - 1][y + 1].is_none() && sandbox[x - 1][y].is_none() {
-                sandbox[x - 1][y + 1] = sandbox[x][y].take();
-                return (x - 1, y + 1);
-            }
+        if x != 0 && sandbox[x - 1][y + 1].is_none() && sandbox[x - 1][y].is_none() {
+            sandbox[x - 1][y + 1] = sandbox[x][y].take();
+            return (x - 1, y + 1);
         }
         // Else move 1 down and right if able
-        if x != SANDBOX_WIDTH - 1 {
-            if sandbox[x + 1][y + 1].is_none() && sandbox[x + 1][y].is_none() {
-                sandbox[x + 1][y + 1] = sandbox[x][y].take();
-                return (x + 1, y + 1);
-            }
+        if x != SANDBOX_WIDTH - 1 && sandbox[x + 1][y + 1].is_none() && sandbox[x + 1][y].is_none()
+        {
+            sandbox[x + 1][y + 1] = sandbox[x][y].take();
+            return (x + 1, y + 1);
         }
     }
     (x, y)
@@ -48,33 +43,26 @@ pub fn move_liquid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
             return (x, y + 1);
         }
         // Else move 1 down and left if able
-        if x != 0 {
-            if sandbox[x - 1][y + 1].is_none() && sandbox[x - 1][y].is_none() {
-                sandbox[x - 1][y + 1] = sandbox[x][y].take();
-                return (x - 1, y + 1);
-            }
+        if x != 0 && sandbox[x - 1][y + 1].is_none() && sandbox[x - 1][y].is_none() {
+            sandbox[x - 1][y + 1] = sandbox[x][y].take();
+            return (x - 1, y + 1);
         }
         // Else move 1 down and right if able
-        if x != SANDBOX_WIDTH - 1 {
-            if sandbox[x + 1][y + 1].is_none() && sandbox[x + 1][y].is_none() {
-                sandbox[x + 1][y + 1] = sandbox[x][y].take();
-                return (x + 1, y + 1);
-            }
+        if x != SANDBOX_WIDTH - 1 && sandbox[x + 1][y + 1].is_none() && sandbox[x + 1][y].is_none()
+        {
+            sandbox[x + 1][y + 1] = sandbox[x][y].take();
+            return (x + 1, y + 1);
         }
     }
     // Else move left if able
-    if x != 0 {
-        if sandbox[x - 1][y].is_none() {
-            sandbox[x - 1][y] = sandbox[x][y].take();
-            return (x - 1, y);
-        }
+    if x != 0 && sandbox[x - 1][y].is_none() {
+        sandbox[x - 1][y] = sandbox[x][y].take();
+        return (x - 1, y);
     }
     // Else move right if able
-    if x != SANDBOX_WIDTH - 1 {
-        if sandbox[x + 1][y].is_none() {
-            sandbox[x + 1][y] = sandbox[x][y].take();
-            return (x + 1, y);
-        }
+    if x != SANDBOX_WIDTH - 1 && sandbox[x + 1][y].is_none() {
+        sandbox[x + 1][y] = sandbox[x][y].take();
+        return (x + 1, y);
     }
     (x, y)
 }
@@ -87,33 +75,26 @@ pub fn move_gas(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
             return (x, y - 1);
         }
         // Else move 1 up and left if able
-        if x != 0 {
-            if sandbox[x - 1][y - 1].is_none() && sandbox[x - 1][y].is_none() {
-                sandbox[x - 1][y - 1] = sandbox[x][y].take();
-                return (x - 1, y - 1);
-            }
+        if x != 0 && sandbox[x - 1][y - 1].is_none() && sandbox[x - 1][y].is_none() {
+            sandbox[x - 1][y - 1] = sandbox[x][y].take();
+            return (x - 1, y - 1);
         }
         // Else move 1 up and right if able
-        if x != SANDBOX_WIDTH - 1 {
-            if sandbox[x + 1][y - 1].is_none() && sandbox[x + 1][y].is_none() {
-                sandbox[x + 1][y - 1] = sandbox[x][y].take();
-                return (x + 1, y - 1);
-            }
+        if x != SANDBOX_WIDTH - 1 && sandbox[x + 1][y - 1].is_none() && sandbox[x + 1][y].is_none()
+        {
+            sandbox[x + 1][y - 1] = sandbox[x][y].take();
+            return (x + 1, y - 1);
         }
     }
     // Else move left if able
-    if x != 0 {
-        if sandbox[x - 1][y].is_none() {
-            sandbox[x - 1][y] = sandbox[x][y].take();
-            return (x - 1, y);
-        }
+    if x != 0 && sandbox[x - 1][y].is_none() {
+        sandbox[x - 1][y] = sandbox[x][y].take();
+        return (x - 1, y);
     }
     // Else move right if able
-    if x != SANDBOX_WIDTH - 1 {
-        if sandbox[x + 1][y].is_none() {
-            sandbox[x + 1][y] = sandbox[x][y].take();
-            return (x + 1, y);
-        }
+    if x != SANDBOX_WIDTH - 1 && sandbox[x + 1][y].is_none() {
+        sandbox[x + 1][y] = sandbox[x][y].take();
+        return (x + 1, y);
     }
     (x, y)
 }
@@ -200,17 +181,15 @@ pub fn move_electricity(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, us
 
 pub fn move_life(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
     // Fall down if able
-    if y != SANDBOX_HEIGHT - 1 {
-        if sandbox[x][y + 1].is_none() {
-            // And increase the falling counter by 1
-            sandbox[x][y].as_mut().unwrap().extra_data1 = sandbox[x][y]
-                .as_mut()
-                .unwrap()
-                .extra_data1
-                .saturating_add(1);
-            sandbox[x][y + 1] = sandbox[x][y].take();
-            return (x, y + 1);
-        }
+    if y != SANDBOX_HEIGHT - 1 && sandbox[x][y + 1].is_none() {
+        // And increase the falling counter by 1
+        sandbox[x][y].as_mut().unwrap().extra_data1 = sandbox[x][y]
+            .as_mut()
+            .unwrap()
+            .extra_data1
+            .saturating_add(1);
+        sandbox[x][y + 1] = sandbox[x][y].take();
+        return (x, y + 1);
     }
 
     // Kill the particle if the falling counter > 60, else reset it
@@ -237,22 +216,14 @@ pub fn move_life(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
         };
 
         // Move left if able and the drop is short enough
-        if x != 0 {
-            if drop_is_short_enough(x - 1, y) {
-                if sandbox[x - 1][y].is_none() {
-                    sandbox[x - 1][y] = sandbox[x][y].take();
-                    return (x - 1, y);
-                }
-            }
+        if x != 0 && drop_is_short_enough(x - 1, y) && sandbox[x - 1][y].is_none() {
+            sandbox[x - 1][y] = sandbox[x][y].take();
+            return (x - 1, y);
         }
         // Else move right if able and the drop is short enough
-        if x != SANDBOX_WIDTH - 1 {
-            if drop_is_short_enough(x + 1, y) {
-                if sandbox[x + 1][y].is_none() {
-                    sandbox[x + 1][y] = sandbox[x][y].take();
-                    return (x + 1, y);
-                }
-            }
+        if x != SANDBOX_WIDTH - 1 && drop_is_short_enough(x + 1, y) && sandbox[x + 1][y].is_none() {
+            sandbox[x + 1][y] = sandbox[x][y].take();
+            return (x + 1, y);
         }
     }
 
@@ -479,7 +450,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
             if particle.ptype != ParticleType::Replicator {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x][y + 2].is_none() {
-                    let mut particle = particle.clone();
+                    let mut particle = particle;
                     particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x][y + 2] = Some(particle);
                 }
@@ -491,7 +462,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
             if particle.ptype != ParticleType::Replicator {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x + 2][y].is_none() {
-                    let mut particle = particle.clone();
+                    let mut particle = particle;
                     particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x + 2][y] = Some(particle);
                 }
@@ -503,7 +474,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
             if particle.ptype != ParticleType::Replicator {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x][y - 2].is_none() {
-                    let mut particle = particle.clone();
+                    let mut particle = particle;
                     particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x][y - 2] = Some(particle);
                 }
@@ -515,7 +486,7 @@ pub fn update_replicator(sandbox: &mut Sandbox, x: usize, y: usize) {
             if particle.ptype != ParticleType::Replicator {
                 sandbox[x][y].as_mut().unwrap().extra_data1 = 1;
                 if sandbox[x - 2][y].is_none() {
-                    let mut particle = particle.clone();
+                    let mut particle = particle;
                     particle.color_offset = sandbox.rng.gen_range(-10..11);
                     sandbox[x - 2][y] = Some(particle);
                 }
@@ -544,24 +515,21 @@ pub fn update_plant(sandbox: &mut Sandbox, x: usize, y: usize) {
     }
 
     // If growable and growing_time_left (extra_data_1) > 0, create another Plant nearby with 1 less growing_time_left
-    if y != 0 {
-        if sandbox[x][y].unwrap().extra_data2 == 1 {
-            let extra_data1 = sandbox[x][y].unwrap().extra_data1;
-            if extra_data1 > 0 {
-                let x_offset = sandbox.rng.gen_range(-1..2);
-                let y_offset = sandbox.rng.gen_range(-2..3);
-                let x = x as isize + x_offset;
-                let y = y as isize + y_offset;
-                if (0..(SANDBOX_WIDTH as isize)).contains(&x)
-                    && (0..(SANDBOX_HEIGHT as isize)).contains(&y)
-                {
-                    if sandbox[x as usize][y as usize].is_none() {
-                        let mut particle = Particle::new(ParticleType::Plant, &mut sandbox.rng);
-                        particle.extra_data1 = extra_data1 - 1;
-                        particle.extra_data2 = 1;
-                        sandbox[x as usize][y as usize] = Some(particle);
-                    }
-                }
+    if y != 0 && sandbox[x][y].unwrap().extra_data2 == 1 {
+        let extra_data1 = sandbox[x][y].unwrap().extra_data1;
+        if extra_data1 > 0 {
+            let x_offset = sandbox.rng.gen_range(-1..2);
+            let y_offset = sandbox.rng.gen_range(-2..3);
+            let x = x as isize + x_offset;
+            let y = y as isize + y_offset;
+            if (0..(SANDBOX_WIDTH as isize)).contains(&x)
+                && (0..(SANDBOX_HEIGHT as isize)).contains(&y)
+                && sandbox[x as usize][y as usize].is_none()
+            {
+                let mut particle = Particle::new(ParticleType::Plant, &mut sandbox.rng);
+                particle.extra_data1 = extra_data1 - 1;
+                particle.extra_data2 = 1;
+                sandbox[x as usize][y as usize] = Some(particle);
             }
         }
     }
@@ -795,20 +763,19 @@ pub fn update_mirror(sandbox: &mut Sandbox, x: usize, y: usize) {
     }
 
     // If a non-Mirror particle is above this particle, teleport it down to the last empty cell before another non-Mirror particle
-    if y != 0 {
-        if sandbox[x][y - 1].is_some() {
-            if sandbox[x][y - 1].unwrap().ptype != ParticleType::Mirror {
-                let mut new_y = y + 1;
-                while new_y != SANDBOX_HEIGHT {
-                    if sandbox[x][new_y].is_none() {
-                        sandbox[x][new_y] = sandbox[x][y - 1].take();
-                        return;
-                    } else if sandbox[x][new_y].unwrap().ptype != ParticleType::Mirror {
-                        return;
-                    }
-                    new_y += 1;
-                }
+    if y != 0
+        && sandbox[x][y - 1].is_some()
+        && sandbox[x][y - 1].unwrap().ptype != ParticleType::Mirror
+    {
+        let mut new_y = y + 1;
+        while new_y != SANDBOX_HEIGHT {
+            if sandbox[x][new_y].is_none() {
+                sandbox[x][new_y] = sandbox[x][y - 1].take();
+                return;
+            } else if sandbox[x][new_y].unwrap().ptype != ParticleType::Mirror {
+                return;
             }
+            new_y += 1;
         }
     }
 }
@@ -821,44 +788,36 @@ pub fn update_steam(sandbox: &mut Sandbox, x: usize, y: usize) {
 
 pub fn update_glitch(sandbox: &mut Sandbox, x: usize, y: usize) {
     // Convert adjacent other particle types to a random type
-    if y != SANDBOX_HEIGHT - 1 {
-        if sandbox[x][y + 1].is_some() {
-            if sandbox[x][y + 1].unwrap().ptype != ParticleType::Glitch
-                && sandbox[x][y + 1].unwrap().ptype != ParticleType::Replicator
-            {
-                sandbox[x][y] = None;
-                sandbox[x][y + 1] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
-            }
-        }
+    if y != SANDBOX_HEIGHT - 1
+        && sandbox[x][y + 1].is_some()
+        && sandbox[x][y + 1].unwrap().ptype != ParticleType::Glitch
+        && sandbox[x][y + 1].unwrap().ptype != ParticleType::Replicator
+    {
+        sandbox[x][y] = None;
+        sandbox[x][y + 1] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
     }
-    if x != SANDBOX_WIDTH - 1 {
-        if sandbox[x + 1][y].is_some() {
-            if sandbox[x + 1][y].unwrap().ptype != ParticleType::Glitch
-                && sandbox[x + 1][y].unwrap().ptype != ParticleType::Replicator
-            {
-                sandbox[x][y] = None;
-                sandbox[x + 1][y] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
-            }
-        }
+    if x != SANDBOX_WIDTH - 1
+        && sandbox[x + 1][y].is_some()
+        && sandbox[x + 1][y].unwrap().ptype != ParticleType::Glitch
+        && sandbox[x + 1][y].unwrap().ptype != ParticleType::Replicator
+    {
+        sandbox[x][y] = None;
+        sandbox[x + 1][y] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
     }
-    if y != 0 {
-        if sandbox[x][y - 1].is_some() {
-            if sandbox[x][y - 1].unwrap().ptype != ParticleType::Glitch
-                && sandbox[x][y - 1].unwrap().ptype != ParticleType::Replicator
-            {
-                sandbox[x][y] = None;
-                sandbox[x][y - 1] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
-            }
-        }
+    if y != 0
+        && sandbox[x][y - 1].is_some()
+        && sandbox[x][y - 1].unwrap().ptype != ParticleType::Glitch
+        && sandbox[x][y - 1].unwrap().ptype != ParticleType::Replicator
+    {
+        sandbox[x][y] = None;
+        sandbox[x][y - 1] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
     }
-    if x != 0 {
-        if sandbox[x - 1][y].is_some() {
-            if sandbox[x - 1][y].unwrap().ptype != ParticleType::Glitch
-                && sandbox[x - 1][y].unwrap().ptype != ParticleType::Replicator
-            {
-                sandbox[x][y] = None;
-                sandbox[x - 1][y] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
-            }
-        }
+    if x != 0
+        && sandbox[x - 1][y].is_some()
+        && sandbox[x - 1][y].unwrap().ptype != ParticleType::Glitch
+        && sandbox[x - 1][y].unwrap().ptype != ParticleType::Replicator
+    {
+        sandbox[x][y] = None;
+        sandbox[x - 1][y] = Some(Particle::new(sandbox.rng.gen(), &mut sandbox.rng));
     }
 }

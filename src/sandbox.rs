@@ -230,16 +230,17 @@ impl Sandbox {
                     }
 
                     // Add foam on top of Water
-                    if particle.ptype == ParticleType::Water && y > 2 && y < SANDBOX_HEIGHT - 1 {
-                        if self.cells[x][y - 1].is_none()
-                            && self.cells[x][y - 2].is_none()
-                            && self.cells[x][y - 3].is_none()
-                            && self.cells[x][y + 1].map(|p| p.ptype) == Some(ParticleType::Water)
-                        {
-                            r += 35;
-                            g += 35;
-                            b += 35;
-                        }
+                    if particle.ptype == ParticleType::Water
+                        && y > 2
+                        && y < SANDBOX_HEIGHT - 1
+                        && self.cells[x][y - 1].is_none()
+                        && self.cells[x][y - 2].is_none()
+                        && self.cells[x][y - 3].is_none()
+                        && self.cells[x][y + 1].map(|p| p.ptype) == Some(ParticleType::Water)
+                    {
+                        r += 35;
+                        g += 35;
+                        b += 35;
                     }
 
                     // Darken/Lighten based on noise
