@@ -72,7 +72,7 @@ impl Game {
 
     /// Place particles in a straight line from previous_cursor_position to cursor_position
     /// In addition, use data cached from WindowEvent::CursorMoved to ensure all gestures are properly captured
-    pub fn place_particles(&mut self, pixels: &Pixels) {
+    pub fn place_queued_particles(&mut self, pixels: &Pixels) {
         // Queue current position if should_place_particles
         if self.should_place_particles {
             self.particle_placement_queue

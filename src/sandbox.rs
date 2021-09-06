@@ -143,7 +143,7 @@ impl Sandbox {
                     let temperature = particle1.temperature;
                     if y != SANDBOX_HEIGHT - 1 {
                         if let Some(particle2) = &self[x][y + 1] {
-                            let tc = thermal_conductivity + particle2.thermal_conductivity();
+                            let tc = thermal_conductivity + particle2.thermal_conductivity(); // TODO: Overflow
                             let t = temperature / tc;
                             self[x][y].as_mut().unwrap().temperature -= t;
                             self[x][y + 1].as_mut().unwrap().temperature += t;

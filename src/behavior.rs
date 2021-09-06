@@ -314,7 +314,7 @@ pub fn move_fire(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
         .as_mut()
         .unwrap()
         .extra_data2;
-    if new_position == (x, y) {
+    if new_position.1 == y {
         *extra_data2 += 1;
     } else {
         *extra_data2 = extra_data2.saturating_sub(1);
@@ -746,8 +746,8 @@ pub fn update_smoke(sandbox: &mut Sandbox, x: usize, y: usize) {
 }
 
 pub fn update_fire(sandbox: &mut Sandbox, x: usize, y: usize) {
-    // When this particle hasn't moved for more than 1/2 a second or temperature < 40, delete it
-    if sandbox[x][y].unwrap().extra_data2 > 30 || sandbox[x][y].unwrap().temperature < 40 {
+    // When this particle hasn't moved for more than a second or temperature < 40, delete it
+    if sandbox[x][y].unwrap().extra_data2 > 60 || sandbox[x][y].unwrap().temperature < 40 {
         sandbox[x][y] = None;
     }
 

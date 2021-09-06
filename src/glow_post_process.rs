@@ -1,4 +1,4 @@
-use pixels::wgpu::util::{make_spirv, BufferInitDescriptor, DeviceExt};
+use pixels::wgpu::util::{BufferInitDescriptor, DeviceExt};
 use pixels::wgpu::*;
 
 pub struct GlowPostProcess {
@@ -43,7 +43,7 @@ impl GlowPostProcess {
             entries: &[
                 BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: ShaderStage::FRAGMENT,
+                    visibility: ShaderStages::FRAGMENT,
                     ty: BindingType::Sampler {
                         filtering: true,
                         comparison: false,
@@ -52,7 +52,7 @@ impl GlowPostProcess {
                 },
                 BindGroupLayoutEntry {
                     binding: 1,
-                    visibility: ShaderStage::FRAGMENT,
+                    visibility: ShaderStages::FRAGMENT,
                     ty: BindingType::Texture {
                         sample_type: TextureSampleType::Float { filterable: true },
                         view_dimension: TextureViewDimension::D2,
@@ -67,7 +67,7 @@ impl GlowPostProcess {
             entries: &[
                 BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: ShaderStage::FRAGMENT,
+                    visibility: ShaderStages::FRAGMENT,
                     ty: BindingType::Sampler {
                         filtering: true,
                         comparison: false,
@@ -76,7 +76,7 @@ impl GlowPostProcess {
                 },
                 BindGroupLayoutEntry {
                     binding: 1,
-                    visibility: ShaderStage::FRAGMENT,
+                    visibility: ShaderStages::FRAGMENT,
                     ty: BindingType::Texture {
                         sample_type: TextureSampleType::Float { filterable: true },
                         view_dimension: TextureViewDimension::D2,
@@ -86,7 +86,7 @@ impl GlowPostProcess {
                 },
                 BindGroupLayoutEntry {
                     binding: 2,
-                    visibility: ShaderStage::FRAGMENT,
+                    visibility: ShaderStages::FRAGMENT,
                     ty: BindingType::Buffer {
                         ty: BufferBindingType::Uniform,
                         has_dynamic_offset: false,
@@ -101,7 +101,7 @@ impl GlowPostProcess {
             entries: &[
                 BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: ShaderStage::FRAGMENT,
+                    visibility: ShaderStages::FRAGMENT,
                     ty: BindingType::Sampler {
                         filtering: true,
                         comparison: false,
@@ -110,7 +110,7 @@ impl GlowPostProcess {
                 },
                 BindGroupLayoutEntry {
                     binding: 1,
-                    visibility: ShaderStage::FRAGMENT,
+                    visibility: ShaderStages::FRAGMENT,
                     ty: BindingType::Texture {
                         sample_type: TextureSampleType::Float { filterable: true },
                         view_dimension: TextureViewDimension::D2,
@@ -120,7 +120,7 @@ impl GlowPostProcess {
                 },
                 BindGroupLayoutEntry {
                     binding: 2,
-                    visibility: ShaderStage::FRAGMENT,
+                    visibility: ShaderStages::FRAGMENT,
                     ty: BindingType::Texture {
                         sample_type: TextureSampleType::Float { filterable: true },
                         view_dimension: TextureViewDimension::D2,
@@ -148,21 +148,10 @@ impl GlowPostProcess {
             device.create_shader_module(&include_spirv!("../shaders/fullscreen.spv"));
         let copy_glowing_shader =
             device.create_shader_module(&include_spirv!("../shaders/copy_glowing.spv"));
-        let vertical_blur_shader = device.create_shader_module(&ShaderModuleDescriptor {
-            label: None,
-            source: make_spirv(include_bytes!("../shaders/vertical_blur.spv")),
-            flags: ShaderFlags::empty(),
-        });
-        let horizontal_blur_shader = device.create_shader_module(&ShaderModuleDescriptor {
-            label: None,
-            source: make_spirv(include_bytes!("../shaders/horizontal_blur.spv")),
-            flags: ShaderFlags::empty(),
-        });
-        // TODO: Use include_spriv!() macro when naga validation dosen't incorrectly error on these shaders
-        // let vertical_blur_shader =
-        //     device.create_shader_module(&include_spirv!("../shaders/vertical_blur.spv"));
-        // let horizontal_blur_shader =
-        //     device.create_shader_module(&include_spirv!("../shaders/horizontal_blur.spv"));
+        let vertical_blur_shader =
+            device.create_shader_module(&include_spirv!("../shaders/vertical_blur.spv"));
+        let horizontal_blur_shader =
+            device.create_shader_module(&include_spirv!("../shaders/horizontal_blur.spv"));
         let combine_shader = device.create_shader_module(&include_spirv!("../shaders/combine.spv"));
 
         let pipeline_layout1 = device.create_pipeline_layout(&PipelineLayoutDescriptor {
@@ -199,7 +188,7 @@ impl GlowPostProcess {
                     targets: &[ColorTargetState {
                         format: TextureFormat::Bgra8UnormSrgb,
                         blend: Some(BlendState::REPLACE),
-                        write_mask: ColorWrite::ALL,
+                        write_mask: ColorWrites::ALL,
                     }],
                 }),
             })
@@ -368,7 +357,7 @@ fn create_resources(
         sample_count: 1,
         dimension: TextureDimension::D2,
         format: TextureFormat::Bgra8UnormSrgb,
-        usage: TextureUsage::SAMPLED | TextureUsage::RENDER_ATTACHMENT,
+        usage: TextureUsages::TEXTURE_BINDING | TextureUsages::RENDER_ATTACHMENT,
     };
     let texture1 = device
         .create_texture(&texture_descriptor)
@@ -384,7 +373,7 @@ fn create_resources(
     let texture_size_buffer = device.create_buffer_init(&BufferInitDescriptor {
         label: Some("glow_post_process_texture_size_buffer"),
         contents: bytemuck::cast_slice(&[texture_width as f32, texture_height as f32]),
-        usage: BufferUsage::UNIFORM,
+        usage: BufferUsages::UNIFORM,
     });
 
     let copy_glowing_bind_group = device.create_bind_group(&BindGroupDescriptor {

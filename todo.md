@@ -6,6 +6,9 @@
 * The UI bounding box extends a bit too far to the right
 
 ## Todo
+* Move most of main.rs into game.rs
+* Complex sprites?
+    * Draw whatever, use that as indicator for drawing something else on top via shader
 * Replace noise with shaders
     1. Generate a (4 * SANDBOX_WIDTH)xSANDBOX_HEIGHT noise texture and save it as an image
     2. Sandbox::new() loads the texture
@@ -16,6 +19,7 @@
     * Tooltips on buttons for hotkeys
 * Rework Glitch
     * Replace Glitch color with chromatic aberration
+    * Maybe blur the non-glitch particles/area around it?
 
 * Document particle state / replace magic numbers with constants
 * Save/Load simulations as images

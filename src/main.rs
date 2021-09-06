@@ -128,7 +128,7 @@ fn main() {
             Event::MainEventsCleared => {
                 // Update game state
                 game.handle_window_resize(&window, &mut pixels);
-                game.place_particles(&pixels);
+                game.place_queued_particles(&pixels);
                 game.update();
 
                 // Prepare render
