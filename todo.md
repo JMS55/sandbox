@@ -1,4 +1,5 @@
 ## Known Bugs
+* Temperature calcs can overflow
 * Freezes when tabbing out and then coming back to the game as it suddenly tries to do 1000 updates at once
 * Using shift/ctrl modifiers and moving the mouse really fast can leave gaps in particle placement
 * Electricity gets stuck with 1 particle of water in mid-air

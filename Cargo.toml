@@ -17,8 +17,8 @@ rand = "0.8"
 rand_pcg = "0.3"
 simdnoise = "3.1"
 flume = { version = "0.10", default-features = false }
-puffin = "0.9"
-puffin-imgui = "0.12"
+puffin = "0.12"
+puffin-imgui = "0.15"
 bytemuck = "1.7"
 
 [profile.dev]
