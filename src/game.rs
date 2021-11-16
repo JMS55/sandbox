@@ -150,16 +150,9 @@ impl Game {
         }
     }
 
-    pub fn handle_window_resize(&mut self, window: &Window, pixels: &mut Pixels) {
+    pub fn handle_window_resize(&mut self, window: &Window) {
         // If a window resize is scheduled
         if let Some(last_window_resize) = self.last_window_resize {
-            // Prevent the window from becoming smaller than SIMULATION_SIZE
-            if last_window_resize.elapsed() >= Duration::from_millis(10) {
-                let mut surface_size = window.inner_size();
-                surface_size.width = surface_size.width.max(SANDBOX_WIDTH as u32);
-                surface_size.height = surface_size.height.max(SANDBOX_HEIGHT as u32);
-            }
-
             // Snap the window size to multiples of SIMULATION_SIZE when less than 20% away
             if last_window_resize.elapsed() >= Duration::from_millis(50) {
                 let mut surface_size = window.inner_size();
@@ -174,7 +167,6 @@ impl Game {
                     surface_size.width = width_ratio.round() as u32 * SANDBOX_WIDTH as u32;
                     surface_size.height = height_ratio.round() as u32 * SANDBOX_HEIGHT as u32;
                     window.set_inner_size(surface_size);
-                    pixels.resize_surface(surface_size.width, surface_size.height);
                 }
                 self.last_window_resize = None;
             }

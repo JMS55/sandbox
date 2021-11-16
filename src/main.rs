@@ -39,6 +39,10 @@ fn main() {
             (SANDBOX_WIDTH * 3) as f64,
             (SANDBOX_HEIGHT * 3) as f64,
         ))
+        .with_min_inner_size(LogicalSize::new(
+            SANDBOX_WIDTH as f64,
+            SANDBOX_HEIGHT as f64,
+        ))
         .build(&event_loop)
         .expect("Failed to create a window");
     #[cfg(target_os = "linux")]
@@ -47,15 +51,8 @@ fn main() {
     // Setup rendering
     let surface_size = window.inner_size();
     let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, &window);
-    let mut pixels =
-        PixelsBuilder::new(SANDBOX_WIDTH as u32, SANDBOX_HEIGHT as u32, surface_texture)
-            .request_adapter_options(RequestAdapterOptions {
-                power_preference: PowerPreference::HighPerformance,
-                force_fallback_adapter: false,
-                compatible_surface: None,
-            })
-            .build()
-            .expect("Failed to setup rendering");
+    let mut pixels = Pixels::new(SANDBOX_WIDTH as u32, SANDBOX_HEIGHT as u32, surface_texture)
+        .expect("Failed to setup rendering");
     let mut glow_post_process =
         GlowPostProcess::new(pixels.device(), surface_size.width, surface_size.height);
     let mut ui = UI::new(&window, pixels.device(), pixels.queue());
