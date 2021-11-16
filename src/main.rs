@@ -51,6 +51,7 @@ fn main() {
         PixelsBuilder::new(SANDBOX_WIDTH as u32, SANDBOX_HEIGHT as u32, surface_texture)
             .request_adapter_options(RequestAdapterOptions {
                 power_preference: PowerPreference::HighPerformance,
+                force_fallback_adapter: false,
                 compatible_surface: None,
             })
             .build()
@@ -162,6 +163,8 @@ fn main() {
                         encoder,
                         render_texture,
                     );
+
+                    Ok(())
                 });
             }
 

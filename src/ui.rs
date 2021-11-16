@@ -1,8 +1,6 @@
 use crate::particle::ParticleType;
 use crate::sandbox::Sandbox;
-use imgui::{
-    im_str, Condition, Context, FontSource, ImStr, Slider, StyleColor, StyleVar, Window as ImWindow,
-};
+use imgui::{Condition, Context, FontSource, Slider, StyleColor, StyleVar, Window as ImWindow};
 use imgui_wgpu::{Renderer, RendererConfig};
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use pixels::wgpu::*;
@@ -117,7 +115,7 @@ impl UI {
 
         // Function to create particle selection buttons
         let mut button_x = 0.0;
-        let mut particle_selector_button = |text: &ImStr, ptype: Option<ParticleType>| {
+        let mut particle_selector_button = |text: &str, ptype: Option<ParticleType>| {
             ui.set_cursor_pos([
                 button_x,
                 if ptype == *selected_particle {
@@ -146,23 +144,25 @@ impl UI {
                 text_color[2] as f32 / 255.0,
                 1.0,
             ];
-            let style1 = ui.push_style_colors(&[
-                (StyleColor::Button, button_color),
-                (StyleColor::ButtonHovered, button_color),
-                (StyleColor::ButtonActive, button_color),
-                (StyleColor::Text, text_color),
-            ]);
+            let style1 = [
+                ui.push_style_color(StyleColor::Button, button_color),
+                ui.push_style_color(StyleColor::ButtonHovered, button_color),
+                ui.push_style_color(StyleColor::ButtonActive, button_color),
+                ui.push_style_color(StyleColor::Text, text_color),
+            ];
             let style2 = ui.push_style_var(StyleVar::FrameRounding(6.0));
             let size = if ptype == *selected_particle {
                 [100.0, 55.0]
             } else {
                 [85.0, 40.0]
             };
-            if ui.button(text, size) {
+            if ui.button_with_size(text, size) {
                 *selected_particle = ptype;
             }
-            style1.pop(&ui);
-            style2.pop(&ui);
+            for style in style1 {
+                style.pop();
+            }
+            style2.pop();
         };
 
         // Setup styles
@@ -190,43 +190,43 @@ impl UI {
             (60.0 / 255.0f32),
             0.95,
         ];
-        let style1 = ui.push_style_colors(&[
-            (StyleColor::Button, background_color1),
-            (StyleColor::ButtonActive, background_color1),
-            (StyleColor::ButtonHovered, background_color1),
-            (StyleColor::CheckMark, foreground_color1),
-            (StyleColor::FrameBg, background_color1),
-            (StyleColor::FrameBgActive, background_color1),
-            (StyleColor::FrameBgHovered, background_color1),
-            (StyleColor::ScrollbarBg, background_color2),
-            (StyleColor::ScrollbarGrab, foreground_color2),
-            (StyleColor::ScrollbarGrabActive, foreground_color2),
-            (StyleColor::ScrollbarGrabHovered, foreground_color2),
-            (StyleColor::SliderGrab, foreground_color1),
-            (StyleColor::SliderGrabActive, foreground_color1),
-        ]);
-        let mut style2 = Some(ui.push_style_vars(&[
-            StyleVar::FrameRounding(4.0),
-            StyleVar::WindowBorderSize(0.0),
-            StyleVar::WindowMinSize([1.0, 1.0]),
-            StyleVar::WindowPadding([0.0, 0.0]),
-        ]));
+        let style1 = [
+            ui.push_style_color(StyleColor::Button, background_color1),
+            ui.push_style_color(StyleColor::ButtonActive, background_color1),
+            ui.push_style_color(StyleColor::ButtonHovered, background_color1),
+            ui.push_style_color(StyleColor::CheckMark, foreground_color1),
+            ui.push_style_color(StyleColor::FrameBg, background_color1),
+            ui.push_style_color(StyleColor::FrameBgActive, background_color1),
+            ui.push_style_color(StyleColor::FrameBgHovered, background_color1),
+            ui.push_style_color(StyleColor::ScrollbarBg, background_color2),
+            ui.push_style_color(StyleColor::ScrollbarGrab, foreground_color2),
+            ui.push_style_color(StyleColor::ScrollbarGrabActive, foreground_color2),
+            ui.push_style_color(StyleColor::ScrollbarGrabHovered, foreground_color2),
+            ui.push_style_color(StyleColor::SliderGrab, foreground_color1),
+            ui.push_style_color(StyleColor::SliderGrabActive, foreground_color1),
+        ];
+        let mut style2 = vec![
+            ui.push_style_var(StyleVar::FrameRounding(4.0)),
+            ui.push_style_var(StyleVar::WindowBorderSize(0.0)),
+            ui.push_style_var(StyleVar::WindowMinSize([1.0, 1.0])),
+            ui.push_style_var(StyleVar::WindowPadding([0.0, 0.0])),
+        ];
 
         // Draw toggle UI checkbox
         let should_display_ui = &mut self.should_display_ui;
-        ImWindow::new(im_str!("toggle_ui_window"))
+        ImWindow::new("toggle_ui_window")
             .position([10.0, 27.0], Condition::Always)
             .title_bar(false)
             .draw_background(false)
             .movable(false)
             .resizable(false)
             .build(&ui, || {
-                ui.checkbox(im_str!("Toggle UI"), should_display_ui);
+                ui.checkbox("Toggle UI", should_display_ui);
             });
 
         if self.should_display_ui {
             // Draw particle selection buttons
-            ImWindow::new(im_str!("particle_selection_window"))
+            ImWindow::new("particle_selection_window")
                 .always_auto_resize(true)
                 .content_size([1416.0, 55.0])
                 .position([108.0, 10.0], Condition::Always)
@@ -236,23 +236,20 @@ impl UI {
                 .resizable(false)
                 .horizontal_scrollbar(true)
                 .build(&ui, || {
-                    particle_selector_button(im_str!("Delete Tool"), None);
-                    particle_selector_button(im_str!("Sand"), Some(ParticleType::Sand));
-                    particle_selector_button(im_str!("Water"), Some(ParticleType::Water));
-                    particle_selector_button(im_str!("Acid"), Some(ParticleType::Acid));
-                    particle_selector_button(im_str!("Iridium"), Some(ParticleType::Iridium));
-                    particle_selector_button(im_str!("Replicator"), Some(ParticleType::Replicator));
-                    particle_selector_button(im_str!("Plant"), Some(ParticleType::Plant));
-                    particle_selector_button(im_str!("Cryotheum"), Some(ParticleType::Cryotheum));
-                    particle_selector_button(im_str!("Unstable"), Some(ParticleType::Unstable));
-                    particle_selector_button(
-                        im_str!("Electricity"),
-                        Some(ParticleType::Electricity),
-                    );
-                    particle_selector_button(im_str!("Life"), Some(ParticleType::Life));
-                    particle_selector_button(im_str!("Fire"), Some(ParticleType::Fire));
-                    particle_selector_button(im_str!("Mirror"), Some(ParticleType::Mirror));
-                    particle_selector_button(im_str!("Glitch"), Some(ParticleType::Glitch));
+                    particle_selector_button("Delete Tool", None);
+                    particle_selector_button("Sand", Some(ParticleType::Sand));
+                    particle_selector_button("Water", Some(ParticleType::Water));
+                    particle_selector_button("Acid", Some(ParticleType::Acid));
+                    particle_selector_button("Iridium", Some(ParticleType::Iridium));
+                    particle_selector_button("Replicator", Some(ParticleType::Replicator));
+                    particle_selector_button("Plant", Some(ParticleType::Plant));
+                    particle_selector_button("Cryotheum", Some(ParticleType::Cryotheum));
+                    particle_selector_button("Unstable", Some(ParticleType::Unstable));
+                    particle_selector_button("Electricity", Some(ParticleType::Electricity));
+                    particle_selector_button("Life", Some(ParticleType::Life));
+                    particle_selector_button("Fire", Some(ParticleType::Fire));
+                    particle_selector_button("Mirror", Some(ParticleType::Mirror));
+                    particle_selector_button("Glitch", Some(ParticleType::Glitch));
                 });
 
             let y = if window.inner_size().width < 1416 {
@@ -261,7 +258,7 @@ impl UI {
                 75.0
             };
             let was_paused_before_popup = &mut self.was_paused_before_popup;
-            ImWindow::new(im_str!("second_row_window"))
+            ImWindow::new("second_row_window")
                 .always_auto_resize(true)
                 .position([10.0, y], Condition::Always)
                 .title_bar(false)
@@ -271,43 +268,41 @@ impl UI {
                 .build(&ui, || {
                     // Draw the pause game checkbox
                     ui.set_cursor_pos([0.0, 4.0]);
-                    ui.checkbox(im_str!("Paused"), game_paused);
+                    ui.checkbox("Paused", game_paused);
                     // Draw the emoty sandbox button
                     ui.set_cursor_pos([84.0, 1.0]);
-                    if ui.button(im_str!("Empty Sandbox"), [125.0, 27.0]) {
+                    if ui.button_with_size("Empty Sandbox", [125.0, 27.0]) {
                         *was_paused_before_popup = *game_paused;
                         *game_paused = true;
-                        ui.open_popup(im_str!("empty_sandbox_popup"));
+                        ui.open_popup("empty_sandbox_popup");
                     }
                     // Draw the empty sandbox popup
-                    style2.take().unwrap().pop(&ui);
-                    ui.popup_modal(im_str!("empty_sandbox_popup"))
+                    style2.clear();
+                    ui.popup_modal("empty_sandbox_popup")
                         .title_bar(false)
                         .movable(false)
                         .resizable(false)
-                        .build(|| {
+                        .build(&ui, || {
                             ui.text("Empty Sandbox?");
-                            if ui.button(im_str!("Yes"), [60.0, 30.0]) {
+                            if ui.button_with_size("Yes", [60.0, 30.0]) {
                                 sandbox.empty_out();
                                 ui.close_current_popup();
                                 *game_paused = *was_paused_before_popup;
                             }
-                            ui.same_line(0.0);
-                            if ui.button(im_str!("No"), [60.0, 30.0]) {
+                            ui.same_line();
+                            if ui.button_with_size("No", [60.0, 30.0]) {
                                 ui.close_current_popup();
                                 *game_paused = *was_paused_before_popup;
                             }
                         });
-                    style2 = Some(ui.push_style_vars(&[
-                        StyleVar::FrameRounding(4.0),
-                        StyleVar::WindowPadding([0.0, 0.0]),
-                        StyleVar::WindowMinSize([1.0, 1.0]),
-                    ]));
+                    style2 = vec![
+                        ui.push_style_var(StyleVar::FrameRounding(4.0)),
+                        ui.push_style_var(StyleVar::WindowPadding([0.0, 0.0])),
+                        ui.push_style_var(StyleVar::WindowMinSize([1.0, 1.0])),
+                    ];
                     // Draw the brush size slider
                     ui.set_cursor_pos([219.0, 4.0]);
-                    Slider::new(im_str!("Brush Size"))
-                        .range(1..=10)
-                        .build(&ui, brush_size);
+                    Slider::new("Brush Size", 1, 10).build(&ui, brush_size);
                 });
         }
 
@@ -315,7 +310,7 @@ impl UI {
         if self.should_display_fps {
             let height: f32 = window.inner_size().to_logical(window.scale_factor()).height;
             let y = height - 26.0;
-            ImWindow::new(im_str!("fps_window"))
+            ImWindow::new("fps_window")
                 .always_auto_resize(true)
                 .position([10.0, y], Condition::Always)
                 .title_bar(false)
@@ -326,9 +321,10 @@ impl UI {
                 .build(&ui, || ui.text(format!("FPS: {:.0}", ui.io().framerate)));
         }
 
-        style1.pop(&ui);
-        style2.unwrap().pop(&ui);
-
+        for style in style1 {
+            style.pop();
+        }
+        drop(style2);
         // Draw the profiler
         if self.should_display_profiler {
             self.profiler_ui.window(&ui);

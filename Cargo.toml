@@ -5,10 +5,11 @@ edition = "2018"
 resolver = "2"
 
 [dependencies]
-pixels = "0.6"
-imgui = "0.7"
-imgui-wgpu = "0.17"
-imgui-winit-support = { version = "0.7", default-features = false, features = [
+pixels = "0.7"
+wgpu = "0.11"
+imgui = "0.8"
+imgui-wgpu = "0.18"
+imgui-winit-support = { version = "0.8", default-features = false, features = [
     "winit-25",
 ] }
 winit = "0.25"
@@ -16,8 +17,8 @@ rand = "0.8"
 rand_pcg = "0.3"
 simdnoise = "3.1"
 flume = { version = "0.10", default-features = false }
-puffin = "0.8"
-puffin-imgui = "0.11"
+puffin = "0.9"
+puffin-imgui = "0.12"
 bytemuck = "1.7"
 
 [profile.dev]

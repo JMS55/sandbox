@@ -145,14 +145,14 @@ impl GlowPostProcess {
         );
 
         let fullscreen_shader =
-            device.create_shader_module(&include_spirv!("../shaders/fullscreen.spv"));
+            device.create_shader_module(&include_wgsl!("../shaders/fullscreen.wgsl"));
         let copy_glowing_shader =
-            device.create_shader_module(&include_spirv!("../shaders/copy_glowing.spv"));
+            device.create_shader_module(&include_wgsl!("../shaders/copy_glowing.wgsl"));
         let vertical_blur_shader =
-            device.create_shader_module(&include_spirv!("../shaders/vertical_blur.spv"));
+            device.create_shader_module(&include_wgsl!("../shaders/vertical_blur.wgsl"));
         let horizontal_blur_shader =
-            device.create_shader_module(&include_spirv!("../shaders/horizontal_blur.spv"));
-        let combine_shader = device.create_shader_module(&include_spirv!("../shaders/combine.spv"));
+            device.create_shader_module(&include_wgsl!("../shaders/horizontal_blur.wgsl"));
+        let combine_shader = device.create_shader_module(&include_wgsl!("../shaders/combine.wgsl"));
 
         let pipeline_layout1 = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("glow_post_process_pipeline_layout1"),
@@ -404,11 +404,7 @@ fn create_resources(
             },
             BindGroupEntry {
                 binding: 2,
-                resource: BindingResource::Buffer(BufferBinding {
-                    buffer: &texture_size_buffer,
-                    offset: 0,
-                    size: None,
-                }),
+                resource: texture_size_buffer.as_entire_binding(),
             },
         ],
     });
@@ -426,11 +422,7 @@ fn create_resources(
             },
             BindGroupEntry {
                 binding: 2,
-                resource: BindingResource::Buffer(BufferBinding {
-                    buffer: &texture_size_buffer,
-                    offset: 0,
-                    size: None,
-                }),
+                resource: texture_size_buffer.as_entire_binding(),
             },
         ],
     });
