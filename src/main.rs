@@ -15,8 +15,7 @@ use crate::ui::UI;
 #[cfg(target_os = "linux")]
 use crate::wayland_csd::WaylandCSDTheme;
 use game::Game;
-use pixels::wgpu::{PowerPreference, RequestAdapterOptions};
-use pixels::{PixelsBuilder, SurfaceTexture};
+use pixels::{Pixels, SurfaceTexture};
 use puffin::profile_scope;
 use std::time::Instant;
 use winit::dpi::LogicalSize;
@@ -125,7 +124,7 @@ fn main() {
 
             Event::MainEventsCleared => {
                 // Update game state
-                game.handle_window_resize(&window, &mut pixels);
+                game.handle_window_resize(&window);
                 game.place_queued_particles(&pixels);
                 game.update();
 
