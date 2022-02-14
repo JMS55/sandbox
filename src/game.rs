@@ -1,3 +1,4 @@
+use crate::glow_post_process::GlowPostProcess;
 use crate::particle::{Particle, ParticleType};
 use crate::sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use pixels::Pixels;
@@ -150,7 +151,12 @@ impl Game {
         }
     }
 
-    pub fn handle_window_resize(&mut self, window: &Window) {
+    pub fn handle_window_resize(
+        &mut self,
+        window: &Window,
+        pixels: &mut Pixels,
+        glow_post_process: &mut GlowPostProcess,
+    ) {
         // If a window resize is scheduled
         if let Some(last_window_resize) = self.last_window_resize {
             // Snap the window size to multiples of SIMULATION_SIZE when less than 20% away
@@ -166,8 +172,17 @@ impl Game {
                 {
                     surface_size.width = width_ratio.round() as u32 * SANDBOX_WIDTH as u32;
                     surface_size.height = height_ratio.round() as u32 * SANDBOX_HEIGHT as u32;
+
                     window.set_inner_size(surface_size);
+
+                    pixels.resize_surface(surface_size.width, surface_size.height);
+                    glow_post_process.resize(
+                        pixels.device(),
+                        surface_size.width,
+                        surface_size.height,
+                    );
                 }
+
                 self.last_window_resize = None;
             }
         }

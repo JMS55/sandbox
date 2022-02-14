@@ -5,24 +5,19 @@ mod heap_array;
 mod particle;
 mod sandbox;
 mod ui;
-#[cfg(target_os = "linux")]
-mod wayland_csd;
 
 use crate::glow_post_process::GlowPostProcess;
 use crate::particle::ParticleType;
 use crate::sandbox::{SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use crate::ui::UI;
-#[cfg(target_os = "linux")]
-use crate::wayland_csd::WaylandCSDTheme;
 use game::Game;
-use pixels::{Pixels, SurfaceTexture};
+use pixels::wgpu::BlendState;
+use pixels::{PixelsBuilder, SurfaceTexture};
 use puffin::profile_scope;
 use std::time::Instant;
 use winit::dpi::LogicalSize;
 use winit::event::{ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
-#[cfg(target_os = "linux")]
-use winit::platform::unix::WindowExtUnix;
 use winit::window::{Fullscreen, Window, WindowBuilder};
 
 fn main() {
@@ -44,14 +39,15 @@ fn main() {
         ))
         .build(&event_loop)
         .expect("Failed to create a window");
-    #[cfg(target_os = "linux")]
-    window.set_wayland_theme(WaylandCSDTheme::new(game.selected_particle));
 
     // Setup rendering
     let surface_size = window.inner_size();
     let surface_texture = SurfaceTexture::new(surface_size.width, surface_size.height, &window);
-    let mut pixels = Pixels::new(SANDBOX_WIDTH as u32, SANDBOX_HEIGHT as u32, surface_texture)
-        .expect("Failed to setup rendering");
+    let mut pixels =
+        PixelsBuilder::new(SANDBOX_WIDTH as u32, SANDBOX_HEIGHT as u32, surface_texture)
+            .blend_state(BlendState::REPLACE)
+            .build()
+            .expect("Failed to setup rendering");
     let mut glow_post_process =
         GlowPostProcess::new(pixels.device(), surface_size.width, surface_size.height);
     let mut ui = UI::new(&window, pixels.device(), pixels.queue());
@@ -113,9 +109,6 @@ fn main() {
                             &mut game,
                             &mut ui,
                         );
-
-                        #[cfg(target_os = "linux")]
-                        window.set_wayland_theme(WaylandCSDTheme::new(game.selected_particle));
                     }
                 }
 
@@ -124,7 +117,7 @@ fn main() {
 
             Event::MainEventsCleared => {
                 // Update game state
-                game.handle_window_resize(&window);
+                game.handle_window_resize(&window, &mut pixels, &mut glow_post_process);
                 game.place_queued_particles(&pixels);
                 game.update();
 

@@ -1,24 +1,23 @@
 [package]
 name = "sandbox"
-version = "1.2.0"
-edition = "2018"
-resolver = "2"
+version = "1.3.0"
+edition = "2021"
 
 [dependencies]
-pixels = "0.7"
-wgpu = "0.11"
+pixels = { git = "https://github.com/parasyte/pixels" }
+wgpu = "0.12"
 imgui = "0.8"
-imgui-wgpu = "0.18"
+imgui-wgpu = "0.19"
 imgui-winit-support = { version = "0.8", default-features = false, features = [
-    "winit-25",
+    "winit-26",
 ] }
-winit = "0.25"
+winit = "0.26"
 rand = "0.8"
 rand_pcg = "0.3"
 simdnoise = "3.1"
 flume = { version = "0.10", default-features = false }
-puffin = "0.12"
-puffin-imgui = "0.15"
+puffin = "0.13"
+puffin-imgui = "0.16"
 bytemuck = "1.7"
 
 [profile.dev]

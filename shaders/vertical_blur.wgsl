@@ -1,4 +1,3 @@
-[[block]]
 struct Uniform {
     texture_size: vec2<f32>;
 };

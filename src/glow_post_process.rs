@@ -44,10 +44,7 @@ impl GlowPostProcess {
                 BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStages::FRAGMENT,
-                    ty: BindingType::Sampler {
-                        filtering: true,
-                        comparison: false,
-                    },
+                    ty: BindingType::Sampler(SamplerBindingType::Filtering),
                     count: None,
                 },
                 BindGroupLayoutEntry {
@@ -68,10 +65,7 @@ impl GlowPostProcess {
                 BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStages::FRAGMENT,
-                    ty: BindingType::Sampler {
-                        filtering: true,
-                        comparison: false,
-                    },
+                    ty: BindingType::Sampler(SamplerBindingType::Filtering),
                     count: None,
                 },
                 BindGroupLayoutEntry {
@@ -102,10 +96,7 @@ impl GlowPostProcess {
                 BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStages::FRAGMENT,
-                    ty: BindingType::Sampler {
-                        filtering: true,
-                        comparison: false,
-                    },
+                    ty: BindingType::Sampler(SamplerBindingType::Filtering),
                     count: None,
                 },
                 BindGroupLayoutEntry {
@@ -191,6 +182,7 @@ impl GlowPostProcess {
                         write_mask: ColorWrites::ALL,
                     }],
                 }),
+                multiview: None,
             })
         };
         let copy_glowing_pipeline = create_pipeline(

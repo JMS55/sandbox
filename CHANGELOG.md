@@ -1,10 +1,16 @@
-# 1.3.0 (Unreleased)
+# 1.3.0 (2021-02-14)
 ### Gameplay
 * Acid now generates heat when added to Water
+* Fire now dissipates after not moving for a few seconds
+### Misc
+* Water graphics tweaked
+* UI tweaked
+* Removed colored titlebar on Wayland
 ### Bugfixes
 * Fixed inaccurate FPS display
 * Fixed crashing when Water got too hot
 * Fixed crashes on Windows
+* Fixed broken window resizing
 
 # 1.2.0 (2020-10-03)
 ### Gameplay

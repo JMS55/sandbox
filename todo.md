@@ -11,11 +11,11 @@
 * Replace imgui for UI
 * Replace noise with shaders
 * WASM build
-* Document particle state / replace magic numbers with constants
 * Improve glitch graphics
 * Save/Load simulations as images
+* Document particle state / replace magic numbers with constants
 
-* Windows package
+* GPU Compute based updates?
 * Tempature transfer through empty cells?
 * Physics?
     * It's been suggested to group all connected particles together
