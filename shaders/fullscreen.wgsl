@@ -10,8 +10,7 @@ var<private> gl_Position: vec4<f32>;
 fn main1() {
     let e3: u32 = gl_VertexIndex;
     texture_coordinates.x = select(0.0, 2.0, (e3 == u32(2)));
-    let e11: u32 = gl_VertexIndex;
-    texture_coordinates.y = select(0.0, 2.0, (e11 == u32(1)));
+    texture_coordinates.y = select(0.0, 2.0, (e3 == u32(1)));
     let e19: vec2<f32> = texture_coordinates;
     gl_Position = vec4<f32>(((e19 * vec2<f32>(2.0, -(2.0))) + vec2<f32>(-(1.0), 1.0)), 1.0, 1.0);
     return;

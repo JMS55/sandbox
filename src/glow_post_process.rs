@@ -273,7 +273,7 @@ impl GlowPostProcess {
             });
             pass.set_pipeline(&self.copy_glowing_pass.pipeline);
             pass.set_bind_group(0, &self.copy_glowing_pass.bind_group, &[]);
-            pass.draw(0..6, 0..1);
+            pass.draw(0..3, 0..1);
         }
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
@@ -290,7 +290,7 @@ impl GlowPostProcess {
             });
             pass.set_pipeline(&self.vertical_blur_pass.pipeline);
             pass.set_bind_group(0, &self.vertical_blur_pass.bind_group, &[]);
-            pass.draw(0..6, 0..1);
+            pass.draw(0..3, 0..1);
         }
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
@@ -307,7 +307,7 @@ impl GlowPostProcess {
             });
             pass.set_pipeline(&self.horizontal_blur_pass.pipeline);
             pass.set_bind_group(0, &self.horizontal_blur_pass.bind_group, &[]);
-            pass.draw(0..6, 0..1);
+            pass.draw(0..3, 0..1);
         }
         {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
@@ -324,7 +324,7 @@ impl GlowPostProcess {
             });
             pass.set_pipeline(&self.combine_pass.pipeline);
             pass.set_bind_group(0, &self.combine_pass.bind_group, &[]);
-            pass.draw(0..6, 0..1);
+            pass.draw(0..3, 0..1);
         }
     }
 }
