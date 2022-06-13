@@ -139,10 +139,7 @@ impl GlowPostProcess {
             device.create_shader_module(&include_wgsl!("../shaders/fullscreen.wgsl"));
         let copy_glowing_shader =
             device.create_shader_module(&include_wgsl!("../shaders/copy_glowing.wgsl"));
-        let vertical_blur_shader =
-            device.create_shader_module(&include_wgsl!("../shaders/vertical_blur.wgsl"));
-        let horizontal_blur_shader =
-            device.create_shader_module(&include_wgsl!("../shaders/horizontal_blur.wgsl"));
+        let blur_shader = device.create_shader_module(&include_wgsl!("../shaders/blur.wgsl"));
         let combine_shader = device.create_shader_module(&include_wgsl!("../shaders/combine.wgsl"));
 
         let pipeline_layout1 = device.create_pipeline_layout(&PipelineLayoutDescriptor {
@@ -161,7 +158,7 @@ impl GlowPostProcess {
             push_constant_ranges: &[],
         });
 
-        let create_pipeline = |fragment_shader, layout, label| {
+        let create_pipeline = |fragment_shader, entry_point, layout, label| {
             device.create_render_pipeline(&RenderPipelineDescriptor {
                 label: Some(label),
                 layout: Some(layout),
@@ -175,7 +172,7 @@ impl GlowPostProcess {
                 multisample: MultisampleState::default(),
                 fragment: Some(FragmentState {
                     module: fragment_shader,
-                    entry_point: "main",
+                    entry_point,
                     targets: &[ColorTargetState {
                         format: TextureFormat::Bgra8UnormSrgb,
                         blend: Some(BlendState::REPLACE),
@@ -187,21 +184,25 @@ impl GlowPostProcess {
         };
         let copy_glowing_pipeline = create_pipeline(
             &copy_glowing_shader,
+            "main",
             &pipeline_layout1,
             "glow_post_process_copy_glowing_pipeline",
         );
         let vertical_blur_pipeline = create_pipeline(
-            &vertical_blur_shader,
+            &blur_shader,
+            "blur_vertical_main",
             &pipeline_layout2,
             "glow_post_process_vertical_blur_pipeline",
         );
         let horizontal_blur_pipeline = create_pipeline(
-            &horizontal_blur_shader,
+            &blur_shader,
+            "blur_horizontal_main",
             &pipeline_layout2,
             "glow_post_process_horizontal_blur_pipeline",
         );
         let combine_pipeline = create_pipeline(
             &combine_shader,
+            "main",
             &pipeline_layout3,
             "glow_post_process_combine_pipeline",
         );
