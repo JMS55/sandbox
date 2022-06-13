@@ -6,6 +6,9 @@ pub struct GlowPostProcess {
     texture2: TextureView,
     texture3: TextureView,
 
+    texture_width: u32,
+    texture_height: u32,
+
     sampler: Sampler,
     bind_group_layout1: BindGroupLayout,
     bind_group_layout2: BindGroupLayout,
@@ -203,6 +206,9 @@ impl GlowPostProcess {
             texture2,
             texture3,
 
+            texture_width,
+            texture_height,
+
             sampler,
             bind_group_layout1,
             bind_group_layout2,
@@ -243,6 +249,8 @@ impl GlowPostProcess {
         self.texture1 = texture1;
         self.texture2 = texture2;
         self.texture3 = texture3;
+        self.texture_width = texture_width;
+        self.texture_height = texture_height;
         self.copy_glowing_pass.bind_group = copy_glowing_bind_group;
         self.vertical_blur_pass.bind_group = vertical_blur_bind_group;
         self.horizontal_blur_pass.bind_group = horizontal_blur_bind_group;
@@ -265,6 +273,7 @@ impl GlowPostProcess {
             });
             pass.set_pipeline(&self.copy_glowing_pass.pipeline);
             pass.set_bind_group(0, &self.copy_glowing_pass.bind_group, &[]);
+            pass.set_scissor_rect(0, 0, self.texture_width, self.texture_height);
             pass.draw(0..3, 0..1);
         }
         {
@@ -282,6 +291,7 @@ impl GlowPostProcess {
             });
             pass.set_pipeline(&self.vertical_blur_pass.pipeline);
             pass.set_bind_group(0, &self.vertical_blur_pass.bind_group, &[]);
+            pass.set_scissor_rect(0, 0, self.texture_width, self.texture_height);
             pass.draw(0..3, 0..1);
         }
         {
@@ -299,6 +309,7 @@ impl GlowPostProcess {
             });
             pass.set_pipeline(&self.horizontal_blur_pass.pipeline);
             pass.set_bind_group(0, &self.horizontal_blur_pass.bind_group, &[]);
+            pass.set_scissor_rect(0, 0, self.texture_width, self.texture_height);
             pass.draw(0..3, 0..1);
         }
         {
@@ -316,6 +327,7 @@ impl GlowPostProcess {
             });
             pass.set_pipeline(&self.combine_pass.pipeline);
             pass.set_bind_group(0, &self.combine_pass.bind_group, &[]);
+            pass.set_scissor_rect(0, 0, self.texture_width, self.texture_height);
             pass.draw(0..3, 0..1);
         }
     }
