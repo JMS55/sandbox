@@ -258,11 +258,11 @@ impl GlowPostProcess {
     }
 
     pub fn render(&self, encoder: &mut CommandEncoder, render_texture: &TextureView) {
-        {
+        let mut create_pass = |pass_desc: &RenderPass, texture, label| {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
-                label: Some("glow_post_process_copy_glowing_render_pass"),
+                label: Some(label),
                 color_attachments: &[RenderPassColorAttachment {
-                    view: &self.texture2,
+                    view: texture,
                     resolve_target: None,
                     ops: Operations {
                         load: LoadOp::Clear(Color::BLACK),
@@ -271,65 +271,32 @@ impl GlowPostProcess {
                 }],
                 depth_stencil_attachment: None,
             });
-            pass.set_pipeline(&self.copy_glowing_pass.pipeline);
-            pass.set_bind_group(0, &self.copy_glowing_pass.bind_group, &[]);
+            pass.set_pipeline(&pass_desc.pipeline);
+            pass.set_bind_group(0, &pass_desc.bind_group, &[]);
             pass.set_scissor_rect(0, 0, self.texture_width, self.texture_height);
             pass.draw(0..3, 0..1);
-        }
-        {
-            let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
-                label: Some("glow_post_process_vertical_blur_render_pass"),
-                color_attachments: &[RenderPassColorAttachment {
-                    view: &self.texture3,
-                    resolve_target: None,
-                    ops: Operations {
-                        load: LoadOp::Clear(Color::BLACK),
-                        store: true,
-                    },
-                }],
-                depth_stencil_attachment: None,
-            });
-            pass.set_pipeline(&self.vertical_blur_pass.pipeline);
-            pass.set_bind_group(0, &self.vertical_blur_pass.bind_group, &[]);
-            pass.set_scissor_rect(0, 0, self.texture_width, self.texture_height);
-            pass.draw(0..3, 0..1);
-        }
-        {
-            let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
-                label: Some("glow_post_process_horizontal_blur_render_pass"),
-                color_attachments: &[RenderPassColorAttachment {
-                    view: &self.texture2,
-                    resolve_target: None,
-                    ops: Operations {
-                        load: LoadOp::Clear(Color::BLACK),
-                        store: true,
-                    },
-                }],
-                depth_stencil_attachment: None,
-            });
-            pass.set_pipeline(&self.horizontal_blur_pass.pipeline);
-            pass.set_bind_group(0, &self.horizontal_blur_pass.bind_group, &[]);
-            pass.set_scissor_rect(0, 0, self.texture_width, self.texture_height);
-            pass.draw(0..3, 0..1);
-        }
-        {
-            let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
-                label: Some("glow_post_process_combine_render_pass"),
-                color_attachments: &[RenderPassColorAttachment {
-                    view: render_texture,
-                    resolve_target: None,
-                    ops: Operations {
-                        load: LoadOp::Clear(Color::BLACK),
-                        store: true,
-                    },
-                }],
-                depth_stencil_attachment: None,
-            });
-            pass.set_pipeline(&self.combine_pass.pipeline);
-            pass.set_bind_group(0, &self.combine_pass.bind_group, &[]);
-            pass.set_scissor_rect(0, 0, self.texture_width, self.texture_height);
-            pass.draw(0..3, 0..1);
-        }
+        };
+
+        create_pass(
+            &self.copy_glowing_pass,
+            &self.texture2,
+            "glow_post_process_copy_glowing_render_pass",
+        );
+        create_pass(
+            &self.vertical_blur_pass,
+            &self.texture3,
+            "glow_post_process_vertical_blur_render_pass",
+        );
+        create_pass(
+            &self.horizontal_blur_pass,
+            &self.texture2,
+            "glow_post_process_horizontal_blur_render_pass",
+        );
+        create_pass(
+            &self.combine_pass,
+            &render_texture,
+            "glow_post_process_combine_render_pass",
+        );
     }
 }
 
