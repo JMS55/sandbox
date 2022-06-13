@@ -40,3 +40,10 @@ fn blur_vertical_main([[location(0)]] texture_coordinates: vec2<f32>) -> Fragmen
     blur(false, texture_coordinates);
     return FragmentOutput(color);
 }
+
+[[stage(fragment)]]
+fn copy_glowing_main([[location(0)]] texture_coordinates: vec2<f32>) -> FragmentOutput {
+    color = textureSample(input_texture, texture_sampler, texture_coordinates);
+    color = mix(vec4<f32>(0.0, 0.0, 0.0, 1.0), color, vec4<f32>(step(color.a, 0.0)));
+    return FragmentOutput(color);
+}

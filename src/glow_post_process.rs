@@ -137,8 +137,6 @@ impl GlowPostProcess {
 
         let fullscreen_shader =
             device.create_shader_module(&include_wgsl!("../shaders/fullscreen.wgsl"));
-        let copy_glowing_shader =
-            device.create_shader_module(&include_wgsl!("../shaders/copy_glowing.wgsl"));
         let blur_shader = device.create_shader_module(&include_wgsl!("../shaders/blur.wgsl"));
         let combine_shader = device.create_shader_module(&include_wgsl!("../shaders/combine.wgsl"));
 
@@ -183,8 +181,8 @@ impl GlowPostProcess {
             })
         };
         let copy_glowing_pipeline = create_pipeline(
-            &copy_glowing_shader,
-            "main",
+            &blur_shader,
+            "copy_glowing_main",
             &pipeline_layout1,
             "glow_post_process_copy_glowing_pipeline",
         );
