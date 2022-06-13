@@ -1,3 +1,17 @@
+struct VertexOutput {
+    [[location(0)]] texture_coordinates: vec2<f32>;
+    [[builtin(position)]] member: vec4<f32>;
+};
+
+[[stage(vertex)]]
+fn fullscreen_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
+    var texture_coordinates: vec2<f32>;
+    texture_coordinates.x = select(0.0, 2.0, (vertex_index == u32(2)));
+    texture_coordinates.y = select(0.0, 2.0, (vertex_index == u32(1)));
+    var position: vec4<f32> = vec4<f32>(((texture_coordinates * vec2<f32>(2.0, -(2.0))) + vec2<f32>(-(1.0), 1.0)), 1.0, 1.0);
+    return VertexOutput(texture_coordinates, position);
+}
+
 struct Uniform {
     texture_size: vec2<f32>;
 };
