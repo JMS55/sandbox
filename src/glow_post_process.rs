@@ -138,7 +138,6 @@ impl GlowPostProcess {
         let fullscreen_shader =
             device.create_shader_module(&include_wgsl!("../shaders/fullscreen.wgsl"));
         let blur_shader = device.create_shader_module(&include_wgsl!("../shaders/blur.wgsl"));
-        let combine_shader = device.create_shader_module(&include_wgsl!("../shaders/combine.wgsl"));
 
         let pipeline_layout1 = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("glow_post_process_pipeline_layout1"),
@@ -199,8 +198,8 @@ impl GlowPostProcess {
             "glow_post_process_horizontal_blur_pipeline",
         );
         let combine_pipeline = create_pipeline(
-            &combine_shader,
-            "main",
+            &blur_shader,
+            "combine_main",
             &pipeline_layout3,
             "glow_post_process_combine_pipeline",
         );

@@ -47,3 +47,16 @@ fn copy_glowing_main([[location(0)]] texture_coordinates: vec2<f32>) -> Fragment
     color = mix(vec4<f32>(0.0, 0.0, 0.0, 1.0), color, vec4<f32>(step(color.a, 0.0)));
     return FragmentOutput(color);
 }
+
+[[group(0), binding(1)]]
+var input_texture1: texture_2d<f32>;
+[[group(0), binding(2)]]
+var input_texture2: texture_2d<f32>;
+
+[[stage(fragment)]]
+fn combine_main([[location(0)]] texture_coordinates: vec2<f32>) -> FragmentOutput {
+    color = textureSample(input_texture1, texture_sampler, texture_coordinates);
+    color = color + textureSample(input_texture2, texture_sampler, texture_coordinates);
+    color.a = 1.0;
+    return FragmentOutput(color);
+}
