@@ -22,19 +22,20 @@ pub fn move_powder(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
             sandbox[x][y + 1] = sandbox[x][y].take();
             return (x, y + 1);
         }
-        // Else move 1 down and left if able
-        if x != 0 {
-            if sandbox[x - 1][y + 1].is_none() && sandbox[x - 1][y].is_none() {
-                sandbox[x - 1][y + 1] = sandbox[x][y].take();
-                return (x - 1, y + 1);
-            }
+
+        // Else, move 1 down and randomly left or right if able
+        let mut avail_diag_x = Vec::new();
+        if x != 0 && sandbox[x - 1][y + 1].is_none() && sandbox[x - 1][y].is_none() {
+            avail_diag_x.push(x - 1);
         }
-        // Else move 1 down and right if able
-        if x != SANDBOX_WIDTH - 1 {
-            if sandbox[x + 1][y + 1].is_none() && sandbox[x + 1][y].is_none() {
-                sandbox[x + 1][y + 1] = sandbox[x][y].take();
-                return (x + 1, y + 1);
-            }
+        if x != SANDBOX_WIDTH - 1 && sandbox[x + 1][y + 1].is_none() && sandbox[x + 1][y].is_none()
+        {
+            avail_diag_x.push(x + 1);
+        }
+        avail_diag_x.shuffle(&mut sandbox.rng);
+        if let Some(&diag_x) = avail_diag_x.get(0) {
+            sandbox[diag_x][y + 1] = sandbox[x][y].take();
+            return (diag_x, y + 1);
         }
     }
     (x, y)
