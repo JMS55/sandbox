@@ -3,7 +3,6 @@
 * Freezes when tabbing out and then coming back to the game as it suddenly tries to do 1000 updates at once
 * Using shift/ctrl modifiers and moving the mouse really fast can leave gaps in particle placement
 * Electricity gets stuck with 1 particle of water in mid-air
-* Particles should move left/right randomly when they can do either
 * The UI bounding box extends a bit too far to the right
 
 ## Todo
