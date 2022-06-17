@@ -4,6 +4,32 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 use std::ptr;
 
+fn rand_available_neighbor(
+    sandbox: &mut Sandbox,
+    x: usize,
+    y: usize,
+    y_off: isize,
+) -> Option<(usize, usize)> {
+    let left = x != 0
+        && (y_off == 0 || sandbox[x - 1][(y as isize + y_off) as usize].is_none())
+        && sandbox[x - 1][y].is_none();
+    let right = x != SANDBOX_WIDTH - 1
+        && (y_off == 0 || sandbox[x + 1][(y as isize + y_off) as usize].is_none())
+        && sandbox[x + 1][y].is_none();
+    if left || right {
+        let diag_x = if left && right {
+            [x - 1, x + 1][sandbox.rng.gen::<bool>() as usize]
+        } else if left {
+            x - 1
+        } else {
+            x + 1
+        };
+        Some((diag_x, (y as isize + y_off) as usize))
+    } else {
+        None
+    }
+}
+
 pub fn move_solid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
     // Move 1 down if able
     if y != SANDBOX_HEIGHT - 1 {
@@ -24,18 +50,9 @@ pub fn move_powder(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
         }
 
         // Else, move 1 down and randomly left or right if able
-        let mut avail_diag_x = Vec::new();
-        if x != 0 && sandbox[x - 1][y + 1].is_none() && sandbox[x - 1][y].is_none() {
-            avail_diag_x.push(x - 1);
-        }
-        if x != SANDBOX_WIDTH - 1 && sandbox[x + 1][y + 1].is_none() && sandbox[x + 1][y].is_none()
-        {
-            avail_diag_x.push(x + 1);
-        }
-        avail_diag_x.shuffle(&mut sandbox.rng);
-        if let Some(&diag_x) = avail_diag_x.get(0) {
-            sandbox[diag_x][y + 1] = sandbox[x][y].take();
-            return (diag_x, y + 1);
+        if let Some((new_x, new_y)) = rand_available_neighbor(sandbox, x, y, 1) {
+            sandbox[new_x][new_y] = sandbox[x][y].take();
+            return (new_x, new_y);
         }
     }
     (x, y)
@@ -49,32 +66,15 @@ pub fn move_liquid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
             return (x, y + 1);
         }
         // Else, move 1 down and randomly left or right if able
-        let mut avail_diag_x = Vec::new();
-        if x != 0 && sandbox[x - 1][y + 1].is_none() && sandbox[x - 1][y].is_none() {
-            avail_diag_x.push(x - 1);
-        }
-        if x != SANDBOX_WIDTH - 1 && sandbox[x + 1][y + 1].is_none() && sandbox[x + 1][y].is_none()
-        {
-            avail_diag_x.push(x + 1);
-        }
-        avail_diag_x.shuffle(&mut sandbox.rng);
-        if let Some(&diag_x) = avail_diag_x.get(0) {
-            sandbox[diag_x][y + 1] = sandbox[x][y].take();
-            return (diag_x, y + 1);
+        if let Some((new_x, new_y)) = rand_available_neighbor(sandbox, x, y, 1) {
+            sandbox[new_x][new_y] = sandbox[x][y].take();
+            return (new_x, new_y);
         }
     }
     // Else, move randomly left or right if able
-    let mut avail_side_x = Vec::new();
-    if x != 0 && sandbox[x - 1][y].is_none() {
-        avail_side_x.push(x - 1);
-    }
-    if x != SANDBOX_WIDTH - 1 && sandbox[x + 1][y].is_none() {
-        avail_side_x.push(x + 1);
-    }
-    avail_side_x.shuffle(&mut sandbox.rng);
-    if let Some(&side_x) = avail_side_x.get(0) {
-        sandbox[side_x][y] = sandbox[x][y].take();
-        return (side_x, y);
+    if let Some((new_x, new_y)) = rand_available_neighbor(sandbox, x, y, 0) {
+        sandbox[new_x][new_y] = sandbox[x][y].take();
+        return (new_x, new_y);
     }
     (x, y)
 }
@@ -87,32 +87,15 @@ pub fn move_gas(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
             return (x, y - 1);
         }
         // Else, move 1 up and randomly left or right if able
-        let mut avail_diag_x = Vec::new();
-        if x != 0 && sandbox[x - 1][y - 1].is_none() && sandbox[x - 1][y].is_none() {
-            avail_diag_x.push(x - 1);
-        }
-        if x != SANDBOX_WIDTH - 1 && sandbox[x + 1][y - 1].is_none() && sandbox[x + 1][y].is_none()
-        {
-            avail_diag_x.push(x + 1);
-        }
-        avail_diag_x.shuffle(&mut sandbox.rng);
-        if let Some(&diag_x) = avail_diag_x.get(0) {
-            sandbox[diag_x][y - 1] = sandbox[x][y].take();
-            return (diag_x, y - 1);
+        if let Some((new_x, new_y)) = rand_available_neighbor(sandbox, x, y, -1) {
+            sandbox[new_x][new_y] = sandbox[x][y].take();
+            return (new_x, new_y);
         }
     }
     // Else, move randomly left or right if able
-    let mut avail_side_x = Vec::new();
-    if x != 0 && sandbox[x - 1][y].is_none() {
-        avail_side_x.push(x - 1);
-    }
-    if x != SANDBOX_WIDTH - 1 && sandbox[x + 1][y].is_none() {
-        avail_side_x.push(x + 1);
-    }
-    avail_side_x.shuffle(&mut sandbox.rng);
-    if let Some(&side_x) = avail_side_x.get(0) {
-        sandbox[side_x][y] = sandbox[x][y].take();
-        return (side_x, y);
+    if let Some((new_x, new_y)) = rand_available_neighbor(sandbox, x, y, 0) {
+        sandbox[new_x][new_y] = sandbox[x][y].take();
+        return (new_x, new_y);
     }
     (x, y)
 }
