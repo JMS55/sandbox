@@ -10,6 +10,7 @@ fn rand_available_neighbor(
     y: usize,
     y_off: isize,
 ) -> Option<(usize, usize)> {
+    // Check whether the left and right paths to candidate cells are free
     let left = x != 0
         && (y_off == 0 || sandbox[x - 1][(y as isize + y_off) as usize].is_none())
         && sandbox[x - 1][y].is_none();
@@ -17,6 +18,7 @@ fn rand_available_neighbor(
         && (y_off == 0 || sandbox[x + 1][(y as isize + y_off) as usize].is_none())
         && sandbox[x + 1][y].is_none();
     if left || right {
+        // If both are free, pick one at random, else pick the free one
         let diag_x = if left && right {
             [x - 1, x + 1][sandbox.rng.gen::<bool>() as usize]
         } else if left {
