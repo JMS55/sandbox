@@ -4,29 +4,31 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 use std::ptr;
 
+/// Returns a random available neighbor of (x, y) if any.
+/// Searches x-1 and x+1 at a y-coordinate of y + y_offset
 fn rand_available_neighbor(
     sandbox: &mut Sandbox,
     x: usize,
     y: usize,
-    y_off: isize,
+    y_offset: isize,
 ) -> Option<(usize, usize)> {
     // Check whether the left and right paths to candidate cells are free
-    let left = x != 0
-        && (y_off == 0 || sandbox[x - 1][(y as isize + y_off) as usize].is_none())
+    let left_free = x != 0
+        && (y_offset == 0 || sandbox[x - 1][(y as isize + y_offset) as usize].is_none())
         && sandbox[x - 1][y].is_none();
-    let right = x != SANDBOX_WIDTH - 1
-        && (y_off == 0 || sandbox[x + 1][(y as isize + y_off) as usize].is_none())
+    let right_free = x != SANDBOX_WIDTH - 1
+        && (y_offset == 0 || sandbox[x + 1][(y as isize + y_offset) as usize].is_none())
         && sandbox[x + 1][y].is_none();
-    if left || right {
+    if left_free || right_free {
         // If both are free, pick one at random, else pick the free one
-        let diag_x = if left && right {
-            [x - 1, x + 1][sandbox.rng.gen::<bool>() as usize]
-        } else if left {
+        let diagonal_x = if left_free && right_free {
+            [x - 1, x + 1][sandbox.rng.gen_range(0..2)]
+        } else if left_free {
             x - 1
         } else {
             x + 1
         };
-        Some((diag_x, (y as isize + y_off) as usize))
+        Some((diagonal_x, (y as isize + y_offset) as usize))
     } else {
         None
     }
