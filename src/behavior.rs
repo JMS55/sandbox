@@ -4,6 +4,36 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 use std::ptr;
 
+/// Returns a random available neighbor of (x, y) if any.
+/// Searches x-1 and x+1 at a y-coordinate of y + y_offset
+fn rand_available_neighbor(
+    sandbox: &mut Sandbox,
+    x: usize,
+    y: usize,
+    y_offset: isize,
+) -> Option<(usize, usize)> {
+    // Check whether the left and right paths to candidate cells are free
+    let left_free = x != 0
+        && (y_offset == 0 || sandbox[x - 1][(y as isize + y_offset) as usize].is_none())
+        && sandbox[x - 1][y].is_none();
+    let right_free = x != SANDBOX_WIDTH - 1
+        && (y_offset == 0 || sandbox[x + 1][(y as isize + y_offset) as usize].is_none())
+        && sandbox[x + 1][y].is_none();
+    if left_free || right_free {
+        // If both are free, pick one at random, else pick the free one
+        let diagonal_x = if left_free && right_free {
+            [x - 1, x + 1][sandbox.rng.gen_range(0..2)]
+        } else if left_free {
+            x - 1
+        } else {
+            x + 1
+        };
+        Some((diagonal_x, (y as isize + y_offset) as usize))
+    } else {
+        None
+    }
+}
+
 pub fn move_solid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
     // Move 1 down if able
     if y != SANDBOX_HEIGHT - 1 {
@@ -22,19 +52,11 @@ pub fn move_powder(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
             sandbox[x][y + 1] = sandbox[x][y].take();
             return (x, y + 1);
         }
-        // Else move 1 down and left if able
-        if x != 0 {
-            if sandbox[x - 1][y + 1].is_none() && sandbox[x - 1][y].is_none() {
-                sandbox[x - 1][y + 1] = sandbox[x][y].take();
-                return (x - 1, y + 1);
-            }
-        }
-        // Else move 1 down and right if able
-        if x != SANDBOX_WIDTH - 1 {
-            if sandbox[x + 1][y + 1].is_none() && sandbox[x + 1][y].is_none() {
-                sandbox[x + 1][y + 1] = sandbox[x][y].take();
-                return (x + 1, y + 1);
-            }
+
+        // Else, move 1 down and randomly left or right if able
+        if let Some((new_x, new_y)) = rand_available_neighbor(sandbox, x, y, 1) {
+            sandbox[new_x][new_y] = sandbox[x][y].take();
+            return (new_x, new_y);
         }
     }
     (x, y)
@@ -47,34 +69,16 @@ pub fn move_liquid(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) 
             sandbox[x][y + 1] = sandbox[x][y].take();
             return (x, y + 1);
         }
-        // Else move 1 down and left if able
-        if x != 0 {
-            if sandbox[x - 1][y + 1].is_none() && sandbox[x - 1][y].is_none() {
-                sandbox[x - 1][y + 1] = sandbox[x][y].take();
-                return (x - 1, y + 1);
-            }
-        }
-        // Else move 1 down and right if able
-        if x != SANDBOX_WIDTH - 1 {
-            if sandbox[x + 1][y + 1].is_none() && sandbox[x + 1][y].is_none() {
-                sandbox[x + 1][y + 1] = sandbox[x][y].take();
-                return (x + 1, y + 1);
-            }
+        // Else, move 1 down and randomly left or right if able
+        if let Some((new_x, new_y)) = rand_available_neighbor(sandbox, x, y, 1) {
+            sandbox[new_x][new_y] = sandbox[x][y].take();
+            return (new_x, new_y);
         }
     }
-    // Else move left if able
-    if x != 0 {
-        if sandbox[x - 1][y].is_none() {
-            sandbox[x - 1][y] = sandbox[x][y].take();
-            return (x - 1, y);
-        }
-    }
-    // Else move right if able
-    if x != SANDBOX_WIDTH - 1 {
-        if sandbox[x + 1][y].is_none() {
-            sandbox[x + 1][y] = sandbox[x][y].take();
-            return (x + 1, y);
-        }
+    // Else, move randomly left or right if able
+    if let Some((new_x, new_y)) = rand_available_neighbor(sandbox, x, y, 0) {
+        sandbox[new_x][new_y] = sandbox[x][y].take();
+        return (new_x, new_y);
     }
     (x, y)
 }
@@ -86,34 +90,16 @@ pub fn move_gas(sandbox: &mut Sandbox, x: usize, y: usize) -> (usize, usize) {
             sandbox[x][y - 1] = sandbox[x][y].take();
             return (x, y - 1);
         }
-        // Else move 1 up and left if able
-        if x != 0 {
-            if sandbox[x - 1][y - 1].is_none() && sandbox[x - 1][y].is_none() {
-                sandbox[x - 1][y - 1] = sandbox[x][y].take();
-                return (x - 1, y - 1);
-            }
-        }
-        // Else move 1 up and right if able
-        if x != SANDBOX_WIDTH - 1 {
-            if sandbox[x + 1][y - 1].is_none() && sandbox[x + 1][y].is_none() {
-                sandbox[x + 1][y - 1] = sandbox[x][y].take();
-                return (x + 1, y - 1);
-            }
+        // Else, move 1 up and randomly left or right if able
+        if let Some((new_x, new_y)) = rand_available_neighbor(sandbox, x, y, -1) {
+            sandbox[new_x][new_y] = sandbox[x][y].take();
+            return (new_x, new_y);
         }
     }
-    // Else move left if able
-    if x != 0 {
-        if sandbox[x - 1][y].is_none() {
-            sandbox[x - 1][y] = sandbox[x][y].take();
-            return (x - 1, y);
-        }
-    }
-    // Else move right if able
-    if x != SANDBOX_WIDTH - 1 {
-        if sandbox[x + 1][y].is_none() {
-            sandbox[x + 1][y] = sandbox[x][y].take();
-            return (x + 1, y);
-        }
+    // Else, move randomly left or right if able
+    if let Some((new_x, new_y)) = rand_available_neighbor(sandbox, x, y, 0) {
+        sandbox[new_x][new_y] = sandbox[x][y].take();
+        return (new_x, new_y);
     }
     (x, y)
 }
