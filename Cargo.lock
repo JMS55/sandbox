@@ -987,9 +987,9 @@ dependencies = [
 
 [[package]]
 name = "puffin-imgui"
-version = "0.16.0"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "940a21b842d0282a2003683a7edd1b12877a4cbb8ffc90008ee650e692d59ba8"
+checksum = "b8ad47d3c45841485aa62602ee89bb20eb9afca07cf56c081725e05967b80ff6"
 dependencies = [
  "imgui",
  "natord",
