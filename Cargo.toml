@@ -4,10 +4,10 @@ version = "1.3.0"
 edition = "2021"
 
 [dependencies]
-pixels = { git = "https://github.com/parasyte/pixels" }
-wgpu = "0.12"
+pixels = { git = "https://github.com/JMS55/pixels", branch = "main" }
+wgpu = "0.13"
 imgui = "0.8"
-imgui-wgpu = "0.19"
+imgui-wgpu = "0.20"
 imgui-winit-support = { version = "0.8", default-features = false, features = [
     "winit-26",
 ] }

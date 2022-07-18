@@ -334,14 +334,14 @@ impl UI {
         self.imgui_platform.prepare_render(&ui, window);
         let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
             label: Some("ui_render_pass"),
-            color_attachments: &[RenderPassColorAttachment {
+            color_attachments: &[Some(RenderPassColorAttachment {
                 view: render_texture,
                 resolve_target: None,
                 ops: Operations {
                     load: LoadOp::Load,
                     store: true,
                 },
-            }],
+            })],
             depth_stencil_attachment: None,
         });
         self.imgui_renderer

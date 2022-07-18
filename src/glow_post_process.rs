@@ -138,7 +138,7 @@ impl GlowPostProcess {
             &bind_group_layout3,
         );
 
-        let glow_shader = device.create_shader_module(&include_wgsl!("../shaders/glow.wgsl"));
+        let glow_shader = device.create_shader_module(include_wgsl!("../shaders/glow.wgsl"));
 
         let pipeline_layout1 = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("glow_post_process_pipeline_layout1"),
@@ -171,11 +171,11 @@ impl GlowPostProcess {
                 fragment: Some(FragmentState {
                     module: &glow_shader,
                     entry_point,
-                    targets: &[ColorTargetState {
+                    targets: &[Some(ColorTargetState {
                         format: TextureFormat::Bgra8UnormSrgb,
                         blend: Some(BlendState::REPLACE),
                         write_mask: ColorWrites::ALL,
-                    }],
+                    })],
                 }),
                 multiview: None,
             })
@@ -261,14 +261,14 @@ impl GlowPostProcess {
         let mut create_pass = |pass_desc: &RenderPass, texture, label| {
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
                 label: Some(label),
-                color_attachments: &[RenderPassColorAttachment {
+                color_attachments: &[Some(RenderPassColorAttachment {
                     view: texture,
                     resolve_target: None,
                     ops: Operations {
                         load: LoadOp::Clear(Color::BLACK),
                         store: true,
                     },
-                }],
+                })],
                 depth_stencil_attachment: None,
             });
             pass.set_pipeline(&pass_desc.pipeline);
