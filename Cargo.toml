@@ -11,7 +11,7 @@ imgui-wgpu = "0.20"
 imgui-winit-support = { version = "0.8", default-features = false, features = [
     "winit-26",
 ] }
-winit = "0.26"
+winit = "0.27"
 rand = "0.8"
 rand_pcg = "0.3"
 simdnoise = "3.1"
