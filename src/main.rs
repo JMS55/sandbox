@@ -68,7 +68,7 @@ fn main() {
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::Resized(new_size) => {
                     pixels.resize_surface(new_size.width, new_size.height);
-                    glow_post_process.resize(pixels.device(), new_size.width, new_size.height);
+                    post_process.resize(pixels.device(), new_size.width, new_size.height);
                     game.last_window_resize = Some(Instant::now());
                 }
                 WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
@@ -117,7 +117,7 @@ fn main() {
 
             Event::MainEventsCleared => {
                 // Update game state
-                game.handle_window_resize(&window, &mut pixels, &mut glow_post_process);
+                game.handle_window_resize(&window, &mut pixels, &mut post_process);
                 game.place_queued_particles(&pixels);
                 game.update();
 
@@ -129,7 +129,7 @@ fn main() {
             // Render
             Event::RedrawRequested(_) => {
                 profile_scope!("render");
-                let has_glow = game.sandbox.render(pixels.get_frame());
+                game.sandbox.render(pixels.get_frame());
 
                 profile_scope!("render_gpu");
                 let _ = pixels.render_with(|encoder, surface_texture, context| {

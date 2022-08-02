@@ -380,6 +380,7 @@ pub fn ptype_ui_color(ptype: Option<ParticleType>) -> [u8; 3] {
         Some(ParticleType::Mirror) => [78, 216, 131],
         Some(ParticleType::Steam) => unreachable!(),
         Some(ParticleType::Glitch) => [89, 96, 90],
+    }
 }
 
 pub fn ptype_ui_text_color(ptype: Option<ParticleType>) -> [u8; 3] {
@@ -402,7 +403,7 @@ pub fn ptype_ui_text_color(ptype: Option<ParticleType>) -> [u8; 3] {
         Some(ParticleType::Fire) => false,
         Some(ParticleType::Mirror) => false,
         Some(ParticleType::Steam) => unreachable!(),
-        Some(ParticleType::Glitch) => false,
+        Some(ParticleType::Glitch) => true,
     };
     if light {
         [204, 204, 204]
