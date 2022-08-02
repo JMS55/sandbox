@@ -227,7 +227,7 @@ impl Particle {
         tc
     }
 
-    pub fn base_color(&self, rng: &mut Pcg64) -> (u8, u8, u8) {
+    pub fn base_color(&self) -> (u8, u8, u8) {
         match self.ptype {
             ParticleType::Sand => {
                 if self.extra_data1 == 0 {
@@ -293,13 +293,7 @@ impl Particle {
                 ((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
             }
             ParticleType::Steam => (40, 140, 140),
-            ParticleType::Glitch => {
-                if rng.gen_bool(0.95) {
-                    (81, 80, 66)
-                } else {
-                    (218, 101, 126)
-                }
-            }
+            ParticleType::Glitch => (90, 90, 90),
         }
     }
 
@@ -334,7 +328,7 @@ impl Particle {
             ParticleType::Fire => 50,
             ParticleType::Mirror => 20,
             ParticleType::Steam => 10,
-            ParticleType::Glitch => 30,
+            ParticleType::Glitch => 0,
         }
     }
 
@@ -357,7 +351,7 @@ impl Particle {
             ParticleType::Fire => true,
             ParticleType::Mirror => false,
             ParticleType::Steam => false,
-            ParticleType::Glitch => true,
+            ParticleType::Glitch => false,
         }
     }
 

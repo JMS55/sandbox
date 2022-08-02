@@ -379,8 +379,7 @@ pub fn ptype_ui_color(ptype: Option<ParticleType>) -> [u8; 3] {
         Some(ParticleType::Fire) => [255, 151, 20],
         Some(ParticleType::Mirror) => [78, 216, 131],
         Some(ParticleType::Steam) => unreachable!(),
-        Some(ParticleType::Glitch) => [120, 119, 100],
-    }
+        Some(ParticleType::Glitch) => [89, 96, 90],
 }
 
 pub fn ptype_ui_text_color(ptype: Option<ParticleType>) -> [u8; 3] {

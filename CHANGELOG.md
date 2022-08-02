@@ -1,3 +1,7 @@
+# 1.4.0 (????-??-??)
+### Misc
+* Improve Glitch graphics
+
 # 1.3.0 (2021-02-14)
 ### Gameplay
 * Acid now generates heat when added to Water

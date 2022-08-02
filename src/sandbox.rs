@@ -195,18 +195,17 @@ impl Sandbox {
         }
     }
 
-    pub fn render(&mut self, frame: &mut [u8]) -> bool {
+    pub fn render(&mut self, frame: &mut [u8]) {
         profile_scope!("render_cpu");
 
         let noise = self.noise_queue_receiver.recv().ok();
 
-        let mut has_glow = false;
         let mut i = 0;
         for y in 0..SANDBOX_HEIGHT {
             for x in 0..SANDBOX_WIDTH {
                 if let Some(particle) = &self.cells[x][y] {
                     // Base color
-                    let base_color = particle.base_color(&mut self.rng);
+                    let base_color = particle.base_color();
 
                     // Tint blue/red based on temperature, except for Electricity
                     let mut r = 0;
@@ -266,8 +265,9 @@ impl Sandbox {
                     frame[frame_i + 1] = color.1;
                     frame[frame_i + 2] = color.2;
                     frame[frame_i + 3] = if particle.is_glowing() {
-                        has_glow = true;
                         0
+                    } else if particle.ptype == ParticleType::Glitch {
+                        120
                     } else {
                         255
                     };
@@ -283,8 +283,6 @@ impl Sandbox {
                 i += 1;
             }
         }
-
-        has_glow
     }
 }
 

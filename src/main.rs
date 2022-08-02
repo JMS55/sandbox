@@ -1,13 +1,13 @@
 mod behavior;
 mod game;
-mod glow_post_process;
 mod heap_array;
 mod particle;
+mod post_process;
 mod sandbox;
 mod ui;
 
-use crate::glow_post_process::GlowPostProcess;
 use crate::particle::ParticleType;
+use crate::post_process::PostProcess;
 use crate::sandbox::{SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use crate::ui::UI;
 use game::Game;
@@ -48,8 +48,8 @@ fn main() {
             .blend_state(BlendState::REPLACE)
             .build()
             .expect("Failed to setup rendering");
-    let mut glow_post_process =
-        GlowPostProcess::new(pixels.device(), surface_size.width, surface_size.height);
+    let mut post_process =
+        PostProcess::new(pixels.device(), surface_size.width, surface_size.height);
     let mut ui = UI::new(&window, pixels.device(), pixels.queue());
 
     // Handle events
@@ -132,14 +132,12 @@ fn main() {
                 let has_glow = game.sandbox.render(pixels.get_frame());
 
                 profile_scope!("render_gpu");
-                let _ = pixels.render_with(|encoder, render_texture, context| {
-                    let scaling_renderer = &context.scaling_renderer;
-                    if has_glow {
-                        scaling_renderer.render(encoder, &glow_post_process.texture1);
-                        glow_post_process.render(encoder, render_texture);
-                    } else {
-                        scaling_renderer.render(encoder, render_texture);
-                    }
+                let _ = pixels.render_with(|encoder, surface_texture, context| {
+                    context
+                        .scaling_renderer
+                        .render(encoder, &post_process.texture1);
+
+                    post_process.render(encoder, surface_texture);
 
                     ui.render(
                         &mut game.sandbox,
@@ -150,7 +148,7 @@ fn main() {
                         &context.device,
                         &context.queue,
                         encoder,
-                        render_texture,
+                        surface_texture,
                     );
 
                     Ok(())

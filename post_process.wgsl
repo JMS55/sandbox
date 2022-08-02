@@ -38,9 +38,9 @@ fn blur(horizontal: bool, texture_coordinates: vec2<f32>) {
             coordinates.y = (coordinates.y + (f32(i) / (global.texture_size.y - 1.0)));
         }
         let tex_sample: vec4<f32> = textureSample(input_texture, texture_sampler, coordinates);
-        color = vec4<f32>(color.xyz + tex_sample.xyz, color.a);
+        color = vec4<f32>(color.rgb + tex_sample.rgb, color.a);
     }
-    color = vec4<f32>((color.xyz / vec3<f32>(9.0)).xyz, color.a);
+    color = vec4<f32>((color.rgb / vec3<f32>(9.0)).rgb, color.a);
 }
 
 @fragment
@@ -68,9 +68,18 @@ var input_texture1: texture_2d<f32>;
 var input_texture2: texture_2d<f32>;
 
 @fragment
-fn combine_main(@location(0) texture_coordinates: vec2<f32>) -> FragmentOutput {
+fn final_pass_main(@location(0) texture_coordinates: vec2<f32>) -> FragmentOutput {
     color = textureSample(input_texture1, texture_sampler, texture_coordinates);
-    color = color + textureSample(input_texture2, texture_sampler, texture_coordinates);
+    color += vec4<f32>(textureSample(input_texture2, texture_sampler, texture_coordinates).rgb, 0.0);
+
+    var c = color;
+    c.r = textureSample(input_texture1, texture_sampler, texture_coordinates + vec2<f32>(0.01, -0.01)).r;
+    c.g = textureSample(input_texture1, texture_sampler, texture_coordinates + vec2<f32>(-0.01, 0.0)).g;
+    c.b = textureSample(input_texture1, texture_sampler, texture_coordinates + vec2<f32>(0.0, 0.01)).b;
+    if (color.a > 0.0 && color.a < 1.0) {
+        color = c;
+    }
+
     color.a = 1.0;
     return FragmentOutput(color);
 }

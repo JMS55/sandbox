@@ -1,7 +1,7 @@
 use pixels::wgpu::util::{BufferInitDescriptor, DeviceExt};
 use pixels::wgpu::*;
 
-pub struct GlowPostProcess {
+pub struct PostProcess {
     pub texture1: TextureView,
     texture2: TextureView,
     texture3: TextureView,
@@ -17,7 +17,7 @@ pub struct GlowPostProcess {
     copy_glowing_pass: RenderPass,
     vertical_blur_pass: RenderPass,
     horizontal_blur_pass: RenderPass,
-    combine_pass: RenderPass,
+    final_pass: RenderPass,
 }
 
 struct RenderPass {
@@ -25,10 +25,10 @@ struct RenderPass {
     bind_group: BindGroup,
 }
 
-impl GlowPostProcess {
+impl PostProcess {
     pub fn new(device: &Device, texture_width: u32, texture_height: u32) -> Self {
         let sampler = device.create_sampler(&SamplerDescriptor {
-            label: Some("glow_post_process_sampler"),
+            label: Some("post_process_sampler"),
             address_mode_u: AddressMode::ClampToEdge,
             address_mode_v: AddressMode::ClampToEdge,
             address_mode_w: AddressMode::ClampToEdge,
@@ -42,7 +42,7 @@ impl GlowPostProcess {
             border_color: None,
         });
         let bind_group_layout1 = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-            label: Some("glow_post_process_bind_group_layout1"),
+            label: Some("post_process_bind_group_layout1"),
             entries: &[
                 BindGroupLayoutEntry {
                     binding: 0,
@@ -63,7 +63,7 @@ impl GlowPostProcess {
             ],
         });
         let bind_group_layout2 = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-            label: Some("glow_post_process_bind_group_layout2"),
+            label: Some("post_process_bind_group_layout2"),
             entries: &[
                 BindGroupLayoutEntry {
                     binding: 0,
@@ -94,7 +94,7 @@ impl GlowPostProcess {
             ],
         });
         let bind_group_layout3 = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-            label: Some("glow_post_process_bind_group_layout3"),
+            label: Some("post_process_bind_group_layout3"),
             entries: &[
                 BindGroupLayoutEntry {
                     binding: 0,
@@ -127,7 +127,7 @@ impl GlowPostProcess {
 
         let (
             [texture1, texture2, texture3],
-            [copy_glowing_bind_group, vertical_blur_bind_group, horizontal_blur_bind_group, combine_bind_group],
+            [copy_glowing_bind_group, vertical_blur_bind_group, horizontal_blur_bind_group, final_pass_bind_group],
         ) = create_resources(
             device,
             texture_width,
@@ -138,20 +138,20 @@ impl GlowPostProcess {
             &bind_group_layout3,
         );
 
-        let glow_shader = device.create_shader_module(include_wgsl!("../shaders/glow.wgsl"));
+        let shader = device.create_shader_module(include_wgsl!("../post_process.wgsl"));
 
         let pipeline_layout1 = device.create_pipeline_layout(&PipelineLayoutDescriptor {
-            label: Some("glow_post_process_pipeline_layout1"),
+            label: Some("post_process_pipeline_layout1"),
             bind_group_layouts: &[&bind_group_layout1],
             push_constant_ranges: &[],
         });
         let pipeline_layout2 = device.create_pipeline_layout(&PipelineLayoutDescriptor {
-            label: Some("glow_post_process_pipeline_layout2"),
+            label: Some("post_process_pipeline_layout2"),
             bind_group_layouts: &[&bind_group_layout2],
             push_constant_ranges: &[],
         });
         let pipeline_layout3 = device.create_pipeline_layout(&PipelineLayoutDescriptor {
-            label: Some("glow_post_process_pipeline_layout3"),
+            label: Some("post_process_pipeline_layout3"),
             bind_group_layouts: &[&bind_group_layout3],
             push_constant_ranges: &[],
         });
@@ -161,7 +161,7 @@ impl GlowPostProcess {
                 label: Some(label),
                 layout: Some(layout),
                 vertex: VertexState {
-                    module: &glow_shader,
+                    module: &shader,
                     entry_point: "fullscreen_main",
                     buffers: &[],
                 },
@@ -169,7 +169,7 @@ impl GlowPostProcess {
                 depth_stencil: None,
                 multisample: MultisampleState::default(),
                 fragment: Some(FragmentState {
-                    module: &glow_shader,
+                    module: &shader,
                     entry_point,
                     targets: &[Some(ColorTargetState {
                         format: TextureFormat::Bgra8UnormSrgb,
@@ -183,22 +183,22 @@ impl GlowPostProcess {
         let copy_glowing_pipeline = create_pipeline(
             "copy_glowing_main",
             &pipeline_layout1,
-            "glow_post_process_copy_glowing_pipeline",
+            "post_process_copy_glowing_pipeline",
         );
         let vertical_blur_pipeline = create_pipeline(
             "blur_vertical_main",
             &pipeline_layout2,
-            "glow_post_process_vertical_blur_pipeline",
+            "post_process_vertical_blur_pipeline",
         );
         let horizontal_blur_pipeline = create_pipeline(
             "blur_horizontal_main",
             &pipeline_layout2,
-            "glow_post_process_horizontal_blur_pipeline",
+            "post_process_horizontal_blur_pipeline",
         );
-        let combine_pipeline = create_pipeline(
-            "combine_main",
+        let final_pass_pipeline = create_pipeline(
+            "final_pass_main",
             &pipeline_layout3,
-            "glow_post_process_combine_pipeline",
+            "post_process_final_pass_pipeline",
         );
 
         Self {
@@ -226,9 +226,9 @@ impl GlowPostProcess {
                 pipeline: horizontal_blur_pipeline,
                 bind_group: horizontal_blur_bind_group,
             },
-            combine_pass: RenderPass {
-                pipeline: combine_pipeline,
-                bind_group: combine_bind_group,
+            final_pass: RenderPass {
+                pipeline: final_pass_pipeline,
+                bind_group: final_pass_bind_group,
             },
         }
     }
@@ -236,7 +236,7 @@ impl GlowPostProcess {
     pub fn resize(&mut self, device: &Device, texture_width: u32, texture_height: u32) {
         let (
             [texture1, texture2, texture3],
-            [copy_glowing_bind_group, vertical_blur_bind_group, horizontal_blur_bind_group, combine_bind_group],
+            [copy_glowing_bind_group, vertical_blur_bind_group, horizontal_blur_bind_group, final_pass_bind_group],
         ) = create_resources(
             device,
             texture_width,
@@ -254,7 +254,7 @@ impl GlowPostProcess {
         self.copy_glowing_pass.bind_group = copy_glowing_bind_group;
         self.vertical_blur_pass.bind_group = vertical_blur_bind_group;
         self.horizontal_blur_pass.bind_group = horizontal_blur_bind_group;
-        self.combine_pass.bind_group = combine_bind_group;
+        self.final_pass.bind_group = final_pass_bind_group;
     }
 
     pub fn render(&self, encoder: &mut CommandEncoder, render_texture: &TextureView) {
@@ -280,22 +280,22 @@ impl GlowPostProcess {
         create_pass(
             &self.copy_glowing_pass,
             &self.texture2,
-            "glow_post_process_copy_glowing_render_pass",
+            "post_process_copy_glowing_render_pass",
         );
         create_pass(
             &self.vertical_blur_pass,
             &self.texture3,
-            "glow_post_process_vertical_blur_render_pass",
+            "post_process_vertical_blur_render_pass",
         );
         create_pass(
             &self.horizontal_blur_pass,
             &self.texture2,
-            "glow_post_process_horizontal_blur_render_pass",
+            "post_process_horizontal_blur_render_pass",
         );
         create_pass(
-            &self.combine_pass,
+            &self.final_pass,
             &render_texture,
-            "glow_post_process_combine_render_pass",
+            "post_process_final_pass_render_pass",
         );
     }
 }
@@ -310,7 +310,7 @@ fn create_resources(
     bind_group_layout3: &BindGroupLayout,
 ) -> ([TextureView; 3], [BindGroup; 4]) {
     let mut texture_descriptor = TextureDescriptor {
-        label: Some("glow_post_process_texture1"),
+        label: Some("post_process_texture1"),
         size: Extent3d {
             width: texture_width,
             height: texture_height,
@@ -325,22 +325,22 @@ fn create_resources(
     let texture1 = device
         .create_texture(&texture_descriptor)
         .create_view(&TextureViewDescriptor::default());
-    texture_descriptor.label = Some("glow_post_process_texture2");
+    texture_descriptor.label = Some("post_process_texture2");
     let texture2 = device
         .create_texture(&texture_descriptor)
         .create_view(&TextureViewDescriptor::default());
-    texture_descriptor.label = Some("glow_post_process_texture3");
+    texture_descriptor.label = Some("post_process_texture3");
     let texture3 = device
         .create_texture(&texture_descriptor)
         .create_view(&TextureViewDescriptor::default());
     let texture_size_buffer = device.create_buffer_init(&BufferInitDescriptor {
-        label: Some("glow_post_process_texture_size_buffer"),
+        label: Some("post_process_texture_size_buffer"),
         contents: bytemuck::cast_slice(&[texture_width as f32, texture_height as f32]),
         usage: BufferUsages::UNIFORM,
     });
 
     let copy_glowing_bind_group = device.create_bind_group(&BindGroupDescriptor {
-        label: Some("glow_post_process_copy_glowing_bind_group"),
+        label: Some("post_process_copy_glowing_bind_group"),
         layout: bind_group_layout1,
         entries: &[
             BindGroupEntry {
@@ -354,7 +354,7 @@ fn create_resources(
         ],
     });
     let vertical_blur_bind_group = device.create_bind_group(&BindGroupDescriptor {
-        label: Some("glow_post_process_vertical_blur_bind_group"),
+        label: Some("post_process_vertical_blur_bind_group"),
         layout: bind_group_layout2,
         entries: &[
             BindGroupEntry {
@@ -372,7 +372,7 @@ fn create_resources(
         ],
     });
     let horizontal_blur_bind_group = device.create_bind_group(&BindGroupDescriptor {
-        label: Some("glow_post_process_horizontal_blur_bind_group"),
+        label: Some("post_process_horizontal_blur_bind_group"),
         layout: bind_group_layout2,
         entries: &[
             BindGroupEntry {
@@ -389,8 +389,8 @@ fn create_resources(
             },
         ],
     });
-    let combine_bind_group = device.create_bind_group(&BindGroupDescriptor {
-        label: Some("glow_post_process_combine_bind_group"),
+    let final_pass_bind_group = device.create_bind_group(&BindGroupDescriptor {
+        label: Some("post_process_final_pass_bind_group"),
         layout: bind_group_layout3,
         entries: &[
             BindGroupEntry {
@@ -414,7 +414,7 @@ fn create_resources(
             copy_glowing_bind_group,
             vertical_blur_bind_group,
             horizontal_blur_bind_group,
-            combine_bind_group,
+            final_pass_bind_group,
         ],
     )
 }

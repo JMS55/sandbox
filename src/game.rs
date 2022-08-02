@@ -1,5 +1,5 @@
-use crate::glow_post_process::GlowPostProcess;
 use crate::particle::{Particle, ParticleType};
+use crate::post_process::PostProcess;
 use crate::sandbox::{Sandbox, SANDBOX_HEIGHT, SANDBOX_WIDTH};
 use pixels::Pixels;
 use std::time::{Duration, Instant};
@@ -155,7 +155,7 @@ impl Game {
         &mut self,
         window: &Window,
         pixels: &mut Pixels,
-        glow_post_process: &mut GlowPostProcess,
+        post_process: &mut PostProcess,
     ) {
         // If a window resize is scheduled
         if let Some(last_window_resize) = self.last_window_resize {
@@ -176,11 +176,7 @@ impl Game {
                     window.set_inner_size(surface_size);
 
                     pixels.resize_surface(surface_size.width, surface_size.height);
-                    glow_post_process.resize(
-                        pixels.device(),
-                        surface_size.width,
-                        surface_size.height,
-                    );
+                    post_process.resize(pixels.device(), surface_size.width, surface_size.height);
                 }
 
                 self.last_window_resize = None;

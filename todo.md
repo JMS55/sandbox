@@ -10,12 +10,11 @@
 * Replace imgui for UI
 * Replace noise with shaders
 * WASM build
-* Improve glitch graphics
 * Save/Load simulations as images
 * Document particle state / replace magic numbers with constants
 
 * GPU Compute based updates?
-* Tempature transfer through empty cells?
+* Temperature transfer through empty cells?
 * Physics?
     * It's been suggested to group all connected particles together
     * Inside the group, each particle performs celluar automata movement
