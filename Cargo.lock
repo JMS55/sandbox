@@ -998,6 +998,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "puffin"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "796a1b7d7d0ec984dde24615178cbd14dc697ea4cdcddfd1fee9a5f87135f9e8"
+dependencies = [
+ "byteorder",
+ "once_cell",
+]
+
+[[package]]
 name = "puffin-imgui"
 version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1005,7 +1015,7 @@ checksum = "b8ad47d3c45841485aa62602ee89bb20eb9afca07cf56c081725e05967b80ff6"
 dependencies = [
  "imgui",
  "natord",
- "puffin",
+ "puffin 0.13.3",
  "serde",
 ]
 
@@ -1122,7 +1132,7 @@ dependencies = [
  "imgui-wgpu",
  "imgui-winit-support",
  "pixels",
- "puffin",
+ "puffin 0.14.0",
  "puffin-imgui",
  "rand",
  "rand_pcg",
