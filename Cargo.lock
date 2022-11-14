@@ -987,6 +987,16 @@ version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b40725b2702b9c660938b8d9c56978091252374cc50d73a83b59695b8d32ec03"
 dependencies = [
+ "byteorder",
+ "once_cell",
+]
+
+[[package]]
+name = "puffin"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "796a1b7d7d0ec984dde24615178cbd14dc697ea4cdcddfd1fee9a5f87135f9e8"
+dependencies = [
  "anyhow",
  "bincode",
  "byteorder",
@@ -999,13 +1009,13 @@ dependencies = [
 
 [[package]]
 name = "puffin-imgui"
-version = "0.17.0"
+version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8ad47d3c45841485aa62602ee89bb20eb9afca07cf56c081725e05967b80ff6"
+checksum = "625d2a19524f92de214c5acf2852de3231063ba2bce915aa2dfccfec2137f5fd"
 dependencies = [
  "imgui",
  "natord",
- "puffin",
+ "puffin 0.14.0",
  "serde",
 ]
 
@@ -1095,11 +1105,12 @@ checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "ruzstd"
-version = "0.2.4"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cada0ef59efa6a5f4dc5e491f93d9f31e3fc7758df421ff1de8a706338e1100"
+checksum = "ffae8df4aa221781b715c27bbed0fac16b6f1e2643efb7af8a24dfc78d444493"
 dependencies = [
  "byteorder",
+ "thiserror",
  "twox-hash",
 ]
 
@@ -1122,7 +1133,7 @@ dependencies = [
  "imgui-wgpu",
  "imgui-winit-support",
  "pixels",
- "puffin",
+ "puffin 0.13.3",
  "puffin-imgui",
  "rand",
  "rand_pcg",
