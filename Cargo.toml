@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 pixels = { git = "https://github.com/JMS55/pixels", branch = "main" }
-wgpu = "0.13"
+wgpu = "0.14"
 imgui = "0.8"
 imgui-wgpu = "0.20"
 imgui-winit-support = { version = "0.8", default-features = false, features = [
