@@ -18,7 +18,7 @@ simdnoise = "3.1"
 flume = { version = "0.10", default-features = false }
 puffin = "0.13"
 puffin-imgui = "0.17"
-bytemuck = "1.12"
+bytemuck = "1.13"
 
 [profile.dev]
 opt-level = 3
